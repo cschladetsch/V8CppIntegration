@@ -5,6 +5,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Enable testing
+enable_testing()
+
+# Find GTest
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+
 # Option to use system V8 or build from source
 option(USE_SYSTEM_V8 "Use system-installed V8 instead of building from source" ON)
 
@@ -79,11 +86,50 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/advanced_example.cpp")
     target_link_libraries(advanced_example PRIVATE V8::V8)
 endif()
 
+# Test suite with GTest
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_suite.cpp")
+    add_executable(test_suite test_suite.cpp)
+    target_link_libraries(test_suite PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
+    
+    # Add individual test cases
+    add_test(NAME V8Tests COMMAND test_suite)
+endif()
+
+# Advanced test suite with GTest
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/advanced_test_suite.cpp")
+    add_executable(advanced_test_suite advanced_test_suite.cpp)
+    target_link_libraries(advanced_test_suite PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
+    
+    # Add individual test cases
+    add_test(NAME V8AdvancedTests COMMAND advanced_test_suite)
+endif()
+
 # Run target
 add_custom_target(run
     COMMAND system_v8_example
     DEPENDS system_v8_example
     COMMENT "Running V8 example..."
+)
+
+# Test target
+add_custom_target(run_tests
+    COMMAND test_suite
+    DEPENDS test_suite
+    COMMENT "Running V8 test suite..."
+)
+
+# Advanced test target
+add_custom_target(run_advanced_tests
+    COMMAND advanced_test_suite
+    DEPENDS advanced_test_suite
+    COMMENT "Running V8 advanced test suite..."
+)
+
+# Run all tests target
+add_custom_target(run_all_tests
+    COMMAND ./test_suite && ./advanced_test_suite
+    DEPENDS test_suite advanced_test_suite
+    COMMENT "Running all V8 test suites..."
 )
 
 # Installation
