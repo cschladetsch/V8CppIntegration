@@ -8,7 +8,7 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 2. **CMake Build System**: Modern CMake configuration with FindV8 module
 3. **Multiple Examples**: From minimal demos to advanced integration patterns
 4. **System V8 Support**: Option to use system-installed V8 libraries
-5. **Comprehensive Test Suite**: 40 GTest-based tests covering all aspects of V8 integration
+5. **Comprehensive Test Suite**: 60 GTest-based tests covering all aspects of V8 integration
 6. **Performance Benchmarks**: Google Benchmark integration for performance testing
 7. **Docker Support**: Multi-stage Docker builds for easy deployment
 8. **CI/CD Ready**: GitHub Actions workflow for automated testing
@@ -43,7 +43,7 @@ sudo apt-get install libv8-dev libgtest-dev
 ./build/v8_example
 ./build/advanced_example
 
-# 4. Run comprehensive test suite (40 tests)
+# 4. Run comprehensive test suite (60 tests)
 ./run_tests.sh
 ```
 
@@ -108,7 +108,7 @@ V8/
 
 ## Test Suite
 
-### Comprehensive Testing (40 Tests Total)
+### Comprehensive Testing (60 Tests Total)
 
 #### Basic Test Suite (`test_suite.cpp` - 20 tests)
 - V8 initialization and cleanup
@@ -131,6 +131,28 @@ V8/
 - Regular expressions
 - BigInt support
 
+#### Integration Test Suite (`integration_test_suite.cpp` - 20 tests)
+- Nested object property access
+- Array method chaining (map, filter, reduce)
+- ES6 classes and inheritance
+- Template literals with expressions
+- Destructuring assignment
+- Arrow functions and closures
+- Spread operator
+- Object.assign and property descriptors
+- Array.from and iterables
+- Default and rest parameters
+- for...of loops
+- Object.entries and Object.values
+- Promise.all and Promise.race
+- Modern string methods
+- Number and Math extensions
+- Async function simulation
+- Custom error handling
+- Complex data transformations
+- Recursion with memoization
+- Module pattern with private variables
+
 ### Running Tests
 ```bash
 # Run all tests
@@ -139,6 +161,7 @@ V8/
 # Run individual test suites
 ./build/test_suite
 ./build/advanced_test_suite
+./build/integration_test_suite
 
 # Use CMake targets
 cmake --build build --target run_tests

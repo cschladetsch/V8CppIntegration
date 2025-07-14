@@ -58,6 +58,11 @@ if [ ! -f "advanced_test_suite" ]; then
     exit 1
 fi
 
+if [ ! -f "integration_test_suite" ]; then
+    print_error "integration_test_suite executable not found. Build may have failed."
+    exit 1
+fi
+
 echo ""
 echo "=== Running Basic Test Suite (20 tests) ==="
 echo ""
@@ -71,6 +76,13 @@ echo ""
 
 # Run the advanced test suite
 ./advanced_test_suite
+
+echo ""
+echo "=== Running Integration Test Suite (20 tests) ==="
+echo ""
+
+# Run the integration test suite
+./integration_test_suite
 
 echo ""
 echo "=== Running Example Tests ==="
@@ -104,6 +116,9 @@ make run_tests
 
 print_status "Testing CMake run_advanced_tests target..."
 make run_advanced_tests
+
+print_status "Testing CMake run_integration_tests target..."
+make run_integration_tests
 
 print_status "Testing CMake run_all_tests target..."
 make run_all_tests
