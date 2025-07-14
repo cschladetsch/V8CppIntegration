@@ -1,19 +1,61 @@
 cmake_minimum_required(VERSION 3.14)
-project(V8Examples VERSION 1.0.0 LANGUAGES CXX)
+project(V8IntegrationFramework VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Enable testing
-enable_testing()
-
-# Find GTest
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
-
-# Option to use system V8 or build from source
+# Build options
 option(USE_SYSTEM_V8 "Use system-installed V8 instead of building from source" ON)
+option(ENABLE_TESTING "Enable testing" ON)
+option(ENABLE_BENCHMARKS "Enable benchmarks" ON)
+option(ENABLE_COVERAGE "Enable code coverage" OFF)
+option(ENABLE_SANITIZERS "Enable sanitizers" OFF)
+option(ENABLE_DOCS "Enable documentation generation" ON)
+option(ENABLE_EXAMPLES "Enable example builds" ON)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+
+# Enable testing
+if(ENABLE_TESTING)
+    enable_testing()
+endif()
+
+# Find dependencies
+find_package(GTest REQUIRED)
+find_package(Threads REQUIRED)
+
+# Find optional dependencies
+find_package(benchmark QUIET)
+find_package(OpenSSL QUIET)
+find_package(Doxygen QUIET)
+
+# Include directories
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${GTEST_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/v8_integration)
+
+# Compiler flags
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(-Wall -Wextra -Wpedantic)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_compile_options(-g -O0)
+    else()
+        add_compile_options(-O3 -DNDEBUG)
+    endif()
+endif()
+
+# Coverage flags
+if(ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(--coverage)
+    add_link_options(--coverage)
+endif()
+
+# Sanitizer flags
+if(ENABLE_SANITIZERS AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(-fsanitize=address -fsanitize=undefined)
+    add_link_options(-fsanitize=address -fsanitize=undefined)
+endif()
+
 
 if(USE_SYSTEM_V8)
     # Try to find V8 headers and libraries
@@ -132,10 +174,95 @@ add_custom_target(run_all_tests
     COMMENT "Running all V8 test suites..."
 )
 
+# Core V8 integration library (simplified for now)
+# if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/error_handler.cpp")
+#     add_library(v8_integration STATIC
+#         src/error_handler.cpp
+#         src/monitoring.cpp
+#         src/advanced_features.cpp
+#         src/security.cpp
+#     )
+#     target_include_directories(v8_integration PUBLIC include)
+#     target_link_libraries(v8_integration PUBLIC V8::V8 Threads::Threads)
+#     
+#     # Link examples with the integration library
+#     target_link_libraries(system_v8_example PRIVATE v8_integration)
+#     if(TARGET test_suite)
+#         target_link_libraries(test_suite PRIVATE v8_integration)
+#     endif()
+#     if(TARGET advanced_test_suite)
+#         target_link_libraries(advanced_test_suite PRIVATE v8_integration)
+#     endif()
+# endif()
+
+# Performance benchmarks
+if(benchmark_FOUND AND ENABLE_BENCHMARKS)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/performance_tests.cpp")
+        add_executable(performance_tests performance_tests.cpp)
+        target_link_libraries(performance_tests PRIVATE V8::V8 benchmark::benchmark)
+        if(TARGET v8_integration)
+            target_link_libraries(performance_tests PRIVATE v8_integration)
+        endif()
+        
+        add_custom_target(run_benchmarks
+            COMMAND performance_tests
+            DEPENDS performance_tests
+            COMMENT "Running performance benchmarks..."
+        )
+    endif()
+endif()
+
+# Documentation generation
+if(Doxygen_FOUND AND ENABLE_DOCS)
+    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile)
+    set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+    
+    configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+    
+    add_custom_target(docs
+        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM
+    )
+endif()
+
+# Coverage target
+if(ENABLE_COVERAGE)
+    find_program(LCOV_PATH lcov)
+    find_program(GENHTML_PATH genhtml)
+    
+    if(LCOV_PATH AND GENHTML_PATH)
+        add_custom_target(coverage
+            COMMAND ${LCOV_PATH} --directory . --capture --output-file coverage.info
+            COMMAND ${LCOV_PATH} --remove coverage.info '/usr/*' --output-file coverage.info
+            COMMAND ${LCOV_PATH} --list coverage.info
+            COMMAND ${GENHTML_PATH} -o coverage coverage.info
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Generating code coverage report"
+        )
+    endif()
+endif()
+
 # Installation
 install(TARGETS system_v8_example
     RUNTIME DESTINATION bin
 )
+
+if(TARGET v8_integration)
+    install(TARGETS v8_integration
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+    )
+    install(DIRECTORY include/v8_integration DESTINATION include)
+endif()
+
+if(TARGET performance_tests)
+    install(TARGETS performance_tests
+        RUNTIME DESTINATION bin
+    )
+endif()
 
 # Print configuration summary
 message(STATUS "")
