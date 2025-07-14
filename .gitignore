@@ -1,3 +1,5 @@
+/cmake
+
 # V8 source and build
 /v8/
 /depot_tools/

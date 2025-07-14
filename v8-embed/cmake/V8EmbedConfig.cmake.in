@@ -1,0 +1,12 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Find V8 dependency
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../../cmake")
+find_dependency(V8 REQUIRED)
+
+# Include targets file
+include("${CMAKE_CURRENT_LIST_DIR}/V8EmbedTargets.cmake")
+
+check_required_components(V8Embed)

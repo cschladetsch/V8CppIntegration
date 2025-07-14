@@ -1,0 +1,83 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 14,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Default Config",
+            "description": "Default build configuration",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "BUILD_EXAMPLES": "ON"
+            }
+        },
+        {
+            "name": "debug",
+            "inherits": "default",
+            "displayName": "Debug Config",
+            "description": "Debug build configuration",
+            "binaryDir": "${sourceDir}/build-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "ninja",
+            "inherits": "default",
+            "displayName": "Ninja",
+            "description": "Build with Ninja",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-ninja"
+        },
+        {
+            "name": "system-v8",
+            "inherits": "default",
+            "displayName": "System V8",
+            "description": "Use system-installed V8",
+            "cacheVariables": {
+                "USE_SYSTEM_V8": "ON"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "default",
+            "configurePreset": "default"
+        },
+        {
+            "name": "debug",
+            "configurePreset": "debug"
+        },
+        {
+            "name": "ninja",
+            "configurePreset": "ninja"
+        },
+        {
+            "name": "setup-v8",
+            "configurePreset": "default",
+            "targets": ["setup-v8"]
+        },
+        {
+            "name": "build-v8",
+            "configurePreset": "default",
+            "targets": ["build-v8"]
+        },
+        {
+            "name": "run-basic",
+            "configurePreset": "default",
+            "targets": ["run-basic"]
+        },
+        {
+            "name": "run-advanced",
+            "configurePreset": "default",
+            "targets": ["run-advanced"]
+        }
+    ]
+}
