@@ -134,7 +134,7 @@ V8/
 
 ### Comprehensive Testing (60 Tests Total)
 
-#### Basic Test Suite (`Source/test_suite.cpp` - 20 tests)
+#### Basic Test Suite (`Tests/Unit/BasicTests.cpp` - 20 tests)
 - V8 initialization and cleanup
 - JavaScript execution
 - Data type conversions (strings, numbers, booleans)
@@ -144,7 +144,7 @@ V8/
 - JSON parsing/stringify
 - Memory management
 
-#### Advanced Test Suite (`Source/advanced_test_suite.cpp` - 20 tests)
+#### Advanced Test Suite (`Tests/Unit/AdvancedTests.cpp` - 20 tests)
 - Promises and async operations
 - ArrayBuffer and TypedArray
 - ES6 features (Map, Set, Symbol)
@@ -155,7 +155,7 @@ V8/
 - Regular expressions
 - BigInt support
 
-#### Integration Test Suite (`Source/integration_test_suite.cpp` - 20 tests)
+#### Integration Test Suite (`Tests/Integration/IntegrationTests.cpp` - 20 tests)
 - Nested object property access
 - Array method chaining (map, filter, reduce)
 - ES6 classes and inheritance
@@ -183,9 +183,9 @@ V8/
 ./run_tests.sh
 
 # Run individual test suites
-./build/test_suite
-./build/advanced_test_suite
-./build/integration_test_suite
+./build/BasicTests
+./build/AdvancedTests
+./build/IntegrationTests
 
 # Use CMake targets
 cmake --build build --target run_tests
@@ -194,7 +194,7 @@ cmake --build build --target run_all_tests
 
 ## Performance Benchmarks
 
-The project includes comprehensive performance benchmarks (`performance_tests.cpp`):
+The project includes comprehensive performance benchmarks (`Tests/Performance/BenchmarkTests.cpp`):
 
 ```bash
 # Build with benchmarks
@@ -202,7 +202,7 @@ cmake -B build -DENABLE_BENCHMARKS=ON
 cmake --build build
 
 # Run benchmarks
-./build/performance_tests
+./build/BenchmarkTests
 ```
 
 Benchmarks include:
