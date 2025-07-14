@@ -1,6 +1,6 @@
 # Source Directory
 
-This directory contains the implementation files for the V8 C++ Integration Framework.
+This directory contains reference implementation files for advanced V8 integration features.
 
 ## Structure
 
@@ -11,6 +11,10 @@ src/
 ├── monitoring.cpp         # Monitoring and observability implementation
 └── security.cpp          # Security and sandboxing implementation
 ```
+
+## Important Note
+
+These source files are provided as reference implementations to accompany the headers in `include/v8_integration/`. They are not currently integrated into the main build system due to V8 API version compatibility considerations. They serve as examples of how the interfaces could be implemented.
 
 ## Implementation Files
 
@@ -47,21 +51,36 @@ Handles security features:
 - Cryptographic operations
 - Security policy enforcement
 
-## Building
+## Using These Implementations
 
-These source files are compiled into a static library (v8_integration) when building the project:
+To use these reference implementations in your project:
 
-```bash
-cmake -B build
-cmake --build build
-```
+1. **Copy the needed files** to your project
+2. **Adapt for your V8 version** - The code may need modifications for different V8 API versions
+3. **Add to your build system**:
+   ```cmake
+   add_library(v8_integration STATIC
+       src/error_handler.cpp
+       src/monitoring.cpp
+       src/advanced_features.cpp
+       src/security.cpp
+   )
+   target_link_libraries(v8_integration PUBLIC V8::V8 Threads::Threads)
+   ```
 
 ## Dependencies
 
-- V8 JavaScript Engine
+- V8 JavaScript Engine (version-specific APIs)
 - C++17 or later
 - POSIX threads
-- OpenSSL (for cryptographic operations)
+- OpenSSL (optional, for cryptographic operations)
+
+## Compatibility Notes
+
+- Written for V8 API version 8.x-9.x
+- Some APIs (like `SetFatalErrorCallback`) may not exist in all V8 versions
+- `CpuProfiler` API has changed across V8 versions
+- Resource limit APIs vary by V8 build configuration
 
 ## Thread Safety
 

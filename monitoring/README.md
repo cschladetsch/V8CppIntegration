@@ -5,12 +5,16 @@ This directory contains configuration files for monitoring and observability too
 ## Files
 
 ### prometheus.yml
-Prometheus configuration for scraping metrics from V8 integration services.
+Prometheus configuration template for scraping metrics from V8 integration services.
 
-**Configured Jobs:**
+**Pre-configured Jobs:**
 - `v8-integration`: Main application metrics (port 8080)
 - `v8-performance`: Performance metrics endpoint (port 8081)
 - `v8-health`: Health check endpoint (port 8082)
+
+## Current Status
+
+This configuration is provided as a template for setting up monitoring. The actual metrics endpoints would need to be implemented in your application using the monitoring headers and implementations from the `include/` and `src/` directories.
 
 **Scrape Configuration:**
 ```yaml
@@ -59,9 +63,9 @@ sudo apt-get install grafana
 sudo systemctl start grafana-server
 ```
 
-## Available Metrics
+## Example Metrics
 
-The V8 Integration Framework exposes the following metrics:
+If you implement the monitoring features using the provided headers, you could expose metrics like:
 
 ### System Metrics
 - `v8_heap_used_bytes`: Current heap memory usage
@@ -123,8 +127,11 @@ groups:
 
 ## Integration with Application
 
-The monitoring system integrates with the application through:
-1. MetricsCollector class for exposing metrics
-2. HealthChecker for health endpoints
-3. TracingManager for distributed tracing
-4. LogAggregator for centralized logging
+To integrate monitoring into your application:
+
+1. Use the `MetricsCollector` class from `include/v8_integration/monitoring.h`
+2. Implement health check endpoints using `HealthChecker`
+3. Add distributed tracing with `TracingManager`
+4. Aggregate logs using `LogAggregator`
+
+See the header files and reference implementations for detailed examples.

@@ -1,36 +1,17 @@
-# V8 C++ Integration Framework
+# V8 C++ Integration Examples
 
-A production-ready C++ framework for V8 JavaScript engine integration with comprehensive testing, monitoring, security, and development tools.
+This repository demonstrates how to build V8 and create bidirectional communication between C++ and JavaScript, with comprehensive examples and testing.
 
 ## Features
 
-### Core Framework
 1. **V8 Build System**: Scripts to download and build V8 from source
 2. **CMake Build System**: Modern CMake configuration with FindV8 module
 3. **Multiple Examples**: From minimal demos to advanced integration patterns
 4. **System V8 Support**: Option to use system-installed V8 libraries
-5. **Flexible Build Options**: Multiple build scripts for different scenarios
-6. **Comprehensive Test Suite**: 40 GTest-based tests covering all aspects of V8 integration
-
-### Production Features
-7. **Error Handling & Logging**: Comprehensive error handling and structured logging system
-8. **Security & Sandboxing**: Advanced security features with code validation and sandboxing
-9. **Performance Monitoring**: Real-time performance metrics and profiling tools
-10. **Docker Support**: Multi-stage Docker builds for production, development, and testing
-11. **CI/CD Pipeline**: GitHub Actions workflow with comprehensive testing and security scanning
-12. **Documentation**: Doxygen-based API documentation generation
-
-### Advanced V8 Features
-13. **WebAssembly Support**: WASM module loading and execution
-14. **Async/Await**: Promise-based asynchronous operations
-15. **Module System**: ES6 modules and CommonJS support
-16. **Real-world Integration**: HTTP server, database, and file system examples
-17. **Monitoring & Observability**: Prometheus metrics, health checks, and distributed tracing
-
-### Developer Experience
-18. **Performance Benchmarking**: Google Benchmark integration for performance testing
-19. **Memory Management**: Advanced memory tracking and garbage collection monitoring
-20. **Development Tools**: Enhanced debugging and profiling capabilities
+5. **Comprehensive Test Suite**: 40 GTest-based tests covering all aspects of V8 integration
+6. **Performance Benchmarks**: Google Benchmark integration for performance testing
+7. **Docker Support**: Multi-stage Docker builds for easy deployment
+8. **CI/CD Ready**: GitHub Actions workflow for automated testing
 
 ## Prerequisites
 
@@ -51,7 +32,7 @@ sudo apt-get install libv8-dev libgtest-dev
 
 ### Option 1: Using System V8 (Recommended)
 ```bash
-# 1. Install system V8 libraries and Google Test
+# 1. Install dependencies
 sudo apt-get install libv8-dev libgtest-dev
 
 # 2. Build with system V8
@@ -68,21 +49,147 @@ sudo apt-get install libv8-dev libgtest-dev
 
 ### Option 2: Build V8 from Source
 ```bash
-# 1. Setup, build V8, and build examples in one command
+# 1. Setup and build V8 (takes 10-30 minutes)
 ./build.sh --setup-v8 --build-v8
 
 # 2. Run examples
 ./build/v8_example
 ./build/advanced_example
-
-# Or use CMake targets
-cmake --build build --target run-basic
-cmake --build build --target run-advanced
 ```
+
+## Project Structure
+
+```
+V8/
+├── .github/workflows/    # CI/CD pipeline configuration
+├── build/               # Build output directory (generated)
+├── cmake/               # CMake modules (FindV8.cmake)
+├── config/              # Configuration files (placeholder)
+├── docs/                # Documentation (Doxygen config)
+├── examples/            # Additional examples
+│   └── web_server_example.cpp
+├── include/             # Header files for framework features
+│   └── v8_integration/  # Framework headers (future use)
+├── monitoring/          # Monitoring configuration
+├── src/                 # Source files (future use)
+├── *.cpp                # Example and test files
+├── build*.sh            # Build scripts
+├── Dockerfile           # Docker configuration
+└── docker-compose.yml   # Docker Compose setup
+```
+
+## Examples
+
+### 1. Minimal Example (`minimal_v8_example.cpp`)
+- Bare minimum V8 integration
+- Shows basic setup and teardown
+
+### 2. System V8 Example (`system_v8_example.cpp`)
+- Uses system-installed V8 libraries
+- Simple JavaScript execution from C++
+- Basic data exchange
+
+### 3. Standard Example (`v8_example.cpp`)
+- Comprehensive bidirectional communication
+- C++ functions callable from JavaScript
+- JavaScript functions callable from C++
+- Data passing between environments
+
+### 4. Advanced Example (`advanced_example.cpp`)
+- Native C++ objects exposed to JavaScript
+- Event emitter pattern
+- Async callbacks
+- Complex data structures
+
+### 5. Web Server Example (`examples/web_server_example.cpp`)
+- HTTP server using V8 for request handling
+- JavaScript-based routing
+- JSON API support
+
+## Test Suite
+
+### Comprehensive Testing (40 Tests Total)
+
+#### Basic Test Suite (`test_suite.cpp` - 20 tests)
+- V8 initialization and cleanup
+- JavaScript execution
+- Data type conversions (strings, numbers, booleans)
+- Arrays and objects
+- Function bindings
+- Exception handling
+- JSON parsing/stringify
+- Memory management
+
+#### Advanced Test Suite (`advanced_test_suite.cpp` - 20 tests)
+- Promises and async operations
+- ArrayBuffer and TypedArray
+- ES6 features (Map, Set, Symbol)
+- Proxy and Reflect
+- Generators and iterators
+- Template objects
+- Context isolation
+- Regular expressions
+- BigInt support
+
+### Running Tests
+```bash
+# Run all tests
+./run_tests.sh
+
+# Run individual test suites
+./build/test_suite
+./build/advanced_test_suite
+
+# Use CMake targets
+cmake --build build --target run_tests
+cmake --build build --target run_all_tests
+```
+
+## Performance Benchmarks
+
+The project includes comprehensive performance benchmarks (`performance_tests.cpp`):
+
+```bash
+# Build with benchmarks
+cmake -B build -DENABLE_BENCHMARKS=ON
+cmake --build build
+
+# Run benchmarks
+./build/performance_tests
+```
+
+Benchmarks include:
+- Simple JavaScript execution
+- Function calls
+- Object creation
+- Array operations
+- JSON parsing
+- Memory allocation
+- Garbage collection
+- Promise operations
+
+## Docker Support
+
+### Quick Start with Docker
+```bash
+# Run tests in Docker
+docker-compose up v8-test
+
+# Development environment
+docker-compose up v8-dev
+
+# Run benchmarks
+docker-compose up v8-benchmark
+```
+
+### Docker Images
+- **Production**: Minimal runtime environment
+- **Development**: Full development tools
+- **Testing**: Automated test execution
 
 ## Build Options
 
-### Using the build.sh script
+### Using build.sh
 ```bash
 ./build.sh [options]
   --debug       Build in debug mode
@@ -92,209 +199,48 @@ cmake --build build --target run-advanced
   --system-v8   Use system-installed V8
 ```
 
-### Using CMake directly
+### Using CMake
 ```bash
-mkdir build && cd build
-cmake .. [options]
+cmake -B build [options]
   -DCMAKE_BUILD_TYPE=Release|Debug
   -DUSE_SYSTEM_V8=ON|OFF
-  -DBUILD_EXAMPLES=ON|OFF
-  
-# Custom targets
-cmake --build . --target setup-v8    # Download V8
-cmake --build . --target build-v8    # Build V8
-cmake --build . --target run-basic   # Run basic example
-cmake --build . --target run-advanced # Run advanced example
+  -DENABLE_TESTING=ON|OFF
+  -DENABLE_BENCHMARKS=ON|OFF
 ```
 
-### Manual V8 build
-```bash
-# 1. Set up V8 build environment and download V8
-./setup_v8.sh
+## Framework Components (Headers Available)
 
-# 2. Build V8 (this takes 10-30 minutes)
-./build_v8.sh
+The `include/v8_integration/` directory contains headers for advanced features:
+- **error_handler.h**: Error handling and logging utilities
+- **monitoring.h**: Metrics and observability features
+- **security.h**: Sandboxing and security features
+- **advanced_features.h**: WebAssembly, async, and module support
 
-# 3. Build examples with CMake
-mkdir build && cd build
-```
+Note: These components are provided as a foundation for extending the framework.
 
-## Docker Usage
+## CI/CD Pipeline
 
-### Production Container
-```bash
-# Build and run production container
-docker-compose up v8-integration
-
-# Or build manually
-docker build --target production -t v8-integration .
-docker run v8-integration
-```
-
-### Development Container
-```bash
-# Start development environment
-docker-compose up v8-dev
-
-# Access development container
-docker exec -it v8-cpp-dev /bin/bash
-```
-
-### Testing Container
-```bash
-# Run all tests in container
-docker-compose up v8-test
-
-# Run benchmarks
-docker-compose up v8-benchmark
-```
-
-### Monitoring Stack
-```bash
-# Start monitoring with Prometheus and Grafana
-docker-compose up prometheus grafana
-
-# Access Grafana at http://localhost:3000 (admin/admin)
-# Access Prometheus at http://localhost:9090
-```
-
-## File Structure
-
-### Build Scripts
-- `build.sh` - Main build orchestration script
-- `setup_v8.sh` - Downloads depot_tools and V8 source code
-- `build_v8.sh` - Builds V8 as a static library
-- `build_all.sh` - Convenience script to build all examples
-- `build_cmake.sh` - CMake-specific build script
-- `build_simple.sh` - Simple build without CMake
-- `quick_build.sh` - Fast build for development
-- `run_tests.sh` - Comprehensive test runner for all test suites
-
-### Example Files
-- `minimal_v8_example.cpp` - Minimal demo without V8 integration
-- `system_v8_example.cpp` - Basic example using system V8:
-  - Simple C++ to JavaScript function calls
-  - Basic data exchange
-- `v8_example.cpp` - Comprehensive bidirectional communication:
-  - Calling C++ functions from JavaScript
-  - Calling JavaScript functions from C++
-  - Passing data between C++ and JavaScript
-- `advanced_example.cpp` - Advanced features:
-  - Native C++ objects exposed to JavaScript
-  - Async callbacks
-  - Event emitter pattern
-  - Complex data structures
-
-### Test Suite
-- `test_suite.cpp` - Basic V8 integration tests (20 tests):
-  - Core V8 engine functionality
-  - Data type conversions
-  - Function integration
-  - JSON handling
-  - Error handling
-  - Memory management
-- `advanced_test_suite.cpp` - Advanced V8 feature tests (20 tests):
-  - Modern JavaScript features (Promises, Maps, Sets, Symbols)
-  - Advanced data structures (ArrayBuffer, TypedArray)
-  - Metaprogramming (Proxy, Reflect)
-  - Generators and iterators
-
-## Project Structure
-
-```
-V8/
-├── .github/          # GitHub Actions workflows and configuration
-├── build/            # Build output directory (generated)
-├── cmake/            # CMake modules and find scripts
-├── config/           # Configuration files
-├── docs/             # Documentation and Doxygen configuration
-├── examples/         # Example applications
-├── include/          # Header files
-│   └── v8_integration/
-│       ├── advanced_features.h
-│       ├── error_handler.h
-│       ├── monitoring.h
-│       └── security.h
-├── monitoring/       # Prometheus and monitoring configuration
-├── src/              # Source implementation files
-├── v8-embed/         # V8 embedding utilities
-├── Dockerfile        # Multi-stage Docker configuration
-├── docker-compose.yml # Docker Compose for all services
-└── CMakeLists.txt    # Main CMake configuration
-```
-
-## Framework Components
-
-### Error Handling & Logging
-- Structured logging with multiple levels
-- V8-specific error handling
-- Stack trace capture
-- Performance monitoring
-
-### Security & Sandboxing
-- JavaScript code sandboxing
-- Resource limiting (memory, CPU)
-- Code validation and pattern detection
-- Cryptographic utilities
-
-### Monitoring & Observability
-- Prometheus metrics export
-- Health check endpoints
-- Distributed tracing (Jaeger/Zipkin)
-- Resource monitoring
-- Alert management
-
-### Advanced V8 Features
-- WebAssembly module support
-- Async/await and Promises
-- ES6 modules and CommonJS
-- Worker threads
-- Context isolation
-
-## API Documentation
-
-Generate full API documentation:
-
-```bash
-cmake -B build -DENABLE_DOCS=ON
-cmake --build build --target docs
-# Open docs/html/index.html
-```
-
-## Performance Benchmarks
-
-Run performance benchmarks:
-
-```bash
-# Build with benchmarks enabled
-cmake -B build -DENABLE_BENCHMARKS=ON
-cmake --build build
-
-# Run benchmarks
-./build/performance_tests
-
-# Or in Docker
-docker-compose up v8-benchmark
-```
+GitHub Actions workflow (`.github/workflows/ci.yml`) provides:
+- Multi-platform builds (Ubuntu, macOS, Windows)
+- Multiple compiler testing
+- Automated test execution
+- Docker image building
+- Security scanning
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
 
-### Code Style
-- Follow C++17 standards
-- Use clang-format for formatting
-- Add tests for new features
-- Update documentation
+## Troubleshooting
 
-### Testing
-- Write unit tests for new functionality
-- Ensure all tests pass before submitting PR
-- Add integration tests for complex features
+1. **Build fails**: Ensure all dependencies are installed
+2. **V8 not found**: Install libv8-dev or build from source
+3. **Test failures**: Check V8 version compatibility
+4. **Memory issues**: V8 build requires 4-8GB RAM
 
 ## License
 
@@ -305,4 +251,4 @@ This project is open source. See LICENSE file for details.
 - V8 JavaScript Engine team
 - Google Test framework
 - Google Benchmark library
-- Prometheus monitoring system
+- CMake build system

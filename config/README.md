@@ -1,10 +1,10 @@
 # Config Directory
 
-This directory is designated for configuration files used by the V8 C++ Integration Framework.
+This directory is designated for configuration files that could be used with the V8 integration examples.
 
 ## Purpose
 
-Store application configuration files here, such as:
+This is a placeholder directory where you can store application configuration files, such as:
 - Runtime configuration (JSON, YAML, INI)
 - Environment-specific settings
 - Feature flags and toggles
@@ -69,7 +69,7 @@ NODE_ENV=development
 
 ## Loading Configuration
 
-The framework provides multiple ways to load configuration:
+If you implement the `ConfigManager` class from the provided headers:
 
 ```cpp
 // Using ConfigManager
@@ -79,6 +79,8 @@ config.loadConfig("config/app.json");
 // Access configuration values
 auto memoryLimit = config.get(isolate, "v8.memory_limit_mb");
 ```
+
+Note: The `ConfigManager` is defined in `include/v8_integration/advanced_features.h` as a reference implementation.
 
 ## Best Practices
 
