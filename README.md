@@ -1,15 +1,36 @@
-# V8 C++ Integration Examples
+# V8 C++ Integration Framework
 
-This repository demonstrates how to build V8 and create bidirectional communication between C++ and JavaScript.
+A production-ready C++ framework for V8 JavaScript engine integration with comprehensive testing, monitoring, security, and development tools.
 
 ## Features
 
+### Core Framework
 1. **V8 Build System**: Scripts to download and build V8 from source
 2. **CMake Build System**: Modern CMake configuration with FindV8 module
 3. **Multiple Examples**: From minimal demos to advanced integration patterns
 4. **System V8 Support**: Option to use system-installed V8 libraries
 5. **Flexible Build Options**: Multiple build scripts for different scenarios
 6. **Comprehensive Test Suite**: 40 GTest-based tests covering all aspects of V8 integration
+
+### Production Features
+7. **Error Handling & Logging**: Comprehensive error handling and structured logging system
+8. **Security & Sandboxing**: Advanced security features with code validation and sandboxing
+9. **Performance Monitoring**: Real-time performance metrics and profiling tools
+10. **Docker Support**: Multi-stage Docker builds for production, development, and testing
+11. **CI/CD Pipeline**: GitHub Actions workflow with comprehensive testing and security scanning
+12. **Documentation**: Doxygen-based API documentation generation
+
+### Advanced V8 Features
+13. **WebAssembly Support**: WASM module loading and execution
+14. **Async/Await**: Promise-based asynchronous operations
+15. **Module System**: ES6 modules and CommonJS support
+16. **Real-world Integration**: HTTP server, database, and file system examples
+17. **Monitoring & Observability**: Prometheus metrics, health checks, and distributed tracing
+
+### Developer Experience
+18. **Performance Benchmarking**: Google Benchmark integration for performance testing
+19. **Memory Management**: Advanced memory tracking and garbage collection monitoring
+20. **Development Tools**: Enhanced debugging and profiling capabilities
 
 ## Prerequisites
 
@@ -96,8 +117,45 @@ cmake --build . --target run-advanced # Run advanced example
 
 # 3. Build examples with CMake
 mkdir build && cd build
-cmake ..
-make -j$(nproc)
+```
+
+## Docker Usage
+
+### Production Container
+```bash
+# Build and run production container
+docker-compose up v8-integration
+
+# Or build manually
+docker build --target production -t v8-integration .
+docker run v8-integration
+```
+
+### Development Container
+```bash
+# Start development environment
+docker-compose up v8-dev
+
+# Access development container
+docker exec -it v8-cpp-dev /bin/bash
+```
+
+### Testing Container
+```bash
+# Run all tests in container
+docker-compose up v8-test
+
+# Run benchmarks
+docker-compose up v8-benchmark
+```
+
+### Monitoring Stack
+```bash
+# Start monitoring with Prometheus and Grafana
+docker-compose up prometheus grafana
+
+# Access Grafana at http://localhost:3000 (admin/admin)
+# Access Prometheus at http://localhost:9090
 ```
 
 ## File Structure
@@ -140,144 +198,111 @@ make -j$(nproc)
   - Advanced data structures (ArrayBuffer, TypedArray)
   - Metaprogramming (Proxy, Reflect)
   - Generators and iterators
-  - V8 C++ API features
-  - Context isolation and security
 
-### Build System
-- `CMakeLists.txt` - Main CMake configuration with GTest integration
-- `CMakePresets.json` - CMake preset configurations
-- `Makefile` - Traditional Makefile build system
-- `Makefile.advanced` - Advanced Makefile configuration
-- `cmake/FindV8.cmake` - V8 library detection module
-- `v8-embed/` - Reusable V8 embedding library subproject
+## Project Structure
 
-## Example Features
-
-### System V8 Example (`system_v8_example.cpp`)
-- Basic V8 initialization with system libraries
-- Simple JavaScript execution from C++
-- Minimal overhead for quick prototyping
-
-### Standard V8 Example (`v8_example.cpp`)
-#### C++ to JavaScript
-```javascript
-// JavaScript can call C++ functions
-var result = cppFunction('Hello from JS!');
-var sum = addNumbers(10, 32);
+```
+V8/
+├── .github/          # GitHub Actions workflows and configuration
+├── build/            # Build output directory (generated)
+├── cmake/            # CMake modules and find scripts
+├── config/           # Configuration files
+├── docs/             # Documentation and Doxygen configuration
+├── examples/         # Example applications
+├── include/          # Header files
+│   └── v8_integration/
+│       ├── advanced_features.h
+│       ├── error_handler.h
+│       ├── monitoring.h
+│       └── security.h
+├── monitoring/       # Prometheus and monitoring configuration
+├── src/              # Source implementation files
+├── v8-embed/         # V8 embedding utilities
+├── Dockerfile        # Multi-stage Docker configuration
+├── docker-compose.yml # Docker Compose for all services
+└── CMakeLists.txt    # Main CMake configuration
 ```
 
-#### JavaScript to C++
-```cpp
-// C++ can call JavaScript functions
-CallJavaScriptFunction(isolate, context, js_code, "processData");
-```
+## Framework Components
 
-### Advanced Example (`advanced_example.cpp`)
-#### Native Objects
-```javascript
-// Create C++ objects from JavaScript
-var obj = new NativeObject('MyStore');
-obj.setValue('key', 123.45);
-var value = obj.getValue('key');
-```
+### Error Handling & Logging
+- Structured logging with multiple levels
+- V8-specific error handling
+- Stack trace capture
+- Performance monitoring
 
-#### Async Operations
-```javascript
-// Async callbacks
-asyncOperation(function(message, value) {
-    console.log('Callback:', message, value);
-});
-```
+### Security & Sandboxing
+- JavaScript code sandboxing
+- Resource limiting (memory, CPU)
+- Code validation and pattern detection
+- Cryptographic utilities
 
-#### Event Emitters
-```javascript
-// Event-driven communication
-on('data', function(data) {
-    console.log('Event:', data);
-});
-emit('data', { value: 42 });
-```
+### Monitoring & Observability
+- Prometheus metrics export
+- Health check endpoints
+- Distributed tracing (Jaeger/Zipkin)
+- Resource monitoring
+- Alert management
 
-## Testing
+### Advanced V8 Features
+- WebAssembly module support
+- Async/await and Promises
+- ES6 modules and CommonJS
+- Worker threads
+- Context isolation
 
-### Comprehensive Test Suite (40 Tests)
+## API Documentation
 
-This project includes a comprehensive test suite with 40 GTest-based tests covering all aspects of V8 C++ integration:
-
-#### Running Tests
+Generate full API documentation:
 
 ```bash
-# Run all tests with the test runner script
-./run_tests.sh
-
-# Or run individual test suites
-./build/test_suite              # Basic tests (20 tests)
-./build/advanced_test_suite     # Advanced tests (20 tests)
-
-# Or use CMake targets
-make run_tests                  # Basic test suite
-make run_advanced_tests         # Advanced test suite
-make run_all_tests             # All test suites
-make test                      # CTest integration
+cmake -B build -DENABLE_DOCS=ON
+cmake --build build --target docs
+# Open docs/html/index.html
 ```
 
-#### Test Categories
+## Performance Benchmarks
 
-**Basic Test Suite (20 tests):**
-1. Core V8 Engine Tests (5 tests) - Initialization, execution, data types
-2. Data Structure Tests (3 tests) - Arrays, objects, global access
-3. Function Integration Tests (3 tests) - Binding, calls, parameters
-4. Data Exchange Tests (3 tests) - JSON parsing/stringify, null/undefined
-5. Advanced Features Tests (3 tests) - Type checking, exceptions, compilation errors
-6. System Tests (3 tests) - Memory management, callbacks, performance
+Run performance benchmarks:
 
-**Advanced Test Suite (20 tests):**
-1. Modern JavaScript Features (7 tests) - Promises, Symbols, Maps, Sets, WeakMap/WeakSet, BigInt
-2. Advanced Data Structures (2 tests) - ArrayBuffer, TypedArray operations
-3. Metaprogramming Features (2 tests) - Proxy, Reflect API
-4. Advanced Language Features (2 tests) - Generators, Iterators
-5. V8 C++ API Features (3 tests) - Object/Function Templates, Prototype chains
-6. Context and Security (1 test) - Context isolation
-7. Script Management (1 test) - Compilation and caching
-8. Built-in Objects (2 tests) - RegExp, Date operations
+```bash
+# Build with benchmarks enabled
+cmake -B build -DENABLE_BENCHMARKS=ON
+cmake --build build
 
-#### Test Framework
+# Run benchmarks
+./build/performance_tests
 
-- **Google Test (GTest)** integration
-- **CMake CTest** support
-- **Automated test runner** with colored output
-- **Performance benchmarking** included
-- **Memory safety testing**
-
-## Build Options
-
-The V8 build is configured with:
-- Release mode (optimized)
-- x64 architecture
-- Monolithic build (single static library)
-- No external startup data
-- No i18n support (smaller size)
-
-## Troubleshooting
-
-1. **Build fails**: Ensure all dependencies are installed
-2. **Memory issues**: V8 build requires 4-8GB RAM
-3. **Linking errors**: Check that V8 was built successfully
-
-## Next Steps
-
-- **Explore the Examples**: Run all examples to understand different integration patterns
-- **Run the Test Suite**: Execute `./run_tests.sh` to see comprehensive V8 testing in action
-- **Modify Examples**: Add your own C++ functions and experiment with bindings
-- **Extend Tests**: Add new test cases for your specific use cases
-- **Create Custom Bindings**: Build bindings for your C++ libraries using the patterns shown
-- **Advanced Integration**: Experiment with threading, async operations, and performance optimization
+# Or in Docker
+docker-compose up v8-benchmark
+```
 
 ## Contributing
 
-This project demonstrates comprehensive V8 C++ integration with:
-- ✅ 40 comprehensive tests covering basic to advanced features
-- ✅ Multiple build systems (CMake, Make, scripts)
-- ✅ Complete CI/CD ready test infrastructure
-- ✅ Modern JavaScript feature support (ES6+)
-- ✅ Production-ready examples and patterns
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Code Style
+- Follow C++17 standards
+- Use clang-format for formatting
+- Add tests for new features
+- Update documentation
+
+### Testing
+- Write unit tests for new functionality
+- Ensure all tests pass before submitting PR
+- Add integration tests for complex features
+
+## License
+
+This project is open source. See LICENSE file for details.
+
+## Acknowledgments
+
+- V8 JavaScript Engine team
+- Google Test framework
+- Google Benchmark library
+- Prometheus monitoring system

@@ -1,0 +1,195 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-20.04]
+        build-type: [Release, Debug]
+        compiler: [gcc, clang]
+        include:
+          - os: ubuntu-latest
+            compiler: gcc
+            cc: gcc-11
+            cxx: g++-11
+          - os: ubuntu-latest
+            compiler: clang
+            cc: clang-12
+            cxx: clang++-12
+          - os: ubuntu-20.04
+            compiler: gcc
+            cc: gcc-9
+            cxx: g++-9
+          - os: ubuntu-20.04
+            compiler: clang
+            cc: clang-10
+            cxx: clang++-10
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libv8-dev \
+          libgtest-dev \
+          cmake \
+          ninja-build \
+          valgrind \
+          clang-tidy \
+          cppcheck \
+          doxygen \
+          graphviz \
+          lcov \
+          ${{ matrix.cc }} \
+          ${{ matrix.cxx }}
+
+    - name: Setup build environment
+      run: |
+        echo "CC=${{ matrix.cc }}" >> $GITHUB_ENV
+        echo "CXX=${{ matrix.cxx }}" >> $GITHUB_ENV
+
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+          -DUSE_SYSTEM_V8=ON \
+          -DENABLE_TESTING=ON \
+          -DENABLE_COVERAGE=ON \
+          -DENABLE_SANITIZERS=ON \
+          -G Ninja
+
+    - name: Build
+      run: cmake --build build --parallel
+
+    - name: Run tests
+      run: |
+        cd build
+        ctest --output-on-failure --parallel
+
+    - name: Run memory tests with Valgrind
+      if: matrix.build-type == 'Debug'
+      run: |
+        cd build
+        valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./test_suite
+        valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./advanced_test_suite
+
+    - name: Run static analysis
+      run: |
+        cppcheck --enable=all --std=c++17 --project=build/compile_commands.json --error-exitcode=1 || true
+        cd build
+        make clang-tidy || true
+
+    - name: Generate coverage report
+      if: matrix.build-type == 'Debug' && matrix.compiler == 'gcc'
+      run: |
+        cd build
+        lcov --capture --directory . --output-file coverage.info
+        lcov --remove coverage.info '/usr/*' --output-file coverage.info
+        lcov --list coverage.info
+
+    - name: Upload coverage to Codecov
+      if: matrix.build-type == 'Debug' && matrix.compiler == 'gcc'
+      uses: codecov/codecov-action@v3
+      with:
+        file: build/coverage.info
+        flags: unittests
+        name: codecov-umbrella
+
+    - name: Generate documentation
+      if: matrix.build-type == 'Release' && matrix.compiler == 'gcc'
+      run: |
+        cd build
+        make docs
+
+    - name: Deploy documentation
+      if: matrix.build-type == 'Release' && matrix.compiler == 'gcc' && github.ref == 'refs/heads/master'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build/docs/html
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Run security scan
+      uses: securecodewarrior/github-action-add-sarif@v1
+      with:
+        sarif-file: 'security-scan.sarif'
+
+    - name: CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        languages: cpp
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build Docker image
+      run: docker build -t v8-cpp-integration:latest .
+
+    - name: Test Docker image
+      run: |
+        docker run --rm v8-cpp-integration:latest ./run_tests.sh
+
+    - name: Push to registry
+      if: github.ref == 'refs/heads/master'
+      run: |
+        echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+        docker push v8-cpp-integration:latest
+
+  performance-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libv8-dev libgtest-dev cmake ninja-build
+
+    - name: Build performance tests
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -DUSE_SYSTEM_V8=ON -G Ninja
+        cmake --build build --parallel
+
+    - name: Run performance benchmarks
+      run: |
+        cd build
+        ./performance_tests --benchmark_format=json > benchmark_results.json
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v3
+      with:
+        name: benchmark-results
+        path: build/benchmark_results.json
+
+  release:
+    needs: [build-and-test, security-scan, docker-build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.run_number }}
+        release_name: Release v${{ github.run_number }}
+        draft: false
+        prerelease: false
