@@ -147,6 +147,12 @@ add_executable(IntegrationTests Tests/Integration/IntegrationTests.cpp)
 target_link_libraries(IntegrationTests PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
 add_test(NAME IntegrationTests COMMAND IntegrationTests)
 
+# Interoperability test suite with GTest
+add_executable(InteroperabilityTests Tests/Integration/InteroperabilityTests.cpp)
+target_link_libraries(InteroperabilityTests PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
+add_test(NAME InteroperabilityTests COMMAND InteroperabilityTests)
+
+
 # Run target
 add_custom_target(run
     COMMAND SystemV8Example
@@ -175,10 +181,17 @@ add_custom_target(run_integration_tests
     COMMENT "Running integration test suite..."
 )
 
+# Interoperability test target
+add_custom_target(run_interoperability_tests
+    COMMAND InteroperabilityTests
+    DEPENDS InteroperabilityTests
+    COMMENT "Running interoperability test suite..."
+)
+
 # Run all tests target
 add_custom_target(run_all_tests
-    COMMAND ./BasicTests && ./AdvancedTests && ./IntegrationTests
-    DEPENDS BasicTests AdvancedTests IntegrationTests
+    COMMAND ./BasicTests && ./AdvancedTests && ./IntegrationTests && ./InteroperabilityTests
+    DEPENDS BasicTests AdvancedTests IntegrationTests InteroperabilityTests
     COMMENT "Running all test suites..."
 )
 
@@ -255,6 +268,10 @@ endif()
 # Installation
 install(TARGETS SystemV8Example BidirectionalExample AdvancedExample MinimalExample WebServerExample
     RUNTIME DESTINATION bin
+)
+
+install(TARGETS BasicTests AdvancedTests IntegrationTests InteroperabilityTests
+    RUNTIME DESTINATION bin/tests
 )
 
 if(TARGET v8_integration)
