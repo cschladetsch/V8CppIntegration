@@ -9,6 +9,7 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 3. **Multiple Examples**: From minimal demos to advanced integration patterns
 4. **System V8 Support**: Option to use system-installed V8 libraries
 5. **Flexible Build Options**: Multiple build scripts for different scenarios
+6. **Comprehensive Test Suite**: 40 GTest-based tests covering all aspects of V8 integration
 
 ## Prerequisites
 
@@ -21,16 +22,16 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 
 ### For System V8 Option
 ```bash
-# Install system V8 libraries (Ubuntu/Debian)
-sudo apt-get install libv8-dev
+# Install system V8 libraries and Google Test (Ubuntu/Debian)
+sudo apt-get install libv8-dev libgtest-dev
 ```
 
 ## Quick Start
 
 ### Option 1: Using System V8 (Recommended)
 ```bash
-# 1. Install system V8 libraries
-sudo apt-get install libv8-dev
+# 1. Install system V8 libraries and Google Test
+sudo apt-get install libv8-dev libgtest-dev
 
 # 2. Build with system V8
 ./build.sh --system-v8
@@ -39,6 +40,9 @@ sudo apt-get install libv8-dev
 ./build/system_v8_example
 ./build/v8_example
 ./build/advanced_example
+
+# 4. Run comprehensive test suite (40 tests)
+./run_tests.sh
 ```
 
 ### Option 2: Build V8 from Source
@@ -106,6 +110,7 @@ make -j$(nproc)
 - `build_cmake.sh` - CMake-specific build script
 - `build_simple.sh` - Simple build without CMake
 - `quick_build.sh` - Fast build for development
+- `run_tests.sh` - Comprehensive test runner for all test suites
 
 ### Example Files
 - `minimal_v8_example.cpp` - Minimal demo without V8 integration
@@ -122,8 +127,24 @@ make -j$(nproc)
   - Event emitter pattern
   - Complex data structures
 
+### Test Suite
+- `test_suite.cpp` - Basic V8 integration tests (20 tests):
+  - Core V8 engine functionality
+  - Data type conversions
+  - Function integration
+  - JSON handling
+  - Error handling
+  - Memory management
+- `advanced_test_suite.cpp` - Advanced V8 feature tests (20 tests):
+  - Modern JavaScript features (Promises, Maps, Sets, Symbols)
+  - Advanced data structures (ArrayBuffer, TypedArray)
+  - Metaprogramming (Proxy, Reflect)
+  - Generators and iterators
+  - V8 C++ API features
+  - Context isolation and security
+
 ### Build System
-- `CMakeLists.txt` - Main CMake configuration
+- `CMakeLists.txt` - Main CMake configuration with GTest integration
 - `CMakePresets.json` - CMake preset configurations
 - `Makefile` - Traditional Makefile build system
 - `Makefile.advanced` - Advanced Makefile configuration
@@ -177,6 +198,57 @@ on('data', function(data) {
 emit('data', { value: 42 });
 ```
 
+## Testing
+
+### Comprehensive Test Suite (40 Tests)
+
+This project includes a comprehensive test suite with 40 GTest-based tests covering all aspects of V8 C++ integration:
+
+#### Running Tests
+
+```bash
+# Run all tests with the test runner script
+./run_tests.sh
+
+# Or run individual test suites
+./build/test_suite              # Basic tests (20 tests)
+./build/advanced_test_suite     # Advanced tests (20 tests)
+
+# Or use CMake targets
+make run_tests                  # Basic test suite
+make run_advanced_tests         # Advanced test suite
+make run_all_tests             # All test suites
+make test                      # CTest integration
+```
+
+#### Test Categories
+
+**Basic Test Suite (20 tests):**
+1. Core V8 Engine Tests (5 tests) - Initialization, execution, data types
+2. Data Structure Tests (3 tests) - Arrays, objects, global access
+3. Function Integration Tests (3 tests) - Binding, calls, parameters
+4. Data Exchange Tests (3 tests) - JSON parsing/stringify, null/undefined
+5. Advanced Features Tests (3 tests) - Type checking, exceptions, compilation errors
+6. System Tests (3 tests) - Memory management, callbacks, performance
+
+**Advanced Test Suite (20 tests):**
+1. Modern JavaScript Features (7 tests) - Promises, Symbols, Maps, Sets, WeakMap/WeakSet, BigInt
+2. Advanced Data Structures (2 tests) - ArrayBuffer, TypedArray operations
+3. Metaprogramming Features (2 tests) - Proxy, Reflect API
+4. Advanced Language Features (2 tests) - Generators, Iterators
+5. V8 C++ API Features (3 tests) - Object/Function Templates, Prototype chains
+6. Context and Security (1 test) - Context isolation
+7. Script Management (1 test) - Compilation and caching
+8. Built-in Objects (2 tests) - RegExp, Date operations
+
+#### Test Framework
+
+- **Google Test (GTest)** integration
+- **CMake CTest** support
+- **Automated test runner** with colored output
+- **Performance benchmarking** included
+- **Memory safety testing**
+
 ## Build Options
 
 The V8 build is configured with:
@@ -194,7 +266,18 @@ The V8 build is configured with:
 
 ## Next Steps
 
-- Modify the examples to add your own C++ functions
-- Experiment with different V8 features (ArrayBuffers, Promises, etc.)
-- Create bindings for your C++ libraries
-- Add threading for true async operations
+- **Explore the Examples**: Run all examples to understand different integration patterns
+- **Run the Test Suite**: Execute `./run_tests.sh` to see comprehensive V8 testing in action
+- **Modify Examples**: Add your own C++ functions and experiment with bindings
+- **Extend Tests**: Add new test cases for your specific use cases
+- **Create Custom Bindings**: Build bindings for your C++ libraries using the patterns shown
+- **Advanced Integration**: Experiment with threading, async operations, and performance optimization
+
+## Contributing
+
+This project demonstrates comprehensive V8 C++ integration with:
+- ✅ 40 comprehensive tests covering basic to advanced features
+- ✅ Multiple build systems (CMake, Make, scripts)
+- ✅ Complete CI/CD ready test infrastructure
+- ✅ Modern JavaScript feature support (ES6+)
+- ✅ Production-ready examples and patterns
