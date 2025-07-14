@@ -5,7 +5,7 @@ This directory contains example applications demonstrating various aspects of V8
 ## Available Examples
 
 ### web_server_example.cpp
-A complete HTTP server implementation using V8 for request handling:
+A demonstration of how V8 could be used for HTTP request handling:
 - HTTP request/response handling
 - JavaScript-based routing
 - JSON API support
@@ -45,11 +45,23 @@ cmake --build build
 
 ## Running Examples
 
-After building, run the examples from the build directory:
+Note: The web_server_example.cpp is a conceptual demonstration. It simulates HTTP server behavior but doesn't actually listen on network ports. To run:
 
 ```bash
+# Build the project first
+cmake -B build
+cmake --build build
+
+# Run the example (if built)
 ./build/web_server_example
 ```
+
+The example will:
+1. Initialize V8
+2. Load a JavaScript request handler
+3. Simulate processing an HTTP request
+4. Show how JavaScript can handle routing and responses
+5. Clean up and exit
 
 ## Creating New Examples
 

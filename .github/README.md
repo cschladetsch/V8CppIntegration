@@ -14,7 +14,7 @@ This directory contains GitHub-specific configuration files, including GitHub Ac
 
 ### ci.yml - Continuous Integration Pipeline
 
-Comprehensive CI/CD pipeline that runs on push and pull requests.
+A comprehensive CI/CD pipeline configuration that runs on push and pull requests.
 
 **Features:**
 - Multi-platform builds (Ubuntu, macOS, Windows)
@@ -48,9 +48,16 @@ Comprehensive CI/CD pipeline that runs on push and pull requests.
    - Pushes to GitHub Container Registry
    - Tags with version and commit SHA
 
-5. **Documentation**
-   - Generates Doxygen documentation
-   - Deploys to GitHub Pages
+5. **Documentation** (if Doxygen is available)
+   - Generates API documentation
+   - Can deploy to GitHub Pages
+
+## Current Status
+
+The CI/CD pipeline is configured and ready to use. To activate it:
+1. Push this repository to GitHub
+2. The workflow will automatically run on push and pull requests
+3. Configure any required secrets in repository settings
 
 ## Adding New Workflows
 

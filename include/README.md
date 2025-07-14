@@ -1,6 +1,6 @@
 # Include Directory
 
-This directory contains all the header files for the V8 C++ Integration Framework.
+This directory contains header files that provide a foundation for building advanced V8 integration features.
 
 ## Structure
 
@@ -12,6 +12,10 @@ include/
     ├── monitoring.h          # Monitoring, metrics, and observability features
     └── security.h            # Security, sandboxing, and resource management
 ```
+
+## Important Note
+
+These headers define interfaces and classes for advanced V8 integration features. The corresponding implementations in the `src/` directory are provided as reference implementations but are not currently integrated into the build system due to compatibility considerations with different V8 versions.
 
 ## Header Files
 
@@ -53,7 +57,7 @@ include/
 
 ## Usage
 
-Include the necessary headers in your C++ files:
+These headers can be used as a starting point for implementing advanced V8 features in your own projects:
 
 ```cpp
 #include "v8_integration/error_handler.h"
@@ -62,6 +66,19 @@ Include the necessary headers in your C++ files:
 #include "v8_integration/advanced_features.h"
 ```
 
-## Integration
+## Integration Notes
 
-All headers are designed to work seamlessly with V8's API and follow V8's conventions for handle management and context scoping.
+- Headers are designed to work with V8's API conventions
+- Follow V8's handle management and context scoping patterns
+- May require adaptation for specific V8 versions
+- Provided as reference designs for advanced features
+
+## Future Development
+
+These headers provide a blueprint for implementing:
+- Production-grade error handling
+- Metrics and monitoring systems
+- Security sandboxing
+- Advanced JavaScript features
+
+Developers can use these as a foundation and adapt them to their specific needs and V8 version requirements.
