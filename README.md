@@ -1,3 +1,7 @@
+# V8 C++ Integration
+
+**UPDATED**: This is the correct README for the V8 C++ Integration project.
+
 # V8 C++ Integration 
 
 This repository demonstrates how to build V8 and create bidirectional communication between C++ and JavaScript, with comprehensive examples and testing.
