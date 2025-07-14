@@ -1,4 +1,4 @@
-# V8 C++ Integration Examples
+# V8 C++ Integration 
 
 This repository demonstrates how to build V8 and create bidirectional communication between C++ and JavaScript, with comprehensive examples and testing.
 
