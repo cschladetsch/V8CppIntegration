@@ -36,7 +36,7 @@ sudo apt-get install libv8-dev libgtest-dev
 sudo apt-get install libv8-dev libgtest-dev
 
 # 2. Build with system V8
-./Shell/build.sh --system-v8
+./build.sh --system-v8  # or ./Shell/build.sh --system-v8
 
 # 3. Run examples
 ./build/system_v8_example
@@ -44,13 +44,13 @@ sudo apt-get install libv8-dev libgtest-dev
 ./build/advanced_example
 
 # 4. Run comprehensive test suite (60 tests)
-./Shell/run_tests.sh
+./run_tests.sh  # or ./Shell/run_tests.sh
 ```
 
 ### Option 2: Build V8 from Source
 ```bash
 # 1. Setup and build V8 (takes 10-30 minutes)
-./Shell/build.sh --setup-v8 --build-v8
+./build.sh --setup-v8 --build-v8  # or ./Shell/build.sh --setup-v8 --build-v8
 
 # 2. Run examples
 ./build/v8_example
@@ -86,6 +86,8 @@ V8/
 │   ├── test_suite.cpp
 │   └── v8_example.cpp
 ├── src/                 # Framework implementation files
+├── build.sh             # Convenience script (calls Shell/build.sh)
+├── run_tests.sh         # Convenience script (calls Shell/run_tests.sh)
 ├── Dockerfile           # Docker configuration
 └── docker-compose.yml   # Docker Compose setup
 ```
