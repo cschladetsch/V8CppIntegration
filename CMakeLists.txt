@@ -146,6 +146,15 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/advanced_test_suite.cpp")
     add_test(NAME V8AdvancedTests COMMAND advanced_test_suite)
 endif()
 
+# Integration test suite with GTest (third test suite)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/integration_test_suite.cpp")
+    add_executable(integration_test_suite integration_test_suite.cpp)
+    target_link_libraries(integration_test_suite PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
+    
+    # Add individual test cases
+    add_test(NAME V8IntegrationTests COMMAND integration_test_suite)
+endif()
+
 # Run target
 add_custom_target(run
     COMMAND system_v8_example
@@ -167,10 +176,17 @@ add_custom_target(run_advanced_tests
     COMMENT "Running V8 advanced test suite..."
 )
 
+# Integration test target
+add_custom_target(run_integration_tests
+    COMMAND integration_test_suite
+    DEPENDS integration_test_suite
+    COMMENT "Running V8 integration test suite..."
+)
+
 # Run all tests target
 add_custom_target(run_all_tests
-    COMMAND ./test_suite && ./advanced_test_suite
-    DEPENDS test_suite advanced_test_suite
+    COMMAND ./test_suite && ./advanced_test_suite && ./integration_test_suite
+    DEPENDS test_suite advanced_test_suite integration_test_suite
     COMMENT "Running all V8 test suites..."
 )
 
