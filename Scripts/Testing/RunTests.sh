@@ -48,18 +48,18 @@ print_status "Compiling..."
 make -j$(nproc)
 
 # Check if test suites exist
-if [ ! -f "test_suite" ]; then
-    print_error "test_suite executable not found. Build may have failed."
+if [ ! -f "BasicTests" ]; then
+    print_error "BasicTests executable not found. Build may have failed."
     exit 1
 fi
 
-if [ ! -f "advanced_test_suite" ]; then
-    print_error "advanced_test_suite executable not found. Build may have failed."
+if [ ! -f "AdvancedTests" ]; then
+    print_error "AdvancedTests executable not found. Build may have failed."
     exit 1
 fi
 
-if [ ! -f "integration_test_suite" ]; then
-    print_error "integration_test_suite executable not found. Build may have failed."
+if [ ! -f "IntegrationTests" ]; then
+    print_error "IntegrationTests executable not found. Build may have failed."
     exit 1
 fi
 
@@ -68,42 +68,42 @@ echo "=== Running Basic Test Suite (20 tests) ==="
 echo ""
 
 # Run the basic test suite
-./test_suite
+./BasicTests
 
 echo ""
 echo "=== Running Advanced Test Suite (20 tests) ==="
 echo ""
 
 # Run the advanced test suite
-./advanced_test_suite
+./AdvancedTests
 
 echo ""
 echo "=== Running Integration Test Suite (20 tests) ==="
 echo ""
 
 # Run the integration test suite
-./integration_test_suite
+./IntegrationTests
 
 echo ""
 echo "=== Running Example Tests ==="
 echo ""
 
 # Test each example
-if [ -f "system_v8_example" ]; then
-    print_status "Testing system_v8_example..."
-    timeout 5s ./system_v8_example || print_warning "system_v8_example timed out or failed"
+if [ -f "SystemV8Example" ]; then
+    print_status "Testing SystemV8Example..."
+    timeout 5s ./SystemV8Example || print_warning "SystemV8Example timed out or failed"
     echo ""
 fi
 
-if [ -f "v8_example" ]; then
-    print_status "Testing v8_example..."
-    timeout 5s ./v8_example || print_warning "v8_example timed out or failed"
+if [ -f "BidirectionalExample" ]; then
+    print_status "Testing BidirectionalExample..."
+    timeout 5s ./BidirectionalExample || print_warning "BidirectionalExample timed out or failed"
     echo ""
 fi
 
-if [ -f "advanced_example" ]; then
-    print_status "Testing advanced_example..."
-    timeout 5s ./advanced_example || print_warning "advanced_example timed out or failed"
+if [ -f "AdvancedExample" ]; then
+    print_status "Testing AdvancedExample..."
+    timeout 5s ./AdvancedExample || print_warning "AdvancedExample timed out or failed"
     echo ""
 fi
 

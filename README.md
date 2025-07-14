@@ -36,25 +36,25 @@ sudo apt-get install libv8-dev libgtest-dev
 sudo apt-get install libv8-dev libgtest-dev
 
 # 2. Build with system V8
-./build.sh --system-v8  # or ./Shell/build.sh --system-v8
+./build.sh --system-v8  # or ./Scripts/Build/Build.sh --system-v8
 
 # 3. Run examples
-./build/system_v8_example
-./build/v8_example
-./build/advanced_example
+./build/SystemV8Example
+./build/BidirectionalExample
+./build/AdvancedExample
 
 # 4. Run comprehensive test suite (60 tests)
-./run_tests.sh  # or ./Shell/run_tests.sh
+./run_tests.sh  # or ./Scripts/Testing/RunTests.sh
 ```
 
 ### Option 2: Build V8 from Source
 ```bash
 # 1. Setup and build V8 (takes 10-30 minutes)
-./build.sh --setup-v8 --build-v8  # or ./Shell/build.sh --setup-v8 --build-v8
+./build.sh --setup-v8 --build-v8  # or ./Scripts/Build/Build.sh --setup-v8 --build-v8
 
 # 2. Run examples
-./build/v8_example
-./build/advanced_example
+./build/BidirectionalExample
+./build/AdvancedExample
 ```
 
 ## Project Structure
@@ -64,58 +64,68 @@ V8/
 ├── .github/workflows/    # CI/CD pipeline configuration
 ├── build/               # Build output directory (generated)
 ├── cmake/               # CMake modules (FindV8.cmake)
-├── config/              # Configuration files (placeholder)
+├── config/              # Configuration files
 ├── docs/                # Documentation (Doxygen config)
-├── examples/            # Additional examples
-│   └── web_server_example.cpp
+├── Examples/            # Example applications
+│   ├── AdvancedExample.cpp
+│   ├── BidirectionalExample.cpp
+│   ├── MinimalExample.cpp
+│   ├── SystemV8Example.cpp
+│   ├── WebServerExample.cpp
+│   └── README.md
 ├── include/             # Header files for framework features
-│   └── v8_integration/  # Framework headers (future use)
+│   └── v8_integration/  # Framework headers
 ├── monitoring/          # Monitoring configuration
-├── Shell/               # Shell scripts for building and testing
-│   ├── build.sh         # Main build script
-│   ├── build_all.sh     # Build all configurations
-│   ├── run_tests.sh     # Test runner script
-│   └── setup_v8.sh      # V8 setup script
-├── Source/              # C++ source files
-│   ├── advanced_example.cpp
-│   ├── advanced_test_suite.cpp
-│   ├── integration_test_suite.cpp
-│   ├── minimal_v8_example.cpp
-│   ├── performance_tests.cpp
-│   ├── system_v8_example.cpp
-│   ├── test_suite.cpp
-│   └── v8_example.cpp
+├── Scripts/             # Build and test scripts
+│   ├── Build/           # Build scripts
+│   │   ├── Build.sh
+│   │   ├── BuildAll.sh
+│   │   ├── BuildCMake.sh
+│   │   ├── BuildSimple.sh
+│   │   ├── BuildV8.sh
+│   │   ├── QuickBuild.sh
+│   │   └── SetupV8.sh
+│   └── Testing/         # Test scripts
+│       └── RunTests.sh
 ├── src/                 # Framework implementation files
-├── build.sh             # Convenience script (calls Shell/build.sh)
-├── run_tests.sh         # Convenience script (calls Shell/run_tests.sh)
+├── Tests/               # Test suites
+│   ├── Integration/     # Integration tests
+│   │   └── IntegrationTests.cpp
+│   ├── Performance/     # Performance benchmarks
+│   │   └── BenchmarkTests.cpp
+│   └── Unit/            # Unit tests
+│       ├── AdvancedTests.cpp
+│       └── BasicTests.cpp
+├── build.sh             # Convenience script
+├── run_tests.sh         # Convenience script
 ├── Dockerfile           # Docker configuration
 └── docker-compose.yml   # Docker Compose setup
 ```
 
 ## Examples
 
-### 1. Minimal Example (`Source/minimal_v8_example.cpp`)
+### 1. Minimal Example (`Examples/MinimalExample.cpp`)
 - Bare minimum V8 integration
 - Shows basic setup and teardown
 
-### 2. System V8 Example (`Source/system_v8_example.cpp`)
+### 2. System V8 Example (`Examples/SystemV8Example.cpp`)
 - Uses system-installed V8 libraries
 - Simple JavaScript execution from C++
 - Basic data exchange
 
-### 3. Standard Example (`Source/v8_example.cpp`)
+### 3. Bidirectional Example (`Examples/BidirectionalExample.cpp`)
 - Comprehensive bidirectional communication
 - C++ functions callable from JavaScript
 - JavaScript functions callable from C++
 - Data passing between environments
 
-### 4. Advanced Example (`Source/advanced_example.cpp`)
+### 4. Advanced Example (`Examples/AdvancedExample.cpp`)
 - Native C++ objects exposed to JavaScript
 - Event emitter pattern
 - Async callbacks
 - Complex data structures
 
-### 5. Web Server Example (`examples/web_server_example.cpp`)
+### 5. Web Server Example (`Examples/WebServerExample.cpp`)
 - HTTP server using V8 for request handling
 - JavaScript-based routing
 - JSON API support
@@ -247,7 +257,7 @@ cmake -B build [options]
 
 ## Framework Components (Headers Available)
 
-The `include/v8_integration/` directory contains headers for advanced features:
+The `Include/v8_integration/` directory contains headers for advanced features:
 - **error_handler.h**: Error handling and logging utilities
 - **monitoring.h**: Metrics and observability features
 - **security.h**: Sandboxing and security features

@@ -30,9 +30,9 @@ find_package(OpenSSL QUIET)
 find_package(Doxygen QUIET)
 
 # Include directories
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Include)
 include_directories(${GTEST_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/v8_integration)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Include/v8_integration)
 
 # Compiler flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -110,95 +110,87 @@ if(USE_SYSTEM_V8)
     endif()
 else()
     # Include the build-from-source logic here
-    include(cmake/BuildV8.cmake)
+    include(CMake/BuildV8.cmake)
 endif()
 
-# System V8 example
-add_executable(system_v8_example Source/system_v8_example.cpp)
-target_link_libraries(system_v8_example PRIVATE V8::V8)
+# Examples
+add_executable(SystemV8Example Examples/SystemV8Example.cpp)
+target_link_libraries(SystemV8Example PRIVATE V8::V8)
 
 # If other example files exist, build them too
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/v8_example.cpp")
-    add_executable(v8_example Source/v8_example.cpp)
-    target_link_libraries(v8_example PRIVATE V8::V8)
-endif()
+add_executable(BidirectionalExample Examples/BidirectionalExample.cpp)
+target_link_libraries(BidirectionalExample PRIVATE V8::V8)
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/advanced_example.cpp")
-    add_executable(advanced_example Source/advanced_example.cpp)
-    target_link_libraries(advanced_example PRIVATE V8::V8)
-endif()
+add_executable(AdvancedExample Examples/AdvancedExample.cpp)
+target_link_libraries(AdvancedExample PRIVATE V8::V8)
+
+add_executable(MinimalExample Examples/MinimalExample.cpp)
+target_link_libraries(MinimalExample PRIVATE V8::V8)
+
+add_executable(WebServerExample Examples/WebServerExample.cpp)
+target_link_libraries(WebServerExample PRIVATE V8::V8)
 
 # Test suite with GTest
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/test_suite.cpp")
-    add_executable(test_suite Source/test_suite.cpp)
-    target_link_libraries(test_suite PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
-    
-    # Add individual test cases
-    add_test(NAME V8Tests COMMAND test_suite)
-endif()
+# Unit Tests
+add_executable(BasicTests Tests/Unit/BasicTests.cpp)
+target_link_libraries(BasicTests PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
+add_test(NAME BasicTests COMMAND BasicTests)
 
 # Advanced test suite with GTest
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/advanced_test_suite.cpp")
-    add_executable(advanced_test_suite Source/advanced_test_suite.cpp)
-    target_link_libraries(advanced_test_suite PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
-    
-    # Add individual test cases
-    add_test(NAME V8AdvancedTests COMMAND advanced_test_suite)
-endif()
+add_executable(AdvancedTests Tests/Unit/AdvancedTests.cpp)
+target_link_libraries(AdvancedTests PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
+add_test(NAME AdvancedTests COMMAND AdvancedTests)
 
 # Integration test suite with GTest (third test suite)
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/integration_test_suite.cpp")
-    add_executable(integration_test_suite Source/integration_test_suite.cpp)
-    target_link_libraries(integration_test_suite PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
-    
-    # Add individual test cases
-    add_test(NAME V8IntegrationTests COMMAND integration_test_suite)
-endif()
+# Integration Tests
+add_executable(IntegrationTests Tests/Integration/IntegrationTests.cpp)
+target_link_libraries(IntegrationTests PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
+add_test(NAME IntegrationTests COMMAND IntegrationTests)
 
 # Run target
 add_custom_target(run
-    COMMAND system_v8_example
-    DEPENDS system_v8_example
+    COMMAND SystemV8Example
+    DEPENDS SystemV8Example
     COMMENT "Running V8 example..."
 )
 
 # Test target
 add_custom_target(run_tests
-    COMMAND test_suite
-    DEPENDS test_suite
-    COMMENT "Running V8 test suite..."
+    COMMAND BasicTests
+    DEPENDS BasicTests
+    COMMENT "Running basic test suite..."
 )
 
 # Advanced test target
 add_custom_target(run_advanced_tests
-    COMMAND advanced_test_suite
-    DEPENDS advanced_test_suite
-    COMMENT "Running V8 advanced test suite..."
+    COMMAND AdvancedTests
+    DEPENDS AdvancedTests
+    COMMENT "Running advanced test suite..."
 )
 
 # Integration test target
 add_custom_target(run_integration_tests
-    COMMAND integration_test_suite
-    DEPENDS integration_test_suite
-    COMMENT "Running V8 integration test suite..."
+    COMMAND IntegrationTests
+    DEPENDS IntegrationTests
+    COMMENT "Running integration test suite..."
 )
 
 # Run all tests target
 add_custom_target(run_all_tests
-    COMMAND ./test_suite && ./advanced_test_suite && ./integration_test_suite
-    DEPENDS test_suite advanced_test_suite integration_test_suite
-    COMMENT "Running all V8 test suites..."
+    COMMAND ./BasicTests && ./AdvancedTests && ./IntegrationTests
+    DEPENDS BasicTests AdvancedTests IntegrationTests
+    COMMENT "Running all test suites..."
 )
 
 # Core V8 integration library (simplified for now)
-# if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/error_handler.cpp")
+# if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/error_handler.cpp")
 #     add_library(v8_integration STATIC
-#         src/error_handler.cpp
-#         src/monitoring.cpp
-#         src/advanced_features.cpp
-#         src/security.cpp
+#         Source/error_handler.cpp
+#         Source/monitoring.cpp
+#         Source/advanced_features.cpp
+#         Source/security.cpp
 #     )
-#     target_include_directories(v8_integration PUBLIC include)
+#     target_include_directories(v8_integration PUBLIC Include)
 #     target_link_libraries(v8_integration PUBLIC V8::V8 Threads::Threads)
 #     
 #     # Link examples with the integration library
@@ -213,16 +205,16 @@ add_custom_target(run_all_tests
 
 # Performance benchmarks
 if(benchmark_FOUND AND ENABLE_BENCHMARKS)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/performance_tests.cpp")
-        add_executable(performance_tests Source/performance_tests.cpp)
-        target_link_libraries(performance_tests PRIVATE V8::V8 benchmark::benchmark)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Performance/BenchmarkTests.cpp")
+        add_executable(BenchmarkTests Tests/Performance/BenchmarkTests.cpp)
+        target_link_libraries(BenchmarkTests PRIVATE V8::V8 benchmark::benchmark)
         if(TARGET v8_integration)
-            target_link_libraries(performance_tests PRIVATE v8_integration)
+            target_link_libraries(BenchmarkTests PRIVATE v8_integration)
         endif()
         
         add_custom_target(run_benchmarks
-            COMMAND performance_tests
-            DEPENDS performance_tests
+            COMMAND BenchmarkTests
+            DEPENDS BenchmarkTests
             COMMENT "Running performance benchmarks..."
         )
     endif()
@@ -230,7 +222,7 @@ endif()
 
 # Documentation generation
 if(Doxygen_FOUND AND ENABLE_DOCS)
-    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile)
+    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Documentation/Doxyfile)
     set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
     
     configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
@@ -261,7 +253,7 @@ if(ENABLE_COVERAGE)
 endif()
 
 # Installation
-install(TARGETS system_v8_example
+install(TARGETS SystemV8Example BidirectionalExample AdvancedExample MinimalExample WebServerExample
     RUNTIME DESTINATION bin
 )
 
@@ -271,11 +263,11 @@ if(TARGET v8_integration)
         ARCHIVE DESTINATION lib
         RUNTIME DESTINATION bin
     )
-    install(DIRECTORY include/v8_integration DESTINATION include)
+    install(DIRECTORY Include/v8_integration DESTINATION include)
 endif()
 
-if(TARGET performance_tests)
-    install(TARGETS performance_tests
+if(TARGET BenchmarkTests)
+    install(TARGETS BenchmarkTests
         RUNTIME DESTINATION bin
     )
 endif()
