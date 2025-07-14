@@ -36,7 +36,7 @@ sudo apt-get install libv8-dev libgtest-dev
 sudo apt-get install libv8-dev libgtest-dev
 
 # 2. Build with system V8
-./build.sh --system-v8
+./Shell/build.sh --system-v8
 
 # 3. Run examples
 ./build/system_v8_example
@@ -44,13 +44,13 @@ sudo apt-get install libv8-dev libgtest-dev
 ./build/advanced_example
 
 # 4. Run comprehensive test suite (60 tests)
-./run_tests.sh
+./Shell/run_tests.sh
 ```
 
 ### Option 2: Build V8 from Source
 ```bash
 # 1. Setup and build V8 (takes 10-30 minutes)
-./build.sh --setup-v8 --build-v8
+./Shell/build.sh --setup-v8 --build-v8
 
 # 2. Run examples
 ./build/v8_example
@@ -71,31 +71,43 @@ V8/
 ├── include/             # Header files for framework features
 │   └── v8_integration/  # Framework headers (future use)
 ├── monitoring/          # Monitoring configuration
-├── src/                 # Source files (future use)
-├── *.cpp                # Example and test files
-├── build*.sh            # Build scripts
+├── Shell/               # Shell scripts for building and testing
+│   ├── build.sh         # Main build script
+│   ├── build_all.sh     # Build all configurations
+│   ├── run_tests.sh     # Test runner script
+│   └── setup_v8.sh      # V8 setup script
+├── Source/              # C++ source files
+│   ├── advanced_example.cpp
+│   ├── advanced_test_suite.cpp
+│   ├── integration_test_suite.cpp
+│   ├── minimal_v8_example.cpp
+│   ├── performance_tests.cpp
+│   ├── system_v8_example.cpp
+│   ├── test_suite.cpp
+│   └── v8_example.cpp
+├── src/                 # Framework implementation files
 ├── Dockerfile           # Docker configuration
 └── docker-compose.yml   # Docker Compose setup
 ```
 
 ## Examples
 
-### 1. Minimal Example (`minimal_v8_example.cpp`)
+### 1. Minimal Example (`Source/minimal_v8_example.cpp`)
 - Bare minimum V8 integration
 - Shows basic setup and teardown
 
-### 2. System V8 Example (`system_v8_example.cpp`)
+### 2. System V8 Example (`Source/system_v8_example.cpp`)
 - Uses system-installed V8 libraries
 - Simple JavaScript execution from C++
 - Basic data exchange
 
-### 3. Standard Example (`v8_example.cpp`)
+### 3. Standard Example (`Source/v8_example.cpp`)
 - Comprehensive bidirectional communication
 - C++ functions callable from JavaScript
 - JavaScript functions callable from C++
 - Data passing between environments
 
-### 4. Advanced Example (`advanced_example.cpp`)
+### 4. Advanced Example (`Source/advanced_example.cpp`)
 - Native C++ objects exposed to JavaScript
 - Event emitter pattern
 - Async callbacks
@@ -110,7 +122,7 @@ V8/
 
 ### Comprehensive Testing (60 Tests Total)
 
-#### Basic Test Suite (`test_suite.cpp` - 20 tests)
+#### Basic Test Suite (`Source/test_suite.cpp` - 20 tests)
 - V8 initialization and cleanup
 - JavaScript execution
 - Data type conversions (strings, numbers, booleans)
@@ -120,7 +132,7 @@ V8/
 - JSON parsing/stringify
 - Memory management
 
-#### Advanced Test Suite (`advanced_test_suite.cpp` - 20 tests)
+#### Advanced Test Suite (`Source/advanced_test_suite.cpp` - 20 tests)
 - Promises and async operations
 - ArrayBuffer and TypedArray
 - ES6 features (Map, Set, Symbol)
@@ -131,7 +143,7 @@ V8/
 - Regular expressions
 - BigInt support
 
-#### Integration Test Suite (`integration_test_suite.cpp` - 20 tests)
+#### Integration Test Suite (`Source/integration_test_suite.cpp` - 20 tests)
 - Nested object property access
 - Array method chaining (map, filter, reduce)
 - ES6 classes and inheritance
@@ -214,7 +226,7 @@ docker-compose up v8-benchmark
 
 ### Using build.sh
 ```bash
-./build.sh [options]
+./Shell/build.sh [options]
   --debug       Build in debug mode
   --clean       Clean build directory
   --setup-v8    Download V8 source

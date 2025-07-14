@@ -114,23 +114,23 @@ else()
 endif()
 
 # System V8 example
-add_executable(system_v8_example system_v8_example.cpp)
+add_executable(system_v8_example Source/system_v8_example.cpp)
 target_link_libraries(system_v8_example PRIVATE V8::V8)
 
 # If other example files exist, build them too
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/v8_example.cpp")
-    add_executable(v8_example v8_example.cpp)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/v8_example.cpp")
+    add_executable(v8_example Source/v8_example.cpp)
     target_link_libraries(v8_example PRIVATE V8::V8)
 endif()
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/advanced_example.cpp")
-    add_executable(advanced_example advanced_example.cpp)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/advanced_example.cpp")
+    add_executable(advanced_example Source/advanced_example.cpp)
     target_link_libraries(advanced_example PRIVATE V8::V8)
 endif()
 
 # Test suite with GTest
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_suite.cpp")
-    add_executable(test_suite test_suite.cpp)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/test_suite.cpp")
+    add_executable(test_suite Source/test_suite.cpp)
     target_link_libraries(test_suite PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
     
     # Add individual test cases
@@ -138,8 +138,8 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_suite.cpp")
 endif()
 
 # Advanced test suite with GTest
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/advanced_test_suite.cpp")
-    add_executable(advanced_test_suite advanced_test_suite.cpp)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/advanced_test_suite.cpp")
+    add_executable(advanced_test_suite Source/advanced_test_suite.cpp)
     target_link_libraries(advanced_test_suite PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
     
     # Add individual test cases
@@ -147,8 +147,8 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/advanced_test_suite.cpp")
 endif()
 
 # Integration test suite with GTest (third test suite)
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/integration_test_suite.cpp")
-    add_executable(integration_test_suite integration_test_suite.cpp)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/integration_test_suite.cpp")
+    add_executable(integration_test_suite Source/integration_test_suite.cpp)
     target_link_libraries(integration_test_suite PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
     
     # Add individual test cases
@@ -213,8 +213,8 @@ add_custom_target(run_all_tests
 
 # Performance benchmarks
 if(benchmark_FOUND AND ENABLE_BENCHMARKS)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/performance_tests.cpp")
-        add_executable(performance_tests performance_tests.cpp)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/performance_tests.cpp")
+        add_executable(performance_tests Source/performance_tests.cpp)
         target_link_libraries(performance_tests PRIVATE V8::V8 benchmark::benchmark)
         if(TARGET v8_integration)
             target_link_libraries(performance_tests PRIVATE v8_integration)
