@@ -127,8 +127,8 @@ coverage/
 htmlcov/
 
 # Documentation
-/doc/
-/docs/
+/Documentation/html/
+/Documentation/latex/
 doxygen/
 *.dox
 
