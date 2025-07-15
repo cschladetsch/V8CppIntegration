@@ -48,6 +48,30 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Setup V8 if requested (must be done before CMake configuration)
+if [ "${SETUP_V8}" = "1" ]; then
+    echo "Setting up V8..."
+    cd "$PROJECT_ROOT"
+    if [ -x "$SCRIPT_DIR/SetupV8.sh" ]; then
+        "$SCRIPT_DIR/SetupV8.sh"
+    else
+        echo "Error: SetupV8.sh not found in $SCRIPT_DIR"
+        exit 1
+    fi
+fi
+
+# Build V8 if requested (must be done before CMake configuration)
+if [ "${BUILD_V8}" = "1" ]; then
+    echo "Building V8..."
+    cd "$PROJECT_ROOT"
+    if [ -x "$SCRIPT_DIR/BuildV8.sh" ]; then
+        "$SCRIPT_DIR/BuildV8.sh"
+    else
+        echo "Error: BuildV8.sh not found in $SCRIPT_DIR"
+        exit 1
+    fi
+fi
+
 # Create build directory
 mkdir -p ${BUILD_DIR}
 cd ${BUILD_DIR}
@@ -58,32 +82,6 @@ cmake .. \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
     -DUSE_SYSTEM_V8=${USE_SYSTEM_V8:-OFF} \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-
-# Setup V8 if requested
-if [ "${SETUP_V8}" = "1" ]; then
-    echo "Setting up V8..."
-    cd "$PROJECT_ROOT"
-    if [ -x "$SCRIPT_DIR/SetupV8.sh" ]; then
-        "$SCRIPT_DIR/SetupV8.sh"
-    else
-        echo "Error: SetupV8.sh not found in $SCRIPT_DIR"
-        exit 1
-    fi
-    cd "$PROJECT_ROOT/$BUILD_DIR"
-fi
-
-# Build V8 if requested
-if [ "${BUILD_V8}" = "1" ]; then
-    echo "Building V8..."
-    cd "$PROJECT_ROOT"
-    if [ -x "$SCRIPT_DIR/BuildV8.sh" ]; then
-        "$SCRIPT_DIR/BuildV8.sh"
-    else
-        echo "Error: BuildV8.sh not found in $SCRIPT_DIR"
-        exit 1
-    fi
-    cd "$PROJECT_ROOT/$BUILD_DIR"
-fi
 
 # Build examples
 echo "Building examples..."
