@@ -2,6 +2,15 @@
 
 set -e
 
+# Get the script directory and project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# Add depot_tools to PATH if it exists
+if [ -d "$PROJECT_ROOT/depot_tools" ]; then
+    export PATH="$PROJECT_ROOT/depot_tools:$PATH"
+fi
+
 # Default build type
 BUILD_TYPE=${BUILD_TYPE:-Release}
 BUILD_DIR="build"
@@ -53,13 +62,27 @@ cmake .. \
 # Setup V8 if requested
 if [ "${SETUP_V8}" = "1" ]; then
     echo "Setting up V8..."
-    cmake --build . --target setup-v8
+    cd "$PROJECT_ROOT"
+    if [ -x "$SCRIPT_DIR/SetupV8.sh" ]; then
+        "$SCRIPT_DIR/SetupV8.sh"
+    else
+        echo "Error: SetupV8.sh not found in $SCRIPT_DIR"
+        exit 1
+    fi
+    cd "$PROJECT_ROOT/$BUILD_DIR"
 fi
 
 # Build V8 if requested
 if [ "${BUILD_V8}" = "1" ]; then
     echo "Building V8..."
-    cmake --build . --target build-v8
+    cd "$PROJECT_ROOT"
+    if [ -x "$SCRIPT_DIR/BuildV8.sh" ]; then
+        "$SCRIPT_DIR/BuildV8.sh"
+    else
+        echo "Error: BuildV8.sh not found in $SCRIPT_DIR"
+        exit 1
+    fi
+    cd "$PROJECT_ROOT/$BUILD_DIR"
 fi
 
 # Build examples
