@@ -170,7 +170,12 @@ $RECYCLE.BIN/
 test-results/
 *.test
 *.spec
-*.xml
+
+# Google Test XML output files
+basic_tests.xml
+advanced_tests.xml
+integration_tests.xml
+interoperability_tests.xml
 
 # Node.js (if using for any tooling)
 node_modules/
