@@ -33,14 +33,14 @@ set(V8_INCLUDE_DIRS ${V8_SOURCE_DIR}/include)
 set(V8_LIBRARIES ${V8_BUILD_DIR}/obj/libv8_monolith.a)
 
 # Create an imported target for V8
-add_library(v8::v8 STATIC IMPORTED GLOBAL)
-set_target_properties(v8::v8 PROPERTIES
+add_library(V8::V8 STATIC IMPORTED GLOBAL)
+set_target_properties(V8::V8 PROPERTIES
     IMPORTED_LOCATION ${V8_LIBRARIES}
     INTERFACE_INCLUDE_DIRECTORIES ${V8_INCLUDE_DIRS}
 )
 
 # Make sure V8 is built before any target that depends on it
-add_dependencies(v8::v8 v8_build)
+add_dependencies(V8::V8 v8_build)
 
 message(STATUS "V8 will be built from source at: ${V8_SOURCE_DIR}")
 message(STATUS "V8 static library: ${V8_LIBRARIES}")
