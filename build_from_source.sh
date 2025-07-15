@@ -1,8 +1,26 @@
 #!/bin/bash
 
-# BuildFromSource.sh - Build V8 from source
-# This script sets up and builds V8 from source, handling all dependencies
-# for a fresh system installation
+# build_from_source.sh - Complete V8 source build with dependency management
+# 
+# Purpose: Automate the complete V8 build process from scratch, including:
+#   - Installing system dependencies (git, curl, python3, ninja-build, etc.)
+#   - Downloading depot_tools
+#   - Downloading V8 source code
+#   - Building V8 from source
+#
+# This script is ideal for:
+#   - Fresh system installations
+#   - CI/CD environments
+#   - First-time V8 builds
+#   - Ensuring all dependencies are present
+#
+# Usage: ./build_from_source.sh
+#
+# Note: This script may require sudo for installing system dependencies
+#       and will download several GB of data.
+#
+# For regular project builds after V8 is built, use:
+#   ./build.sh
 
 set -e
 

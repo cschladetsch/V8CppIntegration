@@ -1,6 +1,22 @@
 #!/bin/bash
 
-# Top-level build script that calls the main build script in Shell/
-# This provides a convenient way to build from the project root
+# build.sh - Main project build script
+# This is a convenience wrapper that calls the main build system
+# 
+# Purpose: Build the CppV8 project and examples
+# Usage: ./build.sh [options]
+# 
+# Options:
+#   --debug       Build in debug mode
+#   --clean       Clean build directory before building
+#   --setup-v8    Download V8 source code
+#   --build-v8    Build V8 from source
+#   --system-v8   Use system-installed V8 libraries instead of building from source
+#
+# For a complete V8 source build with dependency installation, use:
+#   ./build_from_source.sh
+#
+# For quick builds using system V8:
+#   ./build.sh --system-v8
 
 exec ./Scripts/Build/Build.sh "$@"
