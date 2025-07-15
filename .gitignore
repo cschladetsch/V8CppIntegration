@@ -170,6 +170,7 @@ $RECYCLE.BIN/
 test-results/
 *.test
 *.spec
+*.xml
 
 # Node.js (if using for any tooling)
 node_modules/
