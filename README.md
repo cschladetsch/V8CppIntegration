@@ -154,6 +154,12 @@ V8/
 - JavaScript-based routing
 - JSON API support
 
+### 6. JavaScript Window Application (`Source/Apps/Window/`)
+- Interactive GUI for JavaScript execution
+- Built with Dear ImGui and GLFW
+- Features code editor with console output
+- Real-time execution and debugging
+
 ## Test Suite
 
 ### ✅ Comprehensive Testing (154 Tests Total) - 100% Pass Rate
