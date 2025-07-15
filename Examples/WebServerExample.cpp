@@ -1,3 +1,4 @@
+#include "v8_compat.h"
 #include <iostream>
 #include <string>
 #include <map>
@@ -10,6 +11,7 @@
 #include <regex>
 #include <libplatform/libplatform.h>
 #include <v8.h>
+#include "v8_compat.h"
 
 // Simple HTTP server implementation using V8 for request handling
 class V8WebServer {
@@ -40,7 +42,7 @@ public:
         // Initialize V8
         v8::V8::InitializeICUDefaultLocation(".");
         v8::V8::InitializeExternalStartupData(".");
-        platform_ = v8::platform::NewDefaultPlatform();
+        platform_ = v8_compat::CreateDefaultPlatform();
         v8::V8::InitializePlatform(platform_.get());
         v8::V8::Initialize();
         
