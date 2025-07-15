@@ -29,30 +29,47 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 sudo apt-get install libv8-dev libgtest-dev
 ```
 
+## Build Scripts Overview
+
+This project provides two main build scripts:
+
+1. **`build.sh`** - Main project build script for regular development
+2. **`build_from_source.sh`** - Complete V8 source build with dependency management
+
+### When to use each script:
+
+| Script | Purpose | Use When |
+|--------|---------|----------|
+| `build.sh` | Build CppV8 project and examples | You already have V8 installed (system or built) |
+| `build_from_source.sh` | Build V8 from scratch + project | Fresh system, first-time setup, or CI/CD |
+
 ## Quick Start
 
-### Option 1: Using System V8 (Recommended)
+### Option 1: Using System V8 (Recommended for Quick Start)
 ```bash
 # 1. Install dependencies
 sudo apt-get install libv8-dev libgtest-dev
 
 # 2. Build with system V8
-./build.sh --system-v8  # or ./Scripts/Build/Build.sh --system-v8
+./build.sh --system-v8
 
 # 3. Run examples
 ./build/SystemV8Example
 ./build/BidirectionalExample
 ./build/AdvancedExample
 
-# 4. Run comprehensive test suite (74 tests)
-./run_tests.sh  # or ./Scripts/Testing/RunTests.sh
+# 4. Run comprehensive test suite (154 tests)
+./run_tests.sh
 ```
 
-### Option 2: Build V8 from Source
+### Option 2: Build V8 from Source (Complete Setup)
 ```bash
+# For a complete V8 build with automatic dependency installation:
+./build_from_source.sh
+
+# OR manually control the process:
 # 1. Setup and build V8 (takes 10-30 minutes)
-# Note: The script will prompt for sudo only when installing dependencies
-./build.sh --setup-v8 --build-v8  # or ./Scripts/Build/Build.sh --setup-v8 --build-v8
+./build.sh --setup-v8 --build-v8
 
 # 2. Run examples
 ./build/BidirectionalExample
@@ -284,23 +301,41 @@ docker-compose up v8-benchmark
 
 ## Build Options
 
-### Using build.sh
+### Using build.sh (Main Build Script)
 ```bash
-./Shell/build.sh [options]
+./build.sh [options]
   --debug       Build in debug mode
-  --clean       Clean build directory
-  --setup-v8    Download V8 source
-  --build-v8    Build V8 from source
-  --system-v8   Use system-installed V8
+  --clean       Clean build directory before building
+  --setup-v8    Download V8 source code (requires depot_tools)
+  --build-v8    Build V8 from source (after --setup-v8)
+  --system-v8   Use system-installed V8 libraries
+
+# Common usage patterns:
+./build.sh --system-v8              # Quick build with system V8
+./build.sh --clean --debug          # Clean debug build
+./build.sh --setup-v8 --build-v8    # Full V8 source build
 ```
 
-### Using CMake
+### Using build_from_source.sh (Complete V8 Setup)
+```bash
+./build_from_source.sh
+# No options needed - automatically:
+# - Checks and installs system dependencies
+# - Downloads depot_tools if needed
+# - Downloads V8 source if needed
+# - Builds V8 from source
+# - Builds the project
+```
+
+### Using CMake Directly
 ```bash
 cmake -B build [options]
   -DCMAKE_BUILD_TYPE=Release|Debug
   -DUSE_SYSTEM_V8=ON|OFF
   -DENABLE_TESTING=ON|OFF
   -DENABLE_BENCHMARKS=ON|OFF
+
+cmake --build build
 ```
 
 ## Framework Components (Headers Available)
