@@ -1,3 +1,4 @@
+/.gc*
 /_gclient_v8_ci1ysack
 /cmake
 
@@ -180,3 +181,18 @@ yarn.lock
 /private/
 .env
 .env.local
+.cipd/
+.gcs_entries
+# Full depot_tools gitignore entries
+.gclient
+.gclient_entries
+.gclient_previous_sync_commits
+*.pyc
+*.swp
+.cipd
+.git-cache
+.last_sync_chromium
+.last_sync_chromium_base
+.last_sync_chromium_commit
+.recipe_deps
+third_party/

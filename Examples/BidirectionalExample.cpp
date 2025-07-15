@@ -80,7 +80,7 @@ void CallJavaScriptFunction(Isolate* isolate, Local<Context> context,
     }
 }
 
-int main(int argc, char* argv[]) {
+int main(int, char* argv[]) {
     // Initialize V8
     V8::InitializeICUDefaultLocation(argv[0]);
     V8::InitializeExternalStartupData(argv[0]);
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
     // Cleanup
     isolate->Dispose();
     V8::Dispose();
-    V8::ShutdownPlatform();
+    V8::DisposePlatform();
     delete create_params.array_buffer_allocator;
     
     return 0;

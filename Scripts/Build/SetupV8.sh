@@ -8,17 +8,29 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 echo "Setting up V8 build environment..."
 
-# Install dependencies (only this part needs sudo)
-echo "Installing dependencies..."
-sudo apt-get update
-sudo apt-get install -y \
-    git \
-    curl \
-    python3 \
-    pkg-config \
-    lsb-release \
-    ninja-build \
-    build-essential
+# Check if we need to install dependencies
+NEED_DEPS=0
+for pkg in git curl python3 pkg-config lsb-release ninja-build build-essential; do
+    if ! dpkg -l | grep -q "^ii  $pkg "; then
+        NEED_DEPS=1
+        break
+    fi
+done
+
+if [ "$NEED_DEPS" -eq 1 ]; then
+    echo "Installing dependencies (requires sudo)..."
+    sudo apt-get update
+    sudo apt-get install -y \
+        git \
+        curl \
+        python3 \
+        pkg-config \
+        lsb-release \
+        ninja-build \
+        build-essential
+else
+    echo "All dependencies are already installed."
+fi
 
 # Change to project root
 cd "$PROJECT_ROOT"
@@ -51,7 +63,9 @@ export PATH="$PROJECT_ROOT/depot_tools:\$PATH"
 if [ ! -d "v8" ]; then
     echo "Fetching V8 source code..."
     fetch v8
+    echo "Running gclient sync..."
     cd v8
+    gclient sync
 else
     cd v8
     echo "Updating V8..."
@@ -76,7 +90,9 @@ else
     if [ ! -d "v8" ]; then
         echo "Fetching V8 source code..."
         fetch v8
+        echo "Running gclient sync..."
         cd v8
+        gclient sync
     else
         cd v8
         echo "Updating V8..."

@@ -62,7 +62,7 @@ public:
         context_.Reset();
         isolate_->Dispose();
         v8::V8::Dispose();
-        v8::V8::ShutdownPlatform();
+        v8::V8::DisposePlatform();
     }
     
     void setupJavaScriptEnvironment() {

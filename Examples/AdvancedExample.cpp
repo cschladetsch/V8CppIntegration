@@ -54,7 +54,7 @@ void NativeObject_SetValue(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
     
     // Get the C++ object
-    Local<External> wrap = Local<External>::Cast(args.Holder()->GetInternalField(0));
+    Local<External> wrap = Local<External>::Cast(args.This()->GetInternalField(0));
     MyNativeObject* obj = static_cast<MyNativeObject*>(wrap->Value());
     
     String::Utf8Value key(isolate, args[0]);
@@ -66,7 +66,7 @@ void NativeObject_SetValue(const FunctionCallbackInfo<Value>& args) {
 void NativeObject_GetValue(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
     
-    Local<External> wrap = Local<External>::Cast(args.Holder()->GetInternalField(0));
+    Local<External> wrap = Local<External>::Cast(args.This()->GetInternalField(0));
     MyNativeObject* obj = static_cast<MyNativeObject*>(wrap->Value());
     
     String::Utf8Value key(isolate, args[0]);
@@ -78,7 +78,7 @@ void NativeObject_GetValue(const FunctionCallbackInfo<Value>& args) {
 void NativeObject_GetName(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
     
-    Local<External> wrap = Local<External>::Cast(args.Holder()->GetInternalField(0));
+    Local<External> wrap = Local<External>::Cast(args.This()->GetInternalField(0));
     MyNativeObject* obj = static_cast<MyNativeObject*>(wrap->Value());
     
     args.GetReturnValue().Set(String::NewFromUtf8(isolate, 
@@ -167,7 +167,7 @@ void EventEmitter_Emit(const FunctionCallbackInfo<Value>& args) {
     g_emitter->Emit(*event, args[1]);
 }
 
-int main(int argc, char* argv[]) {
+int main(int, char* argv[]) {
     // Initialize V8
     V8::InitializeICUDefaultLocation(argv[0]);
     V8::InitializeExternalStartupData(argv[0]);
@@ -306,7 +306,7 @@ int main(int argc, char* argv[]) {
     // Cleanup
     isolate->Dispose();
     V8::Dispose();
-    V8::ShutdownPlatform();
+    V8::DisposePlatform();
     delete create_params.array_buffer_allocator;
     
     return 0;
