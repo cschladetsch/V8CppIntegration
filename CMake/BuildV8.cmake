@@ -36,13 +36,20 @@ set(V8_LIBCXXABI ${V8_BUILD_DIR}/obj/buildtools/third_party/libc++abi/libc++abi.
 set(V8_LIBBASE ${V8_BUILD_DIR}/obj/libv8_libbase.a)
 set(V8_LIBPLATFORM ${V8_BUILD_DIR}/obj/libv8_libplatform.a)
 
+# Update archives with symbol tables
+execute_process(COMMAND ranlib ${V8_LIBRARIES})
+execute_process(COMMAND ranlib ${V8_LIBCXX})
+execute_process(COMMAND ranlib ${V8_LIBCXXABI})
+execute_process(COMMAND ranlib ${V8_LIBBASE})
+execute_process(COMMAND ranlib ${V8_LIBPLATFORM})
+
 # Create an imported target for V8
 add_library(V8::V8 STATIC IMPORTED GLOBAL)
 set_target_properties(V8::V8 PROPERTIES
     IMPORTED_LOCATION ${V8_LIBRARIES}
     INTERFACE_INCLUDE_DIRECTORIES ${V8_INCLUDE_DIRS}
-    INTERFACE_LINK_LIBRARIES "${V8_LIBPLATFORM};${V8_LIBBASE};pthread;dl;m"
-    INTERFACE_LINK_OPTIONS "-fuse-ld=lld"
+    INTERFACE_LINK_LIBRARIES "${V8_LIBPLATFORM};${V8_LIBBASE};${V8_LIBCXX};${V8_LIBCXXABI};pthread;dl;m"
+    INTERFACE_LINK_OPTIONS "-fuse-ld=gold"
 )
 
 # Make sure V8 is built before any target that depends on it

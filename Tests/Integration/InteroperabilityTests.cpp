@@ -1,3 +1,4 @@
+#include "v8_compat.h"
 #include <gtest/gtest.h>
 #include <v8.h>
 #include <libplatform/libplatform.h>
@@ -23,7 +24,7 @@ protected:
         if (!v8_initialized) {
             V8::InitializeICUDefaultLocation(".");
             V8::InitializeExternalStartupData(".");
-            platform = platform::NewDefaultPlatform();
+            platform = v8_compat::CreateDefaultPlatform();
             V8::InitializePlatform(platform.get());
             V8::Initialize();
             v8_initialized = true;

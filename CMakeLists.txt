@@ -113,43 +113,59 @@ else()
     include(CMake/BuildV8.cmake)
 endif()
 
+# Function to configure V8 targets with proper libc++ settings
+function(configure_v8_target target_name)
+    target_link_libraries(${target_name} PRIVATE V8::V8)
+    if(NOT USE_SYSTEM_V8)
+        # Only use libc++ with Clang, not GCC
+        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            target_compile_options(${target_name} PRIVATE -stdlib=libc++)
+            target_link_options(${target_name} PRIVATE -stdlib=libc++)
+        endif()
+    endif()
+endfunction()
+
 # Examples
 add_executable(SystemV8Example Examples/SystemV8Example.cpp)
-target_link_libraries(SystemV8Example PRIVATE V8::V8)
+configure_v8_target(SystemV8Example)
 
 # If other example files exist, build them too
 add_executable(BidirectionalExample Examples/BidirectionalExample.cpp)
-target_link_libraries(BidirectionalExample PRIVATE V8::V8)
+configure_v8_target(BidirectionalExample)
 
 add_executable(AdvancedExample Examples/AdvancedExample.cpp)
-target_link_libraries(AdvancedExample PRIVATE V8::V8)
+configure_v8_target(AdvancedExample)
 
 add_executable(MinimalExample Examples/MinimalExample.cpp)
-target_link_libraries(MinimalExample PRIVATE V8::V8)
+configure_v8_target(MinimalExample)
 
 add_executable(WebServerExample Examples/WebServerExample.cpp)
-target_link_libraries(WebServerExample PRIVATE V8::V8)
+configure_v8_target(WebServerExample)
 
 # Test suite with GTest
 # Unit Tests
 add_executable(BasicTests Tests/Unit/BasicTests.cpp)
-target_link_libraries(BasicTests PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
+configure_v8_target(BasicTests)
+target_link_libraries(BasicTests PRIVATE GTest::gtest GTest::gtest_main pthread)
 add_test(NAME BasicTests COMMAND BasicTests)
 
 # Advanced test suite with GTest
 add_executable(AdvancedTests Tests/Unit/AdvancedTests.cpp)
-target_link_libraries(AdvancedTests PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
+configure_v8_target(AdvancedTests)
+target_link_libraries(AdvancedTests PRIVATE GTest::gtest GTest::gtest_main pthread)
 add_test(NAME AdvancedTests COMMAND AdvancedTests)
 
 # Integration test suite with GTest (third test suite)
 # Integration Tests
 add_executable(IntegrationTests Tests/Integration/IntegrationTests.cpp)
-target_link_libraries(IntegrationTests PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
+configure_v8_target(IntegrationTests)
+target_link_libraries(IntegrationTests PRIVATE GTest::gtest GTest::gtest_main pthread)
 add_test(NAME IntegrationTests COMMAND IntegrationTests)
 
 # Interoperability test suite with GTest
 add_executable(InteroperabilityTests Tests/Integration/InteroperabilityTests.cpp)
-target_link_libraries(InteroperabilityTests PRIVATE V8::V8 GTest::gtest GTest::gtest_main pthread)
+configure_v8_target(InteroperabilityTests)
+target_link_libraries(InteroperabilityTests PRIVATE GTest::gtest GTest::gtest_main pthread)
 add_test(NAME InteroperabilityTests COMMAND InteroperabilityTests)
 
 
@@ -220,7 +236,8 @@ add_custom_target(run_all_tests
 if(benchmark_FOUND AND ENABLE_BENCHMARKS)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Performance/BenchmarkTests.cpp")
         add_executable(BenchmarkTests Tests/Performance/BenchmarkTests.cpp)
-        target_link_libraries(BenchmarkTests PRIVATE V8::V8 benchmark::benchmark)
+        configure_v8_target(BenchmarkTests)
+        target_link_libraries(BenchmarkTests PRIVATE benchmark::benchmark)
         if(TARGET v8_integration)
             target_link_libraries(BenchmarkTests PRIVATE v8_integration)
         endif()

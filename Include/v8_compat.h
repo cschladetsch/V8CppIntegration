@@ -2,28 +2,21 @@
 #define V8_COMPAT_H
 
 #include <v8.h>
-#include <v8-platform.h>
+#include <libplatform/libplatform.h>
 #include <memory>
 
 namespace v8_compat {
 
-// Wrapper function that creates a platform with matching ABI
+// Wrapper function that creates a platform compatible with different V8 versions
 inline std::unique_ptr<v8::Platform> CreateDefaultPlatform(
-    int thread_pool_size = 0,
-    v8::platform::IdleTaskSupport idle_task_support = v8::platform::IdleTaskSupport::kDisabled,
-    v8::platform::InProcessStackDumping in_process_stack_dumping = v8::platform::InProcessStackDumping::kDisabled) {
+    int thread_pool_size = 0) {
     
-    // Since we can't directly call NewDefaultPlatform due to ABI mismatch,
-    // we'll need to use a different approach
-    
-    // For now, return nullptr and handle platform creation differently
-    return nullptr;
+    // Use the basic platform creation that works with system V8
+    return v8::platform::NewDefaultPlatform(thread_pool_size);
 }
 
-// Alternative initialization that doesn't require platform
+// Initialize V8 with proper setup
 inline bool InitializeV8() {
-    // V8 requires a platform, but we can try minimal initialization
-    // This is a workaround for the ABI issue
     v8::V8::InitializeICU();
     return true;
 }

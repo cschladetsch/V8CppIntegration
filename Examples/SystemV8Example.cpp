@@ -1,6 +1,7 @@
 #include <iostream>
 #include <v8.h>
 #include <libplatform/libplatform.h>
+#include "v8_compat.h"
 
 using namespace v8;
 
@@ -35,7 +36,7 @@ int main(int, char* argv[]) {
     // Initialize V8
     V8::InitializeICUDefaultLocation(argv[0]);
     V8::InitializeExternalStartupData(argv[0]);
-    std::unique_ptr<Platform> platform = platform::NewDefaultPlatform();
+    std::unique_ptr<Platform> platform = v8_compat::CreateDefaultPlatform();
     V8::InitializePlatform(platform.get());
     V8::Initialize();
     
