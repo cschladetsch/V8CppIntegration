@@ -31,12 +31,18 @@ add_custom_target(v8_build
 set(V8_FOUND TRUE)
 set(V8_INCLUDE_DIRS ${V8_SOURCE_DIR}/include)
 set(V8_LIBRARIES ${V8_BUILD_DIR}/obj/libv8_monolith.a)
+set(V8_LIBCXX ${V8_BUILD_DIR}/obj/buildtools/third_party/libc++/libc++.a)
+set(V8_LIBCXXABI ${V8_BUILD_DIR}/obj/buildtools/third_party/libc++abi/libc++abi.a)
+set(V8_LIBBASE ${V8_BUILD_DIR}/obj/libv8_libbase.a)
+set(V8_LIBPLATFORM ${V8_BUILD_DIR}/obj/libv8_libplatform.a)
 
 # Create an imported target for V8
 add_library(V8::V8 STATIC IMPORTED GLOBAL)
 set_target_properties(V8::V8 PROPERTIES
     IMPORTED_LOCATION ${V8_LIBRARIES}
     INTERFACE_INCLUDE_DIRECTORIES ${V8_INCLUDE_DIRS}
+    INTERFACE_LINK_LIBRARIES "${V8_LIBPLATFORM};${V8_LIBBASE};pthread;dl;m"
+    INTERFACE_LINK_OPTIONS "-fuse-ld=lld"
 )
 
 # Make sure V8 is built before any target that depends on it

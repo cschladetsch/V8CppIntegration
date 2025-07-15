@@ -24,7 +24,7 @@ protected:
 
     static void TearDownTestCase() {
         V8::Dispose();
-        V8::ShutdownPlatform();
+        V8::DisposePlatform();
         platform.reset();
     }
 

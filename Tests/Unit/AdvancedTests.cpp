@@ -31,7 +31,7 @@ protected:
     static void TearDownTestSuite() {
         if (v8_initialized) {
             V8::Dispose();
-            V8::ShutdownPlatform();
+            V8::DisposePlatform();
             v8_initialized = false;
         }
     }
