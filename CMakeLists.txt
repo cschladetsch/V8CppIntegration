@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.14)
 project(V8IntegrationFramework VERSION 1.0.0 LANGUAGES CXX)
 
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Build options
 option(USE_SYSTEM_V8 "Use system-installed V8 instead of building from source" ON)
@@ -287,6 +287,7 @@ find_package(glfw3 3.3 QUIET)
 find_package(OpenGL QUIET)
 if(glfw3_FOUND AND OpenGL_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/Apps/Window/main.cpp")
     add_subdirectory(Source/Apps/Window)
+    add_subdirectory(Source/Apps/SimpleWindow)
     message(STATUS "Building V8JavaScriptWindow application")
 else()
     if(NOT glfw3_FOUND)
