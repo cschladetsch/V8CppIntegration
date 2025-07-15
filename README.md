@@ -50,7 +50,8 @@ sudo apt-get install libv8-dev libgtest-dev
 ### Option 2: Build V8 from Source
 ```bash
 # 1. Setup and build V8 (takes 10-30 minutes)
-./build.sh --setup-v8 --build-v8  # or ./Scripts/Build/Build.sh --setup-v8 --build-v8
+# Note: SetupV8.sh requires sudo for installing dependencies
+sudo ./build.sh --setup-v8 --build-v8  # or sudo ./Scripts/Build/Build.sh --setup-v8 --build-v8
 
 # 2. Run examples
 ./build/BidirectionalExample
