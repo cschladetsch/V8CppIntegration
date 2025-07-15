@@ -22,7 +22,7 @@ compile_commands.json
 CTestTestfile.cmake
 _deps/
 *.cmake
-!cmake/*.cmake
+!CMake/*.cmake
 !CMakePresets.json
 
 # Ninja
