@@ -2,6 +2,10 @@
 
 This repository demonstrates how to build V8 and create bidirectional communication between C++ and JavaScript, with comprehensive examples and testing.
 
+## Architecture
+
+![Arch](/Examples/Arch.png)
+
 ## Features
 
 1. **V8 Build System**: Scripts to download and build V8 from source
