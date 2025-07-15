@@ -518,3 +518,466 @@ TEST_F(V8InteroperabilityTest, PromiseInteroperability) {
     String::Utf8Value statusStr(isolate, status);
     EXPECT_EQ("success", std::string(*statusStr));
 }
+
+// Additional 20 unique interoperability tests
+
+TEST_F(V8InteroperabilityTest, ArrayBufferSlicing) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Create ArrayBuffer and slice it
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        let buffer = new ArrayBuffer(16);
+        let view = new Uint8Array(buffer);
+        for (let i = 0; i < 16; i++) view[i] = i;
+        let slice = buffer.slice(4, 12);
+        new Uint8Array(slice).length
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_EQ(8, result->Int32Value(context).FromJust());
+}
+
+TEST_F(V8InteroperabilityTest, JSONStringifyCircularReference) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test circular reference handling
+    TryCatch try_catch(isolate);
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        let obj = {};
+        obj.self = obj;
+        try {
+            JSON.stringify(obj);
+            false;
+        } catch (e) {
+            true;
+        }
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8InteroperabilityTest, FunctionBindingAndCall) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Create function with specific context
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        function greet(name) {
+            return `Hello, ${name}! My name is ${this.name}`;
+        }
+        let person = { name: 'Alice' };
+        greet.call(person, 'Bob')
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_EQ("Hello, Bob! My name is Alice", std::string(*str));
+}
+
+TEST_F(V8InteroperabilityTest, ProxyTraps) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test proxy with multiple traps
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        let target = {};
+        let handler = {
+            get: (target, prop) => prop === 'test' ? 'intercepted' : target[prop],
+            set: (target, prop, value) => { target[prop] = value * 2; return true; },
+            has: (target, prop) => prop === 'exists'
+        };
+        let proxy = new Proxy(target, handler);
+        proxy.value = 21;
+        proxy.test + ',' + proxy.value + ',' + ('exists' in proxy)
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_EQ("intercepted,42,true", std::string(*str));
+}
+
+TEST_F(V8InteroperabilityTest, SymbolInteroperability) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test symbol creation and usage
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        let sym = Symbol('test');
+        let obj = {};
+        obj[sym] = 'symbol_value';
+        obj[Symbol.iterator] = function* () { yield 1; yield 2; };
+        [obj[sym], Array.from(obj).length]
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    ASSERT_TRUE(result->IsArray());
+    Local<Array> arr = result.As<Array>();
+    String::Utf8Value str(isolate, arr->Get(context, 0).ToLocalChecked());
+    EXPECT_EQ("symbol_value", std::string(*str));
+    EXPECT_EQ(2, arr->Get(context, 1).ToLocalChecked()->Int32Value(context).FromJust());
+}
+
+TEST_F(V8InteroperabilityTest, WeakMapWeakRefInteraction) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test WeakMap with WeakRef
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        let obj = { id: 123 };
+        let wm = new WeakMap();
+        let wr = new WeakRef(obj);
+        wm.set(obj, 'stored_value');
+        let result = wm.get(wr.deref());
+        result === 'stored_value'
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8InteroperabilityTest, GeneratorYieldStar) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test generator delegation
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        function* inner() {
+            yield 1;
+            yield 2;
+        }
+        function* outer() {
+            yield* inner();
+            yield 3;
+        }
+        let gen = outer();
+        [gen.next().value, gen.next().value, gen.next().value]
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    ASSERT_TRUE(result->IsArray());
+    Local<Array> arr = result.As<Array>();
+    EXPECT_EQ(1, arr->Get(context, 0).ToLocalChecked()->Int32Value(context).FromJust());
+    EXPECT_EQ(2, arr->Get(context, 1).ToLocalChecked()->Int32Value(context).FromJust());
+    EXPECT_EQ(3, arr->Get(context, 2).ToLocalChecked()->Int32Value(context).FromJust());
+}
+
+TEST_F(V8InteroperabilityTest, AsyncIteratorPattern) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test async iterator (simplified)
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        let obj = {
+            async* [Symbol.asyncIterator]() {
+                yield 1;
+                yield 2;
+                yield 3;
+            }
+        };
+        typeof obj[Symbol.asyncIterator]
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_EQ("function", std::string(*str));
+}
+
+TEST_F(V8InteroperabilityTest, ClassStaticBlocks) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test class static initialization
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        class MyClass {
+            static value = 0;
+            static {
+                this.value = 42;
+                this.initialized = true;
+            }
+        }
+        [MyClass.value, MyClass.initialized]
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    ASSERT_TRUE(result->IsArray());
+    Local<Array> arr = result.As<Array>();
+    EXPECT_EQ(42, arr->Get(context, 0).ToLocalChecked()->Int32Value(context).FromJust());
+    EXPECT_TRUE(arr->Get(context, 1).ToLocalChecked()->BooleanValue(isolate));
+}
+
+TEST_F(V8InteroperabilityTest, PrivateFieldAccess) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test private field access patterns
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        class Counter {
+            #count = 0;
+            increment() { this.#count++; }
+            get value() { return this.#count; }
+            static create() { return new Counter(); }
+        }
+        let c = Counter.create();
+        c.increment();
+        c.increment();
+        c.value
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_EQ(2, result->Int32Value(context).FromJust());
+}
+
+TEST_F(V8InteroperabilityTest, BigIntComputation) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test BigInt arithmetic
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        let a = 123456789012345678901234567890n;
+        let b = 987654321098765432109876543210n;
+        let result = a + b;
+        typeof result
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_EQ("bigint", std::string(*str));
+}
+
+TEST_F(V8InteroperabilityTest, ErrorStackTraces) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test error stack trace
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        function throwError() {
+            throw new Error('Test error');
+        }
+        function callThrower() {
+            throwError();
+        }
+        try {
+            callThrower();
+        } catch (e) {
+            e.stack.includes('throwError') && e.stack.includes('callThrower')
+        }
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8InteroperabilityTest, RegexNamedGroups) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test regex named capture groups
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        let regex = /(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/;
+        let match = '2024-03-15'.match(regex);
+        match.groups.year === '2024' && match.groups.month === '03'
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8InteroperabilityTest, PromiseAllSettled) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test Promise.allSettled
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        let promises = [
+            Promise.resolve(1),
+            Promise.reject('error'),
+            Promise.resolve(3)
+        ];
+        Promise.allSettled(promises).then(results => {
+            return results.length === 3 && 
+                   results[0].status === 'fulfilled' &&
+                   results[1].status === 'rejected';
+        })
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->IsPromise());
+}
+
+TEST_F(V8InteroperabilityTest, ObjectGetOwnPropertyDescriptors) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test property descriptors
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        let obj = { a: 1 };
+        Object.defineProperty(obj, 'b', { value: 2, writable: false });
+        let descriptors = Object.getOwnPropertyDescriptors(obj);
+        descriptors.a.writable === true && descriptors.b.writable === false
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8InteroperabilityTest, StringPadStartEnd) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test string padding methods
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        let str = '42';
+        let padded = str.padStart(5, '0').padEnd(8, '!');
+        padded === '00042!!!'
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8InteroperabilityTest, ArrayIncludesAndIndexOf) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test array search methods
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        let arr = [1, 2, NaN, 4, 5];
+        let hasNaN = arr.includes(NaN);
+        let indexOfNaN = arr.indexOf(NaN);
+        hasNaN === true && indexOfNaN === -1
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8InteroperabilityTest, NumberIsFiniteNaN) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test Number static methods
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        let tests = [
+            Number.isFinite(42),
+            Number.isFinite(Infinity),
+            Number.isNaN(NaN),
+            Number.isNaN(42),
+            Number.isInteger(42),
+            Number.isInteger(42.5)
+        ];
+        tests.join(',')
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_EQ("true,false,true,false,true,false", std::string(*str));
+}
+
+TEST_F(V8InteroperabilityTest, MathSignTrunc) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test Math sign and trunc
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        [
+            Math.sign(-5),
+            Math.sign(0),
+            Math.sign(5),
+            Math.trunc(4.7),
+            Math.trunc(-4.7)
+        ]
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    ASSERT_TRUE(result->IsArray());
+    Local<Array> arr = result.As<Array>();
+    EXPECT_EQ(-1, arr->Get(context, 0).ToLocalChecked()->Int32Value(context).FromJust());
+    EXPECT_EQ(0, arr->Get(context, 1).ToLocalChecked()->Int32Value(context).FromJust());
+    EXPECT_EQ(1, arr->Get(context, 2).ToLocalChecked()->Int32Value(context).FromJust());
+    EXPECT_EQ(4, arr->Get(context, 3).ToLocalChecked()->Int32Value(context).FromJust());
+    EXPECT_EQ(-4, arr->Get(context, 4).ToLocalChecked()->Int32Value(context).FromJust());
+}
+
+TEST_F(V8InteroperabilityTest, GlobalThisEnvironment) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    // Test globalThis access
+    Local<String> source = String::NewFromUtf8(isolate, R"(
+        globalThis.customProperty = 'test_value';
+        let result = globalThis.customProperty;
+        delete globalThis.customProperty;
+        result === 'test_value'
+    )").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}

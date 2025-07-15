@@ -421,6 +421,298 @@ TEST_F(V8TestFixture, PerformanceTest) {
     std::cout << "Performance test completed in " << duration.count() << "ms" << std::endl;
 }
 
+// Additional 20 unique tests for extended coverage
+
+TEST_F(V8TestFixture, MathOperations) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "Math.PI * Math.E + Math.sqrt(16) - Math.abs(-10)").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->IsNumber());
+    double value = result->NumberValue(context).ToChecked();
+    EXPECT_GT(value, 0);
+}
+
+TEST_F(V8TestFixture, StringManipulation) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "'Hello World'.toUpperCase().substring(6)").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "WORLD");
+}
+
+TEST_F(V8TestFixture, ConditionalExpressions) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "5 > 3 ? 'greater' : 'lesser'").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "greater");
+}
+
+TEST_F(V8TestFixture, LoopOperations) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "let sum = 0; for(let i = 1; i <= 10; i++) sum += i; sum").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->IsNumber());
+    EXPECT_EQ(result->NumberValue(context).ToChecked(), 55);
+}
+
+TEST_F(V8TestFixture, ObjectPropertyDeletion) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "let obj = {a: 1, b: 2}; delete obj.a; Object.keys(obj).length").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(context).ToChecked(), 1);
+}
+
+TEST_F(V8TestFixture, TypeofOperator) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "typeof 42").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "number");
+}
+
+TEST_F(V8TestFixture, ArrayIndexing) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "[10, 20, 30][1]").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(context).ToChecked(), 20);
+}
+
+TEST_F(V8TestFixture, StringTemplates) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "let name = 'World'; `Hello ${name}!`").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "Hello World!");
+}
+
+TEST_F(V8TestFixture, TryCatchFinally) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "let result = 0; try { throw 'error'; } catch(e) { result = 1; } finally { result += 10; } result").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(context).ToChecked(), 11);
+}
+
+TEST_F(V8TestFixture, VariableHoisting) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "function test() { return x; var x = 5; } typeof test()").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "undefined");
+}
+
+TEST_F(V8TestFixture, BitwiseOperations) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "5 & 3").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(context).ToChecked(), 1);
+}
+
+TEST_F(V8TestFixture, InstanceofOperator) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "[] instanceof Array").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8TestFixture, ConstructorFunctions) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "function Person(name) { this.name = name; } let p = new Person('John'); p.name").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "John");
+}
+
+TEST_F(V8TestFixture, PrototypeInheritance) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "function Animal() {} Animal.prototype.speak = function() { return 'sound'; }; let a = new Animal(); a.speak()").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "sound");
+}
+
+TEST_F(V8TestFixture, ClosureScope) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "function outer() { let x = 10; return function() { return x; }; } outer()()").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(context).ToChecked(), 10);
+}
+
+TEST_F(V8TestFixture, ImmediatelyInvokedFunction) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "(function(x) { return x * 2; })(5)").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(context).ToChecked(), 10);
+}
+
+TEST_F(V8TestFixture, RegexMatching) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "/hello/i.test('Hello World')").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8TestFixture, DateOperations) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "new Date('2024-01-01').getFullYear()").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(context).ToChecked(), 2024);
+}
+
+TEST_F(V8TestFixture, ArrayDestructuring) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "let [a, b] = [1, 2]; a + b").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(context).ToChecked(), 3);
+}
+
+TEST_F(V8TestFixture, ObjectDestructuring) {
+    Isolate::Scope isolate_scope(isolate);
+    HandleScope handle_scope(isolate);
+    Local<Context> context = Context::New(isolate);
+    Context::Scope context_scope(context);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "let {x, y} = {x: 10, y: 20}; x * y").ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(context).ToChecked(), 200);
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
