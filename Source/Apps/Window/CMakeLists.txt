@@ -10,7 +10,7 @@ include(FetchContent)
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG v1.90.0  # Use a specific release
+    GIT_TAG docking  # Use docking branch for docking support
 )
 FetchContent_MakeAvailable(imgui)
 
