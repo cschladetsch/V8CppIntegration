@@ -36,7 +36,7 @@ public:
 // Wrapper functions for V8
 void NativeobjectConstructor(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
-    HandleScope HandleScope(isolate);
+    HandleScope handleScope(isolate);
     
     if (!args.IsConstructCall()) {
         isolate->ThrowException(Exception::TypeError(
@@ -90,7 +90,7 @@ void NativeobjectGetname(const FunctionCallbackInfo<Value>& args) {
 // Async callback example
 void AsyncOperation(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
-    HandleScope HandleScope(isolate);
+    HandleScope handleScope(isolate);
     
     if (!args[0]->IsFunction()) {
         isolate->ThrowException(Exception::TypeError(
@@ -107,9 +107,9 @@ void AsyncOperation(const FunctionCallbackInfo<Value>& args) {
     // Simulate async work (in real code, this would be on another thread)
     // For demonstration, we'll just call it immediately
     {
-        HandleScope HandleScope(isolate);
+        HandleScope handleScope(isolate);
         Local<Context> context = isolate->GetCurrentContext();
-        Context::Scope ContextScope(context);
+        Context::Scope contextScope(context);
         
         // Prepare callback arguments
         Local<Value> argv[] = {
@@ -142,7 +142,7 @@ public:
         if (it != listeners_.end()) {
             HandleScope HandleScope(isolate_);
             Local<Context> context = isolate_->GetCurrentContext();
-            Context::Scope ContextScope(context);
+            Context::Scope contextScope(context);
             
             Local<Function> callback = Local<Function>::New(isolate_, it->second);
             Local<Value> argv[] = { data };
@@ -184,12 +184,12 @@ int main(int, char* argv[]) {
     Isolate* isolate = Isolate::New(create_params);
     
     {
-        Isolate::Scope IsolateScope(isolate);
-        HandleScope HandleScope(isolate);
+        Isolate::Scope isolateScope(isolate);
+        HandleScope handleScope(isolate);
         
         // Create context
         Local<Context> context = Context::New(isolate);
-        Context::Scope ContextScope(context);
+        Context::Scope contextScope(context);
         
         // Create event emitter
         g_emitter = new EventEmitter(isolate);

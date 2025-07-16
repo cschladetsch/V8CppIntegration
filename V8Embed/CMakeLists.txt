@@ -15,7 +15,7 @@ target_include_directories(v8embed
 )
 
 target_link_libraries(v8embed PUBLIC V8::V8)
-target_compile_features(v8embed PUBLIC cxx_std_17)
+target_compile_features(v8embed PUBLIC cxx_std_20)
 
 # Example application using the library
 add_executable(v8embed_example examples/main.cpp)

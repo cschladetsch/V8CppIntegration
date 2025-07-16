@@ -335,7 +335,7 @@ TEST_F(V8InteroperabilityTest, CppCallbackFromJS) {
     // Create C++ callback function
     auto callback = [](const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
-        HandleScope scope(isolate);
+        v8::HandleScope scope(isolate);
         
         for (int i = 0; i < args.Length(); i++) {
             if (args[i]->IsNumber()) {
