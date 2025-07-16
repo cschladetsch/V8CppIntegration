@@ -10,7 +10,7 @@ int main(int, char* argv[]) {
     V8::InitializeExternalStartupData(argv[0]);
     
     // Create a default platform
-    std::unique_ptr<Platform> platform(v8::platform::CreateDefaultPlatform());
+    std::unique_ptr<Platform> platform = v8::platform::NewDefaultPlatform();
     V8::InitializePlatform(platform.get());
     V8::Initialize();
     

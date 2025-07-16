@@ -60,8 +60,6 @@ $GN_CMD gen out/x64.release --args='
     v8_use_external_startup_data=false
     v8_enable_31bit_smis_on_64bit_arch=false
     v8_enable_i18n_support=false
-    use_custom_libcxx=false
-    use_system_libc++=true
 '
 
 # Build V8

@@ -143,7 +143,15 @@ bool V8Console::CompileAndRun(const std::string& source, const std::string& name
     // Create script origin
     v8::Local<v8::String> nameStr = v8::String::NewFromUtf8(
         isolate_, name.c_str(), v8::NewStringType::kNormal).ToLocalChecked();
+    
+    // Create ScriptOrigin - API differs between V8 versions
+    // System V8 (newer) requires isolate as first parameter
+    // Built V8 (older) only takes resource name
+#ifdef USE_SYSTEM_V8
     v8::ScriptOrigin origin(isolate_, nameStr);
+#else
+    v8::ScriptOrigin origin(nameStr);
+#endif
     
     // Compile
     v8::Local<v8::Context> context = context_.Get(isolate_);

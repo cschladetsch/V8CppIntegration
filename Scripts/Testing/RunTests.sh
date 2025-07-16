@@ -48,17 +48,17 @@ print_status "Compiling..."
 make -j$(nproc)
 
 # Check if test suites exist
-if [ ! -f "BasicTests" ]; then
+if [ ! -f "../Bin/BasicTests" ]; then
     print_error "BasicTests executable not found. Build may have failed."
     exit 1
 fi
 
-if [ ! -f "AdvancedTests" ]; then
+if [ ! -f "../Bin/AdvancedTests" ]; then
     print_error "AdvancedTests executable not found. Build may have failed."
     exit 1
 fi
 
-if [ ! -f "IntegrationTests" ]; then
+if [ ! -f "../Bin/IntegrationTests" ]; then
     print_error "IntegrationTests executable not found. Build may have failed."
     exit 1
 fi
@@ -68,36 +68,36 @@ echo "=== Running Basic Test Suite (20 tests) ==="
 echo ""
 
 # Run the basic test suite
-./BasicTests
+../Bin/BasicTests
 
 echo ""
 echo "=== Running Advanced Test Suite (20 tests) ==="
 echo ""
 
 # Run the advanced test suite
-./AdvancedTests
+../Bin/AdvancedTests
 
 echo ""
 echo "=== Running Integration Test Suite (20 tests) ==="
 echo ""
 
 # Run the integration test suite
-./IntegrationTests
+../Bin/IntegrationTests
 
 echo ""
 echo "=== Running Example Tests ==="
 echo ""
 
 # Test each example
-if [ -f "SystemV8Example" ]; then
+if [ -f "../Bin/SystemV8Example" ]; then
     print_status "Testing SystemV8Example..."
-    timeout 5s ./SystemV8Example || print_warning "SystemV8Example timed out or failed"
+    timeout 5s ../Bin/SystemV8Example || print_warning "SystemV8Example timed out or failed"
     echo ""
 fi
 
-if [ -f "BidirectionalExample" ]; then
+if [ -f "../Bin/BidirectionalExample" ]; then
     print_status "Testing BidirectionalExample..."
-    timeout 5s ./BidirectionalExample || print_warning "BidirectionalExample timed out or failed"
+    timeout 5s ../Bin/BidirectionalExample || print_warning "BidirectionalExample timed out or failed"
     echo ""
 fi
 

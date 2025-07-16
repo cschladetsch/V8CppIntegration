@@ -9,8 +9,18 @@ namespace v8_test {
 class V8TestEnvironment {
 public:
     v8::Isolate* isolate;
+    
+private:
+    v8::Isolate::Scope isolate_scope_;
+    v8::HandleScope handle_scope_;
+    
+public:
     v8::Local<v8::Context> context;
     
+private:
+    v8::Context::Scope context_scope_;
+
+public:
     explicit V8TestEnvironment(v8::Isolate* iso) 
         : isolate(iso),
           isolate_scope_(isolate),
@@ -23,11 +33,6 @@ public:
     V8TestEnvironment& operator=(const V8TestEnvironment&) = delete;
     V8TestEnvironment(V8TestEnvironment&&) = delete;
     V8TestEnvironment& operator=(V8TestEnvironment&&) = delete;
-
-private:
-    v8::Isolate::Scope isolate_scope_;
-    v8::HandleScope handle_scope_;
-    v8::Context::Scope context_scope_;
 };
 
 } // namespace v8_test
