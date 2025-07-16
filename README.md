@@ -13,10 +13,12 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 3. **Multiple Examples**: From minimal demos to advanced integration patterns
 4. **System V8 Support**: Option to use system-installed V8 libraries
 5. **V8 Compatibility Layer**: Cross-version compatibility via v8_compat.h for seamless integration
-6. **Comprehensive Test Suite**: 154 GTest-based tests covering all aspects of V8 integration
+6. **Comprehensive Test Suite**: 160 GTest-based tests covering all aspects of V8 integration
 7. **Performance Benchmarks**: Google Benchmark integration for performance testing
 8. **Docker Support**: Multi-stage Docker builds for easy deployment
 9. **CI/CD Ready**: GitHub Actions workflow for automated testing
+10. **Interactive V8 Console**: Full-featured REPL with colored output, DLL hot-loading, and λ prompt
+11. **Dynamic Library Support**: Hot-loading of C++ DLLs with automatic V8 function registration
 
 ## Prerequisites
 
@@ -62,7 +64,10 @@ sudo apt-get install libv8-dev libgtest-dev
 ./build/BidirectionalExample
 ./build/AdvancedExample
 
-# 4. Run comprehensive test suite (154 tests)
+# 4. Run interactive V8 console with colored output
+./Bin/v8console
+
+# 5. Run comprehensive test suite (160 tests)
 ./run_tests.sh
 ```
 
@@ -116,8 +121,14 @@ V8/
 │   └── Testing/         # Test scripts
 │       └── RunTests.sh
 ├── Source/              # Source code  
+│   ├── App/             # Applications
+│   │   └── Console/     # V8 console with DLL hot-loading
+│   ├── DllExamples/     # Example DLLs
+│   │   └── Dlls/        # DLL implementations (Fibonacci, etc.)
+│   └── *                # Core V8 integration files
 ├── src/                 # Framework implementation files
 ├── Tests/               # Test suites
+│   ├── Dlls/            # DLL-specific tests (Fibonacci, etc.)
 │   ├── Integration/     # Integration tests
 │   │   ├── IntegrationTests.cpp
 │   │   └── InteroperabilityTests.cpp
@@ -166,15 +177,29 @@ V8/
 - JavaScript-based routing
 - JSON API support
 
+### 6. Interactive V8 Console (`Source/App/Console/`)
+- Full-featured REPL with colored output using rang.hpp
+- Lambda (λ) prompt character for modern terminal experience
+- Hot-loading of C++ DLLs with automatic V8 function registration
+- Built-in commands: `.load`, `.dll`, `.dlls`, `.reload`, `.quit`
+- JavaScript functions: `print()`, `load()`, `loadDll()`, `unloadDll()`, `reloadDll()`, `listDlls()`, `quit()`
+- Comprehensive error reporting with syntax highlighting
+
+### 7. Example DLLs (`Source/DllExamples/Dlls/`)
+- **Fibonacci DLL**: Calculates sum of first N Fibonacci numbers
+- Demonstrates C++ function registration with V8
+- Shows proper DLL export patterns for V8 integration
+
 
 ## Test Suite
 
-### ✅ Comprehensive Testing (154 Tests Total) - 100% Pass Rate
+### ✅ Comprehensive Testing (160 Tests Total) - 100% Pass Rate
 
 **Latest Test Results (All Tests Passing):**
 - 🚀 **Build Status**: SUCCESS - All examples and tests compiled with system V8
 - ⚡ **Performance**: Total execution time under 250ms
 - 🔧 **Compatibility**: Full V8 version compatibility via v8_compat layer
+- 🎯 **New Features**: Fibonacci DLL tests (6 tests) added to comprehensive test suite
 
 #### ✅ Basic Test Suite (`Tests/Unit/BasicTests.cpp` - 40/40 tests passed)
 **Execution Time: 75ms**
@@ -291,17 +316,29 @@ V8/
 - Math.sign and Math.trunc operations
 - globalThis environment access
 
+#### ✅ Fibonacci DLL Test Suite (`Tests/Dlls/FibonacciTests.cpp` - 6/6 tests passed)
+**Execution Time: 12ms**
+
+**Coverage:**
+- Basic Fibonacci sequence calculations (small values)
+- Large Fibonacci sequence calculations (performance testing)
+- Sequence verification and mathematical correctness
+- Error handling and edge cases (negative numbers, zero)
+- Performance benchmarking (sum of first 45 Fibonacci numbers)
+- Edge case handling (very large numbers)
+
 ### Running Tests
 ```bash
-# Run all tests (154 tests total)
+# Run all tests (160 tests total)
 ./run_tests.sh
-# Expected output: [  PASSED  ] 154 tests
+# Expected output: [  PASSED  ] 160 tests
 
 # Run individual test suites
 ./build/BasicTests      # 40 tests, ~75ms
 ./build/AdvancedTests   # 40 tests, ~58ms  
 ./build/IntegrationTests # 40 tests, ~62ms
 ./build/InteroperabilityTests # 34 tests, ~42ms
+./build/FibonacciTests  # 6 tests, ~12ms
 
 # Use CMake targets
 cmake --build build --target run_tests
@@ -312,6 +349,7 @@ cmake --build build --target run_all_tests
 ./build/AdvancedTests --gtest_output=xml:advanced_tests.xml
 ./build/IntegrationTests --gtest_output=xml:integration_tests.xml
 ./build/InteroperabilityTests --gtest_output=xml:interoperability_tests.xml
+./build/FibonacciTests --gtest_output=xml:fibonacci_tests.xml
 ```
 
 ### Test Environment
@@ -319,6 +357,60 @@ cmake --build build --target run_all_tests
 - **Compiler**: GCC 13.3.0 with C++20 support
 - **Platform**: Linux (Ubuntu/WSL2)
 - **Build System**: CMake 3.28.3
+
+## V8 Console Usage
+
+The project includes a full-featured interactive V8 console with colored output and DLL hot-loading:
+
+### Starting the Console
+```bash
+# Run in interactive mode (default)
+./Bin/v8console
+
+# Run with help
+./Bin/v8console --help
+
+# Run with pre-loaded DLL
+./Bin/v8console -i ./Bin/Fib.so
+
+# Execute script with DLL
+./Bin/v8console script.js ./Bin/Fib.so
+```
+
+### Console Commands
+```bash
+# DLL management
+.dll ./Bin/Fib.so          # Load a DLL
+.dlls                      # List loaded DLLs
+.reload ./Bin/Fib.so       # Reload a DLL
+.load script.js            # Load JavaScript file
+.quit                      # Exit console
+```
+
+### JavaScript Functions
+```javascript
+// DLL management from JavaScript
+loadDll("./Bin/Fib.so");     // Load DLL
+unloadDll("./Bin/Fib.so");   // Unload DLL
+reloadDll("./Bin/Fib.so");   // Reload DLL
+listDlls();                  // Get array of loaded DLLs
+
+// After loading Fibonacci DLL
+fib(10);                     // Calculate sum of first 10 Fibonacci numbers
+// Returns: 88 (1+1+2+3+5+8+13+21+34+55)
+
+// Console functions
+print("Hello, V8!");         // Print to console
+load("script.js");           // Load JavaScript file
+quit();                      // Exit console
+```
+
+### Console Features
+- **Colored Output**: Cyan titles, yellow sections, green success, red errors, blue λ prompt
+- **Error Reporting**: Syntax highlighting with source code context and stack traces
+- **DLL Hot-loading**: Load/unload/reload C++ DLLs without restarting
+- **History**: Command history with up/down arrow keys
+- **Auto-completion**: Tab completion for built-in functions
 
 ## Performance Benchmarks
 

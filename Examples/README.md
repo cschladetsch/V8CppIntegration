@@ -52,6 +52,26 @@ This directory contains example applications demonstrating various aspects of V8
 
 **Key concepts:** Practical application, request handling, API design
 
+### 6. Interactive V8 Console
+**Full-featured REPL with DLL hot-loading**
+- Colored terminal output with rang.hpp
+- Lambda (λ) prompt character
+- Dynamic loading/unloading of C++ DLLs
+- Built-in commands and JavaScript functions
+- Comprehensive error reporting with syntax highlighting
+- Command history and auto-completion
+
+**Key concepts:** Interactive programming, DLL integration, terminal UX
+
+### 7. DLL Examples
+**Demonstrates creating loadable C++ libraries**
+- **Fibonacci DLL** (`Source/DllExamples/Dlls/Fib.cpp`): Calculates sum of first N Fibonacci numbers
+- Shows proper V8 function registration pattern
+- Demonstrates C++ to JavaScript integration
+- Example for creating custom DLLs
+
+**Key concepts:** Dynamic libraries, V8 function binding, modular architecture
+
 ## Building the Examples
 
 ### Option 1: Using the Build Scripts (Recommended)
@@ -81,6 +101,9 @@ cmake --build build
 ./build/BidirectionalExample
 ./build/AdvancedExample
 ./build/WebServerExample
+
+# Console application will be in the Bin directory:
+./Bin/v8console
 ```
 
 ### Option 3: Manual Compilation
@@ -116,6 +139,15 @@ Each example is self-contained and can be run independently:
 
 # Web server simulation
 ./build/WebServerExample
+
+# Interactive V8 console
+./Bin/v8console
+
+# Interactive console with help
+./Bin/v8console --help
+
+# Console with pre-loaded DLL
+./Bin/v8console -i ./Bin/Fib.so
 ```
 
 ## Learning Path
@@ -127,6 +159,8 @@ If you're new to V8 integration, we recommend following this order:
 3. **BidirectionalExample** - Understand function bindings
 4. **AdvancedExample** - Explore advanced patterns
 5. **WebServerExample** - See a practical application
+6. **V8 Console** - Interactive programming with DLL hot-loading
+7. **DLL Examples** - Creating loadable C++ libraries
 
 ## Adding New Examples
 
