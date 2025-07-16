@@ -59,6 +59,12 @@ fi
 # Add depot_tools to PATH
 export PATH="$PROJECT_ROOT/depot_tools:\$PATH"
 
+# Clean up any stale lock files that might cause issues
+echo "Cleaning up any stale lock files..."
+find "$PROJECT_ROOT/depot_tools" -name "*.locked" -type f -delete 2>/dev/null || true
+pkill -f gclient 2>/dev/null || true
+pkill -f gsutil 2>/dev/null || true
+
 # Fetch V8
 # Handle various states: no v8 dir, partial checkout, full checkout
 if [ ! -d "v8" ]; then
@@ -114,6 +120,12 @@ else
 
     # Add depot_tools to PATH
     export PATH="$PROJECT_ROOT/depot_tools:$PATH"
+
+    # Clean up any stale lock files that might cause issues
+    echo "Cleaning up any stale lock files..."
+    find "$PROJECT_ROOT/depot_tools" -name "*.locked" -type f -delete 2>/dev/null || true
+    pkill -f gclient 2>/dev/null || true
+    pkill -f gsutil 2>/dev/null || true
 
     # Fetch V8
     # Handle various states: no v8 dir, partial checkout, full checkout
