@@ -202,6 +202,21 @@ if(ENABLE_TESTING AND GTest_FOUND)
         add_dependencies(InteroperabilityTests googletest)
     endif()
     add_test(NAME InteroperabilityTests COMMAND InteroperabilityTests)
+    
+    # DLL Tests (including Fibonacci)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Dlls/FibonacciTests.cpp")
+        add_executable(FibonacciTests Tests/Dlls/FibonacciTests.cpp)
+        configure_v8_target(FibonacciTests)
+        target_link_libraries(FibonacciTests PRIVATE GTest::gtest GTest::gtest_main pthread dl)
+        if(NOT USE_SYSTEM_V8)
+            add_dependencies(FibonacciTests googletest)
+        endif()
+        # Make sure Fib DLL is built before tests
+        if(TARGET Fib)
+            add_dependencies(FibonacciTests Fib)
+        endif()
+        add_test(NAME FibonacciTests COMMAND FibonacciTests)
+    endif()
 endif()
 
 
@@ -243,9 +258,24 @@ if(ENABLE_TESTING AND GTest_FOUND)
     )
 
     # Run all tests target
+    set(ALL_TEST_COMMANDS 
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/BasicTests
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AdvancedTests
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/IntegrationTests
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/InteroperabilityTests
+    )
+    set(ALL_TEST_TARGETS BasicTests AdvancedTests IntegrationTests InteroperabilityTests)
+    
+    if(TARGET FibonacciTests)
+        list(APPEND ALL_TEST_COMMANDS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/FibonacciTests)
+        list(APPEND ALL_TEST_TARGETS FibonacciTests)
+    endif()
+    
+    string(JOIN " && " ALL_TEST_COMMAND_STRING ${ALL_TEST_COMMANDS})
+    
     add_custom_target(run_all_tests
-        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/BasicTests && ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AdvancedTests && ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/IntegrationTests && ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/InteroperabilityTests
-        DEPENDS BasicTests AdvancedTests IntegrationTests InteroperabilityTests
+        COMMAND bash -c "${ALL_TEST_COMMAND_STRING}"
+        DEPENDS ${ALL_TEST_TARGETS}
         COMMENT "Running all test suites..."
     )
 endif()
@@ -362,8 +392,8 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/App/Console/CMakeLists.txt")
 endif()
 
 # Example DLLs
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/Cpp/Dlls/CMakeLists.txt")
-    add_subdirectory(Source/Cpp/Dlls)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/DllExamples/Dlls/CMakeLists.txt")
+    add_subdirectory(Source/DllExamples/Dlls)
 endif()
 
 # Print configuration summary
