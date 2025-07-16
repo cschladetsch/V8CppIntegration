@@ -2,38 +2,66 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <rang/rang.hpp>
 
 void printUsage(const char* programName) {
-    std::cout << "V8 Console - JavaScript runtime with DLL hot-loading" << std::endl;
+    using namespace rang;
+    
+    std::cout << style::bold << fg::cyan << "V8 Console" << style::reset 
+              << " - JavaScript runtime with DLL hot-loading" << std::endl;
     std::cout << std::endl;
-    std::cout << "Usage:" << std::endl;
-    std::cout << "  " << programName << " [options] [script.js] [dll1] [dll2] ..." << std::endl;
+    
+    std::cout << style::bold << fg::yellow << "Usage:" << style::reset << std::endl;
+    std::cout << "  " << fg::green << programName << style::reset 
+              << " [options] [script.js] [dll1] [dll2] ..." << std::endl;
     std::cout << std::endl;
-    std::cout << "Options:" << std::endl;
-    std::cout << "  -i, --interactive    Run in interactive mode (REPL)" << std::endl;
-    std::cout << "  -h, --help          Show this help message" << std::endl;
+    
+    std::cout << style::bold << fg::yellow << "Options:" << style::reset << std::endl;
+    std::cout << "  " << fg::blue << "-i, --interactive" << style::reset 
+              << "    Run in interactive mode (REPL)" << std::endl;
+    std::cout << "  " << fg::blue << "-h, --help" << style::reset 
+              << "          Show this help message" << std::endl;
     std::cout << std::endl;
-    std::cout << "Examples:" << std::endl;
-    std::cout << "  " << programName << " script.js                # Run script" << std::endl;
-    std::cout << "  " << programName << " script.js mylib.so       # Run script with DLL" << std::endl;
-    std::cout << "  " << programName << " -i mylib.so              # Interactive mode with DLL" << std::endl;
-    std::cout << "  " << programName << "                          # Interactive mode" << std::endl;
+    
+    std::cout << style::bold << fg::yellow << "Examples:" << style::reset << std::endl;
+    std::cout << "  " << fg::green << programName << " script.js" << style::reset 
+              << "                # Run script" << std::endl;
+    std::cout << "  " << fg::green << programName << " script.js mylib.so" << style::reset 
+              << "       # Run script with DLL" << std::endl;
+    std::cout << "  " << fg::green << programName << " -i mylib.so" << style::reset 
+              << "              # Interactive mode with DLL" << std::endl;
+    std::cout << "  " << fg::green << programName << style::reset 
+              << "                          # Interactive mode" << std::endl;
     std::cout << std::endl;
-    std::cout << "REPL Commands:" << std::endl;
-    std::cout << "  .load <file>        Load and execute JavaScript file" << std::endl;
-    std::cout << "  .dll <path>         Load a DLL" << std::endl;
-    std::cout << "  .dlls               List loaded DLLs" << std::endl;
-    std::cout << "  .reload <path>      Reload a DLL" << std::endl;
-    std::cout << "  .quit               Exit the console" << std::endl;
+    
+    std::cout << style::bold << fg::yellow << "REPL Commands:" << style::reset << std::endl;
+    std::cout << "  " << fg::magenta << ".load <file>" << style::reset 
+              << "        Load and execute JavaScript file" << std::endl;
+    std::cout << "  " << fg::magenta << ".dll <path>" << style::reset 
+              << "         Load a DLL" << std::endl;
+    std::cout << "  " << fg::magenta << ".dlls" << style::reset 
+              << "               List loaded DLLs" << std::endl;
+    std::cout << "  " << fg::magenta << ".reload <path>" << style::reset 
+              << "      Reload a DLL" << std::endl;
+    std::cout << "  " << fg::magenta << ".quit" << style::reset 
+              << "               Exit the console" << std::endl;
     std::cout << std::endl;
-    std::cout << "JavaScript Functions:" << std::endl;
-    std::cout << "  print(...)          Print to console" << std::endl;
-    std::cout << "  load(file)          Load and execute JS file" << std::endl;
-    std::cout << "  loadDll(path)       Load a DLL" << std::endl;
-    std::cout << "  unloadDll(path)     Unload a DLL" << std::endl;
-    std::cout << "  reloadDll(path)     Reload a DLL" << std::endl;
-    std::cout << "  listDlls()          Get array of loaded DLLs" << std::endl;
-    std::cout << "  quit()              Exit the console" << std::endl;
+    
+    std::cout << style::bold << fg::yellow << "JavaScript Functions:" << style::reset << std::endl;
+    std::cout << "  " << fg::cyan << "print(...)" << style::reset 
+              << "          Print to console" << std::endl;
+    std::cout << "  " << fg::cyan << "load(file)" << style::reset 
+              << "          Load and execute JS file" << std::endl;
+    std::cout << "  " << fg::cyan << "loadDll(path)" << style::reset 
+              << "       Load a DLL" << std::endl;
+    std::cout << "  " << fg::cyan << "unloadDll(path)" << style::reset 
+              << "     Unload a DLL" << std::endl;
+    std::cout << "  " << fg::cyan << "reloadDll(path)" << style::reset 
+              << "     Reload a DLL" << std::endl;
+    std::cout << "  " << fg::cyan << "listDlls()" << style::reset 
+              << "          Get array of loaded DLLs" << std::endl;
+    std::cout << "  " << fg::cyan << "quit()" << style::reset 
+              << "              Exit the console" << std::endl;
 }
 
 int main(int argc, char* argv[]) {

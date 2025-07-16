@@ -1,6 +1,7 @@
 #include "DllLoader.h"
 #include <iostream>
 #include <algorithm>
+#include <rang/rang.hpp>
 
 #ifdef _WIN32
     #include <windows.h>
@@ -17,14 +18,14 @@ DllLoader::~DllLoader() {
 bool DllLoader::LoadDll(const std::string& path, v8::Isolate* isolate, v8::Local<v8::Context> context) {
     // Check if already loaded
     if (loadedDlls_.find(path) != loadedDlls_.end()) {
-        std::cerr << "DLL already loaded: " << path << std::endl;
+        std::cerr << rang::fg::yellow << "DLL already loaded: " << path << rang::style::reset << std::endl;
         return false;
     }
     
     // Load the library
     void* handle = LoadLibrary(path);
     if (!handle) {
-        std::cerr << "Failed to load DLL: " << path << std::endl;
+        std::cerr << rang::fg::red << "Failed to load DLL: " << path << rang::style::reset << std::endl;
         return false;
     }
     
@@ -41,7 +42,7 @@ bool DllLoader::LoadDll(const std::string& path, v8::Isolate* isolate, v8::Local
     
     // Store the handle
     loadedDlls_[path] = std::move(dllHandle);
-    std::cout << "Successfully loaded DLL: " << path << std::endl;
+    std::cout << rang::fg::green << "Successfully loaded DLL: " << path << rang::style::reset << std::endl;
     return true;
 }
 
@@ -113,7 +114,7 @@ bool DllLoader::RegisterDllFunctions(void* handle, const std::string& dllName,
     
     RegisterFunc registerFunc = reinterpret_cast<RegisterFunc>(GetSymbol(handle, "RegisterV8Functions"));
     if (!registerFunc) {
-        std::cerr << "DLL does not export RegisterV8Functions: " << dllName << std::endl;
+        std::cerr << rang::fg::red << "DLL does not export RegisterV8Functions: " << dllName << rang::style::reset << std::endl;
         return false;
     }
     

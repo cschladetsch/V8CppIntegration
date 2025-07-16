@@ -36,6 +36,7 @@ endif()
 target_include_directories(v8console PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/Include
+    ${CMAKE_SOURCE_DIR}/Include/third_party
 )
 
 # Install target
