@@ -33,6 +33,7 @@ enum class ErrorCode {
     MEMORY_ERROR = 2000,
     SECURITY_ERROR = 3000,
     TIMEOUT_ERROR = 4000,
+    FATAL_ERROR = 5000,
     UNKNOWN_ERROR = 9999
 };
 
@@ -124,9 +125,10 @@ public:
     
 private:
     static void setupSecurityCallbacks(v8::Isolate* isolate);
-    static bool allowCodeGeneration(v8::Local<v8::Context> context,
-                                   v8::Local<v8::String> source,
-                                   bool is_code_like);
+    static v8::ModifyCodeGenerationFromStringsResult allowCodeGeneration(
+        v8::Local<v8::Context> context,
+        v8::Local<v8::Value> source,
+        bool is_code_like);
     static bool allowWasmCodeGeneration(v8::Local<v8::Context> context,
                                        v8::Local<v8::String> source);
 };

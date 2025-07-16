@@ -185,7 +185,7 @@ private:
     std::map<std::string, ProfileData> profiles_;
     std::map<std::string, std::chrono::high_resolution_clock::time_point> active_timers_;
     
-    v8::CpuProfiler* cpu_profiler_ = nullptr;
+    // v8::CpuProfiler* cpu_profiler_ = nullptr; // Not available in all V8 versions
     v8::HeapProfiler* heap_profiler_ = nullptr;
 };
 

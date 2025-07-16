@@ -47,6 +47,9 @@ private:
     
     // Built-in functions
     static void Print(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void ConsoleLog(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void ConsoleError(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void ConsoleWarn(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void Load(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void LoadDll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void UnloadDll(const v8::FunctionCallbackInfo<v8::Value>& args);
