@@ -54,11 +54,25 @@ This directory contains example applications demonstrating various aspects of V8
 
 ## Building the Examples
 
-All examples are built as part of the main project:
+### Option 1: Using the Build Scripts (Recommended)
+
+```bash
+# Build with V8 from source
+./from_source.sh
+
+# Or build with existing V8
+./build.sh
+
+# Build and run standalone example
+./compile_standalone.sh
+./standalone_example
+```
+
+### Option 2: Using CMake Directly
 
 ```bash
 # Build all examples
-cmake -B build -DUSE_SYSTEM_V8=ON
+cmake -B build -DUSE_SYSTEM_V8=OFF
 cmake --build build
 
 # Individual executables will be in the build directory:
@@ -67,6 +81,20 @@ cmake --build build
 ./build/BidirectionalExample
 ./build/AdvancedExample
 ./build/WebServerExample
+```
+
+### Option 3: Manual Compilation
+
+```bash
+# After V8 is built, compile any example manually:
+clang++ -std=c++20 -stdlib=libc++ -I../v8/include BidirectionalExample.cpp \
+    -o BidirectionalExample -fuse-ld=lld \
+    ../v8/out/x64.release/obj/libv8_monolith.a \
+    ../v8/out/x64.release/obj/libv8_libbase.a \
+    ../v8/out/x64.release/obj/libv8_libplatform.a \
+    ../v8/out/x64.release/obj/buildtools/third_party/libc++/libc++.a \
+    ../v8/out/x64.release/obj/buildtools/third_party/libc++abi/libc++abi.a \
+    -pthread -ldl -lm
 ```
 
 ## Running the Examples
@@ -161,6 +189,37 @@ if (try_catch.HasCaught()) {
 - **Linking errors**: Check that V8 libraries are in the library path
 - **Runtime crashes**: Always use HandleScope and proper scope management
 - **Memory leaks**: Ensure proper cleanup of isolates and contexts
+
+## JavaScript Demo Files
+
+The project includes JavaScript demos to showcase V8 features:
+
+### demo.js
+Comprehensive JavaScript feature showcase:
+```bash
+./v8/out/x64.release/d8 demo.js
+```
+
+Features demonstrated:
+- ES6+ syntax (arrow functions, classes, destructuring)
+- Async/await and Promises
+- Generators and iterators
+- Modern APIs (Map, Set, Proxy, etc.)
+- Advanced patterns
+
+### demo_minimal.js
+Minimal JavaScript examples:
+```bash
+./v8/out/x64.release/d8 demo_minimal.js
+```
+
+## Compiler Requirements
+
+**Important**: V8 is built with Chromium's custom libc++ which uses a different ABI than system libc++. You must:
+
+1. Use clang++ (not g++)
+2. Use LLVM's lld linker (-fuse-ld=lld)
+3. Link against V8's bundled libc++ and libc++abi
 
 ## Additional Resources
 

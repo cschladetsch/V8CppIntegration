@@ -43,7 +43,7 @@ check_sudo_available() {
         echo ""
         echo "Alternatively, you can install dependencies manually:"
         echo "  sudo apt-get update"
-        echo "  sudo apt-get install -y git curl python3 pkg-config lsb-release ninja-build build-essential"
+        echo "  sudo apt-get install -y git curl python3 pkg-config lsb-release ninja-build build-essential clang libc++-dev libc++abi-dev"
         echo "Then run this script without sudo."
         exit 1
     fi
@@ -52,7 +52,8 @@ check_sudo_available() {
 # Check if all required dependencies are installed
 echo "Checking system dependencies..."
 MISSING_DEPS=()
-for pkg in git curl python3 pkg-config lsb-release ninja-build build-essential; do
+# Updated dependencies to include clang and libc++ for V8 compatibility
+for pkg in git curl python3 pkg-config lsb-release ninja-build build-essential clang libc++-dev libc++abi-dev; do
     # Check both with and without architecture suffix
     if ! dpkg -l | grep -E "^ii  ($pkg|$pkg:[a-zA-Z0-9]+) " > /dev/null 2>&1; then
         MISSING_DEPS+=($pkg)
@@ -139,7 +140,7 @@ echo "  Static library: v8/out/x64.release/obj/libv8_monolith.a"
 echo "  Include path: v8/include/"
 echo ""
 echo "To use the built V8 in your project:"
-echo "  cmake -B build -DUSE_SYSTEM_V8=OFF"
+echo "  CC=clang CXX=clang++ cmake -B build -DUSE_SYSTEM_V8=OFF"
 echo "  cmake --build build"
 echo ""
 echo "To run examples:"

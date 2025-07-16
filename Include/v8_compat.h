@@ -7,18 +7,9 @@
 
 namespace v8_compat {
 
-// Wrapper function that creates a platform compatible with different V8 versions
-inline std::unique_ptr<v8::Platform> CreateDefaultPlatform(
-    int thread_pool_size = 0) {
-    
-    // Use the basic platform creation that works with system V8
+// Simple wrapper - just call V8's platform creation directly
+inline std::unique_ptr<v8::Platform> CreateDefaultPlatform(int thread_pool_size = 0) {
     return v8::platform::NewDefaultPlatform(thread_pool_size);
-}
-
-// Initialize V8 with proper setup
-inline bool InitializeV8() {
-    v8::V8::InitializeICU();
-    return true;
 }
 
 } // namespace v8_compat

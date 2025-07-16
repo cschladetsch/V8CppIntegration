@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 3.14)
 project(V8IntegrationFramework VERSION 1.0.0 LANGUAGES CXX)
 
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Set output directories
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Bin)
 
 # Build options
 option(USE_SYSTEM_V8 "Use system-installed V8 instead of building from source" ON)
@@ -21,8 +25,22 @@ if(ENABLE_TESTING)
 endif()
 
 # Find dependencies
-find_package(GTest REQUIRED)
 find_package(Threads REQUIRED)
+
+# Handle GTest for testing
+if(ENABLE_TESTING)
+    if(NOT USE_SYSTEM_V8)
+        # Build GTest from source with same compiler settings as V8
+        include(CMake/BuildGTest.cmake)
+    else()
+        # Use system GTest
+        find_package(GTest QUIET)
+        if(NOT GTest_FOUND)
+            message(WARNING "GTest not found, disabling tests")
+            set(ENABLE_TESTING OFF)
+        endif()
+    endif()
+endif()
 
 # Find optional dependencies
 find_package(benchmark QUIET)
@@ -31,7 +49,9 @@ find_package(Doxygen QUIET)
 
 # Include directories
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Include)
-include_directories(${GTEST_INCLUDE_DIRS})
+if(ENABLE_TESTING AND GTest_FOUND)
+    include_directories(${GTEST_INCLUDE_DIRS})
+endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Include/v8_integration)
 
 # Compiler flags
@@ -113,21 +133,22 @@ else()
     include(CMake/BuildV8.cmake)
 endif()
 
-# Function to configure V8 targets with proper libc++ settings
+# Function to configure V8 targets
 function(configure_v8_target target_name)
     target_link_libraries(${target_name} PRIVATE V8::V8)
-    if(NOT USE_SYSTEM_V8)
-        # Only use libc++ with Clang, not GCC
-        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-            target_compile_options(${target_name} PRIVATE -stdlib=libc++)
-            target_link_options(${target_name} PRIVATE -stdlib=libc++)
-        endif()
+    if(NOT USE_SYSTEM_V8 AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        # When using Clang with built V8, we need libc++
+        target_compile_options(${target_name} PRIVATE -stdlib=libc++)
+        target_link_options(${target_name} PRIVATE -stdlib=libc++ -fuse-ld=lld)
     endif()
 endfunction()
 
 # Examples
 add_executable(SystemV8Example Examples/SystemV8Example.cpp)
 configure_v8_target(SystemV8Example)
+
+add_executable(SimpleV8Example Examples/SimpleV8Example.cpp)
+configure_v8_target(SimpleV8Example)
 
 # If other example files exist, build them too
 add_executable(BidirectionalExample Examples/BidirectionalExample.cpp)
@@ -143,30 +164,45 @@ add_executable(WebServerExample Examples/WebServerExample.cpp)
 configure_v8_target(WebServerExample)
 
 # Test suite with GTest
-# Unit Tests
-add_executable(BasicTests Tests/Unit/BasicTests.cpp)
-configure_v8_target(BasicTests)
-target_link_libraries(BasicTests PRIVATE GTest::gtest GTest::gtest_main pthread)
-add_test(NAME BasicTests COMMAND BasicTests)
+if(ENABLE_TESTING AND GTest_FOUND)
+    # Unit Tests
+    add_executable(BasicTests Tests/Unit/BasicTests.cpp)
+    configure_v8_target(BasicTests)
+    target_link_libraries(BasicTests PRIVATE GTest::gtest GTest::gtest_main pthread)
+    # Ensure proper build dependencies
+    if(NOT USE_SYSTEM_V8)
+        add_dependencies(BasicTests googletest)
+    endif()
+    add_test(NAME BasicTests COMMAND BasicTests)
 
-# Advanced test suite with GTest
-add_executable(AdvancedTests Tests/Unit/AdvancedTests.cpp)
-configure_v8_target(AdvancedTests)
-target_link_libraries(AdvancedTests PRIVATE GTest::gtest GTest::gtest_main pthread)
-add_test(NAME AdvancedTests COMMAND AdvancedTests)
+    # Advanced test suite with GTest
+    add_executable(AdvancedTests Tests/Unit/AdvancedTests.cpp)
+    configure_v8_target(AdvancedTests)
+    target_link_libraries(AdvancedTests PRIVATE GTest::gtest GTest::gtest_main pthread)
+    if(NOT USE_SYSTEM_V8)
+        add_dependencies(AdvancedTests googletest)
+    endif()
+    add_test(NAME AdvancedTests COMMAND AdvancedTests)
 
-# Integration test suite with GTest (third test suite)
-# Integration Tests
-add_executable(IntegrationTests Tests/Integration/IntegrationTests.cpp)
-configure_v8_target(IntegrationTests)
-target_link_libraries(IntegrationTests PRIVATE GTest::gtest GTest::gtest_main pthread)
-add_test(NAME IntegrationTests COMMAND IntegrationTests)
+    # Integration test suite with GTest (third test suite)
+    # Integration Tests
+    add_executable(IntegrationTests Tests/Integration/IntegrationTests.cpp)
+    configure_v8_target(IntegrationTests)
+    target_link_libraries(IntegrationTests PRIVATE GTest::gtest GTest::gtest_main pthread)
+    if(NOT USE_SYSTEM_V8)
+        add_dependencies(IntegrationTests googletest)
+    endif()
+    add_test(NAME IntegrationTests COMMAND IntegrationTests)
 
-# Interoperability test suite with GTest
-add_executable(InteroperabilityTests Tests/Integration/InteroperabilityTests.cpp)
-configure_v8_target(InteroperabilityTests)
-target_link_libraries(InteroperabilityTests PRIVATE GTest::gtest GTest::gtest_main pthread)
-add_test(NAME InteroperabilityTests COMMAND InteroperabilityTests)
+    # Interoperability test suite with GTest
+    add_executable(InteroperabilityTests Tests/Integration/InteroperabilityTests.cpp)
+    configure_v8_target(InteroperabilityTests)
+    target_link_libraries(InteroperabilityTests PRIVATE GTest::gtest GTest::gtest_main pthread)
+    if(NOT USE_SYSTEM_V8)
+        add_dependencies(InteroperabilityTests googletest)
+    endif()
+    add_test(NAME InteroperabilityTests COMMAND InteroperabilityTests)
+endif()
 
 
 # Run target
@@ -176,40 +212,43 @@ add_custom_target(run
     COMMENT "Running V8 example..."
 )
 
-# Test target
-add_custom_target(run_tests
-    COMMAND BasicTests
-    DEPENDS BasicTests
-    COMMENT "Running basic test suite..."
-)
+# Test targets - only if tests are enabled
+if(ENABLE_TESTING AND GTest_FOUND)
+    # Test target
+    add_custom_target(run_tests
+        COMMAND BasicTests
+        DEPENDS BasicTests
+        COMMENT "Running basic test suite..."
+    )
 
-# Advanced test target
-add_custom_target(run_advanced_tests
-    COMMAND AdvancedTests
-    DEPENDS AdvancedTests
-    COMMENT "Running advanced test suite..."
-)
+    # Advanced test target
+    add_custom_target(run_advanced_tests
+        COMMAND AdvancedTests
+        DEPENDS AdvancedTests
+        COMMENT "Running advanced test suite..."
+    )
 
-# Integration test target
-add_custom_target(run_integration_tests
-    COMMAND IntegrationTests
-    DEPENDS IntegrationTests
-    COMMENT "Running integration test suite..."
-)
+    # Integration test target
+    add_custom_target(run_integration_tests
+        COMMAND IntegrationTests
+        DEPENDS IntegrationTests
+        COMMENT "Running integration test suite..."
+    )
 
-# Interoperability test target
-add_custom_target(run_interoperability_tests
-    COMMAND InteroperabilityTests
-    DEPENDS InteroperabilityTests
-    COMMENT "Running interoperability test suite..."
-)
+    # Interoperability test target
+    add_custom_target(run_interoperability_tests
+        COMMAND InteroperabilityTests
+        DEPENDS InteroperabilityTests
+        COMMENT "Running interoperability test suite..."
+    )
 
-# Run all tests target
-add_custom_target(run_all_tests
-    COMMAND ./BasicTests && ./AdvancedTests && ./IntegrationTests && ./InteroperabilityTests
-    DEPENDS BasicTests AdvancedTests IntegrationTests InteroperabilityTests
-    COMMENT "Running all test suites..."
-)
+    # Run all tests target
+    add_custom_target(run_all_tests
+        COMMAND ./BasicTests && ./AdvancedTests && ./IntegrationTests && ./InteroperabilityTests
+        DEPENDS BasicTests AdvancedTests IntegrationTests InteroperabilityTests
+        COMMENT "Running all test suites..."
+    )
+endif()
 
 # Core V8 integration library (simplified for now)
 # if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/error_handler.cpp")
@@ -307,6 +346,11 @@ if(TARGET BenchmarkTests)
     )
 endif()
 
+# V8 Console Application
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/App/Console/CMakeLists.txt")
+    add_subdirectory(Source/App/Console)
+endif()
+
 # Print configuration summary
 message(STATUS "")
 message(STATUS "V8 Examples Configuration:")
@@ -316,4 +360,5 @@ message(STATUS "  Use system V8: ${USE_SYSTEM_V8}")
 message(STATUS "")
 message(STATUS "Build with: cmake --build .")
 message(STATUS "Run with: cmake --build . --target run")
+message(STATUS "Run console: cmake --build . --target v8console")
 message(STATUS "")

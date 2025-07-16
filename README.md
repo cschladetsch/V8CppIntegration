@@ -38,14 +38,14 @@ sudo apt-get install libv8-dev libgtest-dev
 This project provides two main build scripts:
 
 1. **`build.sh`** - Main project build script for regular development
-2. **`build_from_source.sh`** - Complete V8 source build with dependency management
+2. **`from_source.sh`** - Complete V8 source build with dependency management
 
 ### When to use each script:
 
 | Script | Purpose | Use When |
 |--------|---------|----------|
 | `build.sh` | Build CppV8 project and examples | You already have V8 installed (system or built) |
-| `build_from_source.sh` | Build V8 from scratch + project | Fresh system, first-time setup, or CI/CD |
+| `from_source.sh` | Build V8 from scratch + project | Fresh system, first-time setup, or CI/CD |
 
 ## Quick Start
 
@@ -69,15 +69,19 @@ sudo apt-get install libv8-dev libgtest-dev
 ### Option 2: Build V8 from Source (Complete Setup)
 ```bash
 # For a complete V8 build with automatic dependency installation:
-./build_from_source.sh
+./from_source.sh
 
 # OR manually control the process:
-# 1. Setup and build V8 (takes 10-30 minutes)
+# 1. Setup and build V8 (takes 30-45 minutes)
 ./build.sh --setup-v8 --build-v8
 
 # 2. Run examples
 ./build/BidirectionalExample
 ./build/AdvancedExample
+
+# 3. Compile standalone example
+./compile_standalone.sh
+./standalone_example
 ```
 
 ## Project Structure
@@ -123,8 +127,13 @@ V8/
 │       ├── AdvancedTests.cpp
 │       └── BasicTests.cpp
 ├── V8Embed/             # V8 embedding utilities
-├── build.sh             # Convenience script
-├── run_tests.sh         # Convenience script
+├── build.sh             # Main build script
+├── from_source.sh       # Complete V8 source build
+├── compile_standalone.sh # Compile standalone examples
+├── run_tests.sh         # Test runner script
+├── standalone_example.cpp # Simple V8 example
+├── demo.js              # JavaScript feature showcase
+├── demo_minimal.js      # Minimal JS demo
 ├── Dockerfile           # Docker configuration
 └── docker-compose.yml   # Docker Compose setup
 ```
@@ -370,9 +379,9 @@ docker-compose up v8-benchmark
 ./build.sh --setup-v8 --build-v8    # Full V8 source build
 ```
 
-### Using build_from_source.sh (Complete V8 Setup)
+### Using from_source.sh (Complete V8 Setup)
 ```bash
-./build_from_source.sh
+./from_source.sh
 # No options needed - automatically:
 # - Checks and installs system dependencies
 # - Downloads depot_tools if needed

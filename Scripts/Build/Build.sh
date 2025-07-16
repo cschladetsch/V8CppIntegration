@@ -14,6 +14,9 @@ fi
 # Default build type
 BUILD_TYPE=${BUILD_TYPE:-Release}
 BUILD_DIR="build"
+ONLY_SETUP_V8=0
+ONLY_BUILD_V8=0
+DO_CMAKE_BUILD=1
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -48,6 +51,14 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Determine if we should skip CMake build
+if [ "${SETUP_V8}" = "1" ] && [ -z "${BUILD_V8}" ] && [ -z "${USE_SYSTEM_V8}" ] && [ "${BUILD_TYPE}" = "Release" ]; then
+    DO_CMAKE_BUILD=0
+fi
+if [ "${BUILD_V8}" = "1" ] && [ -z "${SETUP_V8}" ] && [ -z "${USE_SYSTEM_V8}" ] && [ "${BUILD_TYPE}" = "Release" ]; then
+    DO_CMAKE_BUILD=0
+fi
+
 # Setup V8 if requested (must be done before CMake configuration)
 if [ "${SETUP_V8}" = "1" ]; then
     echo "Setting up V8..."
@@ -72,12 +83,25 @@ if [ "${BUILD_V8}" = "1" ]; then
     fi
 fi
 
+# Exit if we're only doing V8 setup/build
+if [ "${DO_CMAKE_BUILD}" = "0" ]; then
+    exit 0
+fi
+
 # Create build directory
 mkdir -p ${BUILD_DIR}
 cd ${BUILD_DIR}
 
 # Configure with CMake
 echo "Configuring with CMake (${BUILD_TYPE} build)..."
+
+# If using built V8, force Clang for ABI compatibility
+if [ "${USE_SYSTEM_V8}" != "ON" ]; then
+    echo "Using Clang for V8 ABI compatibility..."
+    export CC=clang
+    export CXX=clang++
+fi
+
 cmake .. \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
     -DUSE_SYSTEM_V8=${USE_SYSTEM_V8:-OFF} \

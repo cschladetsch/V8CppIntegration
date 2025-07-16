@@ -20,12 +20,20 @@ if(NOT EXISTS ${V8_SOURCE_DIR})
     return()
 endif()
 
-# Add custom target to build V8
-add_custom_target(v8_build
-    COMMAND ${V8_BUILD_SCRIPT}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Building V8 from source..."
-)
+# Check if V8 is already built
+if(EXISTS ${V8_LIBRARIES})
+    add_custom_target(v8_build
+        COMMAND ${CMAKE_COMMAND} -E echo "V8 already built, skipping..."
+        COMMENT "V8 already built"
+    )
+else()
+    # Add custom target to build V8
+    add_custom_target(v8_build
+        COMMAND ${V8_BUILD_SCRIPT}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Building V8 from source..."
+    )
+endif()
 
 # Set V8 variables for the rest of the project
 set(V8_FOUND TRUE)
@@ -48,12 +56,12 @@ add_library(V8::V8 STATIC IMPORTED GLOBAL)
 set_target_properties(V8::V8 PROPERTIES
     IMPORTED_LOCATION ${V8_LIBRARIES}
     INTERFACE_INCLUDE_DIRECTORIES ${V8_INCLUDE_DIRS}
-    INTERFACE_LINK_LIBRARIES "${V8_LIBPLATFORM};${V8_LIBBASE};${V8_LIBCXX};${V8_LIBCXXABI};pthread;dl;m"
-    INTERFACE_LINK_OPTIONS "-fuse-ld=gold"
+    INTERFACE_LINK_LIBRARIES "${V8_LIBBASE};${V8_LIBPLATFORM};${V8_LIBCXX};${V8_LIBCXXABI};pthread;dl;m"
 )
 
 # Make sure V8 is built before any target that depends on it
-add_dependencies(V8::V8 v8_build)
+# Commented out to prevent constant rebuilding
+# add_dependencies(V8::V8 v8_build)
 
 message(STATUS "V8 will be built from source at: ${V8_SOURCE_DIR}")
 message(STATUS "V8 static library: ${V8_LIBRARIES}")
