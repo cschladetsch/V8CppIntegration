@@ -26,8 +26,8 @@ public:
         create_params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
         isolate = v8::Isolate::New(create_params);
         
-        v8::Isolate::Scope isolate_scope(isolate);
-        v8::HandleScope handle_scope(isolate);
+        v8::Isolate::Scope IsolateScope(isolate);
+        v8::HandleScope HandleScope(isolate);
         context = v8::Context::New(isolate);
     }
     
@@ -46,10 +46,10 @@ bool V8PerformanceFixture::v8_initialized = false;
 
 // Basic JavaScript execution performance
 BENCHMARK_DEFINE_F(V8PerformanceFixture, SimpleExecution)(benchmark::State& state) {
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
+    v8::Isolate::Scope IsolateScope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> ctx = v8::Local<v8::Context>::New(isolate, context);
-    v8::Context::Scope context_scope(ctx);
+    v8::Context::Scope ContextScope(ctx);
     
     const char* source = "2 + 3";
     v8::Local<v8::String> src = v8::String::NewFromUtf8(isolate, source).ToLocalChecked();
@@ -66,10 +66,10 @@ BENCHMARK_REGISTER_F(V8PerformanceFixture, SimpleExecution)->Iterations(100000);
 
 // Function call performance
 BENCHMARK_DEFINE_F(V8PerformanceFixture, FunctionCall)(benchmark::State& state) {
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
+    v8::Isolate::Scope IsolateScope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> ctx = v8::Local<v8::Context>::New(isolate, context);
-    v8::Context::Scope context_scope(ctx);
+    v8::Context::Scope ContextScope(ctx);
     
     const char* source = "function test(a, b) { return a + b; }";
     v8::Local<v8::String> src = v8::String::NewFromUtf8(isolate, source).ToLocalChecked();
@@ -96,10 +96,10 @@ BENCHMARK_REGISTER_F(V8PerformanceFixture, FunctionCall)->Iterations(50000);
 
 // Object creation performance
 BENCHMARK_DEFINE_F(V8PerformanceFixture, ObjectCreation)(benchmark::State& state) {
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
+    v8::Isolate::Scope IsolateScope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> ctx = v8::Local<v8::Context>::New(isolate, context);
-    v8::Context::Scope context_scope(ctx);
+    v8::Context::Scope ContextScope(ctx);
     
     for (auto _ : state) {
         v8::Local<v8::Object> obj = v8::Object::New(isolate);
@@ -115,10 +115,10 @@ BENCHMARK_REGISTER_F(V8PerformanceFixture, ObjectCreation)->Iterations(10000);
 
 // Array operations performance
 BENCHMARK_DEFINE_F(V8PerformanceFixture, ArrayOperations)(benchmark::State& state) {
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
+    v8::Isolate::Scope IsolateScope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> ctx = v8::Local<v8::Context>::New(isolate, context);
-    v8::Context::Scope context_scope(ctx);
+    v8::Context::Scope ContextScope(ctx);
     
     const char* source = "let arr = []; for(let i = 0; i < 1000; i++) arr.push(i); arr.length";
     v8::Local<v8::String> src = v8::String::NewFromUtf8(isolate, source).ToLocalChecked();
@@ -135,10 +135,10 @@ BENCHMARK_REGISTER_F(V8PerformanceFixture, ArrayOperations)->Iterations(1000);
 
 // JSON parsing performance
 BENCHMARK_DEFINE_F(V8PerformanceFixture, JSONParsing)(benchmark::State& state) {
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
+    v8::Isolate::Scope IsolateScope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> ctx = v8::Local<v8::Context>::New(isolate, context);
-    v8::Context::Scope context_scope(ctx);
+    v8::Context::Scope ContextScope(ctx);
     
     std::string json_data = R"({
         "name": "test",
@@ -165,10 +165,10 @@ BENCHMARK_REGISTER_F(V8PerformanceFixture, JSONParsing)->Iterations(10000);
 
 // String operations performance
 BENCHMARK_DEFINE_F(V8PerformanceFixture, StringOperations)(benchmark::State& state) {
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
+    v8::Isolate::Scope IsolateScope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> ctx = v8::Local<v8::Context>::New(isolate, context);
-    v8::Context::Scope context_scope(ctx);
+    v8::Context::Scope ContextScope(ctx);
     
     const char* source = "let str = 'Hello'; str + ' World'; str.length; str.substring(0, 5)";
     v8::Local<v8::String> src = v8::String::NewFromUtf8(isolate, source).ToLocalChecked();
@@ -185,10 +185,10 @@ BENCHMARK_REGISTER_F(V8PerformanceFixture, StringOperations)->Iterations(50000);
 
 // C++ to JavaScript binding performance
 BENCHMARK_DEFINE_F(V8PerformanceFixture, CppToJSBinding)(benchmark::State& state) {
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
+    v8::Isolate::Scope IsolateScope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> ctx = v8::Local<v8::Context>::New(isolate, context);
-    v8::Context::Scope context_scope(ctx);
+    v8::Context::Scope ContextScope(ctx);
     
     auto callback = [](const v8::FunctionCallbackInfo<v8::Value>& args) {
         if (args.Length() >= 2) {
@@ -217,10 +217,10 @@ BENCHMARK_REGISTER_F(V8PerformanceFixture, CppToJSBinding)->Iterations(10000);
 
 // Memory allocation performance
 BENCHMARK_DEFINE_F(V8PerformanceFixture, MemoryAllocation)(benchmark::State& state) {
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
+    v8::Isolate::Scope IsolateScope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> ctx = v8::Local<v8::Context>::New(isolate, context);
-    v8::Context::Scope context_scope(ctx);
+    v8::Context::Scope ContextScope(ctx);
     
     size_t allocated_bytes = 0;
     
@@ -237,10 +237,10 @@ BENCHMARK_REGISTER_F(V8PerformanceFixture, MemoryAllocation)->Iterations(1000);
 
 // Garbage collection performance
 BENCHMARK_DEFINE_F(V8PerformanceFixture, GarbageCollection)(benchmark::State& state) {
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
+    v8::Isolate::Scope IsolateScope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> ctx = v8::Local<v8::Context>::New(isolate, context);
-    v8::Context::Scope context_scope(ctx);
+    v8::Context::Scope ContextScope(ctx);
     
     const char* source = R"(
         let objects = [];
@@ -267,10 +267,10 @@ BENCHMARK_REGISTER_F(V8PerformanceFixture, GarbageCollection)->Iterations(100);
 
 // Regular expression performance
 BENCHMARK_DEFINE_F(V8PerformanceFixture, RegexOperations)(benchmark::State& state) {
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
+    v8::Isolate::Scope IsolateScope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> ctx = v8::Local<v8::Context>::New(isolate, context);
-    v8::Context::Scope context_scope(ctx);
+    v8::Context::Scope ContextScope(ctx);
     
     const char* source = R"(
         let text = 'The quick brown fox jumps over the lazy dog';
@@ -292,10 +292,10 @@ BENCHMARK_REGISTER_F(V8PerformanceFixture, RegexOperations)->Iterations(10000);
 
 // Promise performance
 BENCHMARK_DEFINE_F(V8PerformanceFixture, PromiseOperations)(benchmark::State& state) {
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
+    v8::Isolate::Scope IsolateScope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> ctx = v8::Local<v8::Context>::New(isolate, context);
-    v8::Context::Scope context_scope(ctx);
+    v8::Context::Scope ContextScope(ctx);
     
     const char* source = R"(
         new Promise((resolve) => {
@@ -317,10 +317,10 @@ BENCHMARK_REGISTER_F(V8PerformanceFixture, PromiseOperations)->Iterations(1000);
 
 // Map/Set performance
 BENCHMARK_DEFINE_F(V8PerformanceFixture, MapSetOperations)(benchmark::State& state) {
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
+    v8::Isolate::Scope IsolateScope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> ctx = v8::Local<v8::Context>::New(isolate, context);
-    v8::Context::Scope context_scope(ctx);
+    v8::Context::Scope ContextScope(ctx);
     
     const char* source = R"(
         let map = new Map();
@@ -346,10 +346,10 @@ BENCHMARK_REGISTER_F(V8PerformanceFixture, MapSetOperations)->Iterations(1000);
 
 // Stress test with complex operations
 BENCHMARK_DEFINE_F(V8PerformanceFixture, StressTest)(benchmark::State& state) {
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
+    v8::Isolate::Scope IsolateScope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> ctx = v8::Local<v8::Context>::New(isolate, context);
-    v8::Context::Scope context_scope(ctx);
+    v8::Context::Scope ContextScope(ctx);
     
     const char* source = R"(
         function fibonacci(n) {

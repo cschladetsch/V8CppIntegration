@@ -1,4 +1,5 @@
 #include "v8_compat.h"
+#include "../TestUtils.h"
 #include <gtest/gtest.h>
 #include <v8.h>
 #include <libplatform/libplatform.h>
@@ -51,10 +52,7 @@ std::unique_ptr<Platform> V8IntegrationTestFixture::platform;
 
 // Test 1: Nested object property access
 TEST_F(V8IntegrationTestFixture, NestedObjectPropertyAccess) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let obj = {
@@ -69,7 +67,7 @@ TEST_F(V8IntegrationTestFixture, NestedObjectPropertyAccess) {
         obj.level1.level2.level3.value;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     
     ASSERT_TRUE(result->IsString());
     String::Utf8Value str(isolate, result);
@@ -78,10 +76,7 @@ TEST_F(V8IntegrationTestFixture, NestedObjectPropertyAccess) {
 
 // Test 2: Array methods (map, filter, reduce)
 TEST_F(V8IntegrationTestFixture, ArrayMethodChaining) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         [1, 2, 3, 4, 5]
@@ -90,17 +85,14 @@ TEST_F(V8IntegrationTestFixture, ArrayMethodChaining) {
             .reduce((acc, x) => acc + x, 0);
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsNumber());
-    EXPECT_EQ(result->Int32Value(context).FromJust(), 24);
+    EXPECT_EQ(result->Int32Value(env.context).FromJust(), 24);
 }
 
 // Test 3: Class definition and instantiation
 TEST_F(V8IntegrationTestFixture, ES6ClassDefinition) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         class Person {
@@ -118,7 +110,7 @@ TEST_F(V8IntegrationTestFixture, ES6ClassDefinition) {
         person.greet();
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsString());
     String::Utf8Value str(isolate, result);
     EXPECT_STREQ(*str, "Hello, I'm John, 30 years old");
@@ -126,10 +118,7 @@ TEST_F(V8IntegrationTestFixture, ES6ClassDefinition) {
 
 // Test 4: Template literals with expressions
 TEST_F(V8IntegrationTestFixture, TemplateLiteralsWithExpressions) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let a = 5;
@@ -137,7 +126,7 @@ TEST_F(V8IntegrationTestFixture, TemplateLiteralsWithExpressions) {
         `The sum of ${a} and ${b} is ${a + b}, and the product is ${a * b}`;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsString());
     String::Utf8Value str(isolate, result);
     EXPECT_STREQ(*str, "The sum of 5 and 10 is 15, and the product is 50");
@@ -145,10 +134,7 @@ TEST_F(V8IntegrationTestFixture, TemplateLiteralsWithExpressions) {
 
 // Test 5: Destructuring assignment
 TEST_F(V8IntegrationTestFixture, DestructuringAssignment) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let {a, b, ...rest} = {a: 1, b: 2, c: 3, d: 4};
@@ -156,23 +142,20 @@ TEST_F(V8IntegrationTestFixture, DestructuringAssignment) {
         ({a, b, x, y, restSum: Object.values(rest).reduce((s, v) => s + v, 0)});
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsObject());
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> a = obj->Get(context, String::NewFromUtf8(isolate, "a").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(a->Int32Value(context).FromJust(), 1);
+    Local<Value> a = obj->Get(env.context, String::NewFromUtf8(isolate, "a").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(a->Int32Value(env.context).FromJust(), 1);
     
-    Local<Value> restSum = obj->Get(context, String::NewFromUtf8(isolate, "restSum").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(restSum->Int32Value(context).FromJust(), 7);
+    Local<Value> restSum = obj->Get(env.context, String::NewFromUtf8(isolate, "restSum").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(restSum->Int32Value(env.context).FromJust(), 7);
 }
 
 // Test 6: Arrow functions and closures
 TEST_F(V8IntegrationTestFixture, ArrowFunctionsAndClosures) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         const makeCounter = () => {
@@ -191,17 +174,14 @@ TEST_F(V8IntegrationTestFixture, ArrowFunctionsAndClosures) {
         counter.value();
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsNumber());
-    EXPECT_EQ(result->Int32Value(context).FromJust(), 1);
+    EXPECT_EQ(result->Int32Value(env.context).FromJust(), 1);
 }
 
 // Test 7: Spread operator
 TEST_F(V8IntegrationTestFixture, SpreadOperator) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         function sum(...args) {
@@ -213,17 +193,14 @@ TEST_F(V8IntegrationTestFixture, SpreadOperator) {
         sum(...arr1, ...arr2);
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsNumber());
-    EXPECT_EQ(result->Int32Value(context).FromJust(), 21);
+    EXPECT_EQ(result->Int32Value(env.context).FromJust(), 21);
 }
 
 // Test 8: Object.assign and property descriptors
 TEST_F(V8IntegrationTestFixture, ObjectAssignAndDescriptors) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let obj1 = {a: 1};
@@ -239,7 +216,7 @@ TEST_F(V8IntegrationTestFixture, ObjectAssignAndDescriptors) {
         Object.keys(merged).sort().join(',');
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsString());
     String::Utf8Value str(isolate, result);
     EXPECT_STREQ(*str, "a,b,c");  // 'd' is not enumerable
@@ -247,10 +224,7 @@ TEST_F(V8IntegrationTestFixture, ObjectAssignAndDescriptors) {
 
 // Test 9: Array.from and iterables
 TEST_F(V8IntegrationTestFixture, ArrayFromIterables) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let set = new Set([1, 2, 3, 2, 1]);
@@ -258,7 +232,7 @@ TEST_F(V8IntegrationTestFixture, ArrayFromIterables) {
         doubled.sort((a, b) => a - b).join(',');
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsString());
     String::Utf8Value str(isolate, result);
     EXPECT_STREQ(*str, "2,4,6");
@@ -266,10 +240,7 @@ TEST_F(V8IntegrationTestFixture, ArrayFromIterables) {
 
 // Test 10: Default parameters and rest parameters
 TEST_F(V8IntegrationTestFixture, DefaultAndRestParameters) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         function greet(name = 'World', ...titles) {
@@ -280,7 +251,7 @@ TEST_F(V8IntegrationTestFixture, DefaultAndRestParameters) {
         greet('Smith', 'Dr.', 'Prof.');
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsString());
     String::Utf8Value str(isolate, result);
     EXPECT_STREQ(*str, "Hello, Dr. Prof. Smith!");
@@ -288,10 +259,7 @@ TEST_F(V8IntegrationTestFixture, DefaultAndRestParameters) {
 
 // Test 11: for...of loops
 TEST_F(V8IntegrationTestFixture, ForOfLoops) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let sum = 0;
@@ -308,17 +276,14 @@ TEST_F(V8IntegrationTestFixture, ForOfLoops) {
         sum;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsNumber());
-    EXPECT_EQ(result->Int32Value(context).FromJust(), 538);  // 1+2+3 + ASCII values of 'hello'
+    EXPECT_EQ(result->Int32Value(env.context).FromJust(), 538);  // 1+2+3 + ASCII values of 'hello'
 }
 
 // Test 12: Object.entries and Object.values
 TEST_F(V8IntegrationTestFixture, ObjectEntriesAndValues) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let obj = {a: 1, b: 2, c: 3};
@@ -332,20 +297,17 @@ TEST_F(V8IntegrationTestFixture, ObjectEntriesAndValues) {
         });
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsObject());
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> valuesSum = obj->Get(context, String::NewFromUtf8(isolate, "valuesSum").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(valuesSum->Int32Value(context).FromJust(), 6);
+    Local<Value> valuesSum = obj->Get(env.context, String::NewFromUtf8(isolate, "valuesSum").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(valuesSum->Int32Value(env.context).FromJust(), 6);
 }
 
 // Test 13: Promise.all and Promise.race
 TEST_F(V8IntegrationTestFixture, PromiseAllAndRace) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let p1 = Promise.resolve(1);
@@ -355,7 +317,7 @@ TEST_F(V8IntegrationTestFixture, PromiseAllAndRace) {
         Promise.all([p1, p2, p3]).then(values => values.reduce((a, b) => a + b, 0));
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsPromise());
     
     // For testing purposes, we'll check that it's a promise
@@ -366,10 +328,7 @@ TEST_F(V8IntegrationTestFixture, PromiseAllAndRace) {
 
 // Test 14: String methods (padStart, padEnd, repeat)
 TEST_F(V8IntegrationTestFixture, ModernStringMethods) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let str = 'JS';
@@ -380,25 +339,22 @@ TEST_F(V8IntegrationTestFixture, ModernStringMethods) {
         });
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsObject());
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> padded = obj->Get(context, String::NewFromUtf8(isolate, "padded").ToLocalChecked()).ToLocalChecked();
+    Local<Value> padded = obj->Get(env.context, String::NewFromUtf8(isolate, "padded").ToLocalChecked()).ToLocalChecked();
     String::Utf8Value paddedStr(isolate, padded);
     EXPECT_STREQ(*paddedStr, "***JS###");
     
-    Local<Value> repeated = obj->Get(context, String::NewFromUtf8(isolate, "repeated").ToLocalChecked()).ToLocalChecked();
+    Local<Value> repeated = obj->Get(env.context, String::NewFromUtf8(isolate, "repeated").ToLocalChecked()).ToLocalChecked();
     String::Utf8Value repeatedStr(isolate, repeated);
     EXPECT_STREQ(*repeatedStr, "hahaha");
 }
 
 // Test 15: Number methods and Math extensions
 TEST_F(V8IntegrationTestFixture, NumberAndMathMethods) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         ({
@@ -411,23 +367,20 @@ TEST_F(V8IntegrationTestFixture, NumberAndMathMethods) {
         });
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsObject());
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> isFinite = obj->Get(context, String::NewFromUtf8(isolate, "isFinite").ToLocalChecked()).ToLocalChecked();
+    Local<Value> isFinite = obj->Get(env.context, String::NewFromUtf8(isolate, "isFinite").ToLocalChecked()).ToLocalChecked();
     EXPECT_TRUE(isFinite->BooleanValue(isolate));
     
-    Local<Value> cbrt = obj->Get(context, String::NewFromUtf8(isolate, "cbrt").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(cbrt->Int32Value(context).FromJust(), 3);
+    Local<Value> cbrt = obj->Get(env.context, String::NewFromUtf8(isolate, "cbrt").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(cbrt->Int32Value(env.context).FromJust(), 3);
 }
 
 // Test 16: Async function simulation
 TEST_F(V8IntegrationTestFixture, AsyncFunctionSimulation) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         function delay(ms, value) {
@@ -447,7 +400,7 @@ TEST_F(V8IntegrationTestFixture, AsyncFunctionSimulation) {
         typeof fetchData;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsString());
     String::Utf8Value str(isolate, result);
     EXPECT_STREQ(*str, "function");
@@ -455,10 +408,7 @@ TEST_F(V8IntegrationTestFixture, AsyncFunctionSimulation) {
 
 // Test 17: Error handling with custom errors
 TEST_F(V8IntegrationTestFixture, CustomErrorHandling) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         class CustomError extends Error {
@@ -482,24 +432,21 @@ TEST_F(V8IntegrationTestFixture, CustomErrorHandling) {
         }
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsObject());
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> name = obj->Get(context, String::NewFromUtf8(isolate, "name").ToLocalChecked()).ToLocalChecked();
+    Local<Value> name = obj->Get(env.context, String::NewFromUtf8(isolate, "name").ToLocalChecked()).ToLocalChecked();
     String::Utf8Value nameStr(isolate, name);
     EXPECT_STREQ(*nameStr, "CustomError");
     
-    Local<Value> isCustom = obj->Get(context, String::NewFromUtf8(isolate, "isCustom").ToLocalChecked()).ToLocalChecked();
+    Local<Value> isCustom = obj->Get(env.context, String::NewFromUtf8(isolate, "isCustom").ToLocalChecked()).ToLocalChecked();
     EXPECT_TRUE(isCustom->BooleanValue(isolate));
 }
 
 // Test 18: Complex data transformations
 TEST_F(V8IntegrationTestFixture, ComplexDataTransformations) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let users = [
@@ -525,23 +472,20 @@ TEST_F(V8IntegrationTestFixture, ComplexDataTransformations) {
         result;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsObject());
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> totalAge = obj->Get(context, String::NewFromUtf8(isolate, "totalAge").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(totalAge->Int32Value(context).FromJust(), 55);  // Alice(30) + Bob(25)
+    Local<Value> totalAge = obj->Get(env.context, String::NewFromUtf8(isolate, "totalAge").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(totalAge->Int32Value(env.context).FromJust(), 55);  // Alice(30) + Bob(25)
     
-    Local<Value> totalSkills = obj->Get(context, String::NewFromUtf8(isolate, "totalSkills").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(totalSkills->Int32Value(context).FromJust(), 5);  // Alice(2) + Bob(3)
+    Local<Value> totalSkills = obj->Get(env.context, String::NewFromUtf8(isolate, "totalSkills").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(totalSkills->Int32Value(env.context).FromJust(), 5);  // Alice(2) + Bob(3)
 }
 
 // Test 19: Recursive functions and memoization
 TEST_F(V8IntegrationTestFixture, RecursionAndMemoization) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         function memoize(fn) {
@@ -569,23 +513,20 @@ TEST_F(V8IntegrationTestFixture, RecursionAndMemoization) {
         });
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsObject());
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> fib10 = obj->Get(context, String::NewFromUtf8(isolate, "fib10").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(fib10->Int32Value(context).FromJust(), 55);
+    Local<Value> fib10 = obj->Get(env.context, String::NewFromUtf8(isolate, "fib10").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(fib10->Int32Value(env.context).FromJust(), 55);
     
-    Local<Value> fib20 = obj->Get(context, String::NewFromUtf8(isolate, "fib20").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(fib20->Int32Value(context).FromJust(), 6765);
+    Local<Value> fib20 = obj->Get(env.context, String::NewFromUtf8(isolate, "fib20").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(fib20->Int32Value(env.context).FromJust(), 6765);
 }
 
 // Test 20: Module pattern and private variables
 TEST_F(V8IntegrationTestFixture, ModulePatternPrivateVariables) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         const BankAccount = (function() {
@@ -640,27 +581,24 @@ TEST_F(V8IntegrationTestFixture, ModulePatternPrivateVariables) {
         });
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     ASSERT_TRUE(result->IsObject());
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> balance = obj->Get(context, String::NewFromUtf8(isolate, "balance").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(balance->Int32Value(context).FromJust(), 120);  // 100 + 50 - 30
+    Local<Value> balance = obj->Get(env.context, String::NewFromUtf8(isolate, "balance").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(balance->Int32Value(env.context).FromJust(), 120);  // 100 + 50 - 30
     
-    Local<Value> transactions = obj->Get(context, String::NewFromUtf8(isolate, "transactions").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(transactions->Int32Value(context).FromJust(), 2);
+    Local<Value> transactions = obj->Get(env.context, String::NewFromUtf8(isolate, "transactions").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(transactions->Int32Value(env.context).FromJust(), 2);
     
-    Local<Value> privateAccess = obj->Get(context, String::NewFromUtf8(isolate, "privateAccess").ToLocalChecked()).ToLocalChecked();
+    Local<Value> privateAccess = obj->Get(env.context, String::NewFromUtf8(isolate, "privateAccess").ToLocalChecked()).ToLocalChecked();
     EXPECT_TRUE(privateAccess->IsUndefined());  // Private data is not accessible
 }
 
 // Additional 20 unique integration tests
 
 TEST_F(V8IntegrationTestFixture, WebWorkerSimulation) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         class MessageChannel {
@@ -699,16 +637,13 @@ TEST_F(V8IntegrationTestFixture, WebWorkerSimulation) {
         received.length;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     EXPECT_TRUE(result->IsNumber());
-    EXPECT_EQ(2, result->Int32Value(context).FromJust());
+    EXPECT_EQ(2, result->Int32Value(env.context).FromJust());
 }
 
 TEST_F(V8IntegrationTestFixture, CustomIteratorProtocol) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         class Range {
@@ -731,15 +666,12 @@ TEST_F(V8IntegrationTestFixture, CustomIteratorProtocol) {
         sum;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
-    EXPECT_EQ(result->Int32Value(context).FromJust(), 15); // 1+2+3+4+5
+    Local<Value> result = RunScript(js_code, env.context);
+    EXPECT_EQ(result->Int32Value(env.context).FromJust(), 15); // 1+2+3+4+5
 }
 
 TEST_F(V8IntegrationTestFixture, AsyncGeneratorFunction) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         async function* asyncRange(start, end) {
@@ -752,16 +684,13 @@ TEST_F(V8IntegrationTestFixture, AsyncGeneratorFunction) {
         typeof gen.next;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     String::Utf8Value str(isolate, result);
     EXPECT_STREQ(*str, "function");
 }
 
 TEST_F(V8IntegrationTestFixture, ProxyArrayBehavior) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let arr = [1, 2, 3];
@@ -781,15 +710,12 @@ TEST_F(V8IntegrationTestFixture, ProxyArrayBehavior) {
         accessLog.length;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
-    EXPECT_GT(result->Int32Value(context).FromJust(), 3);
+    Local<Value> result = RunScript(js_code, env.context);
+    EXPECT_GT(result->Int32Value(env.context).FromJust(), 3);
 }
 
 TEST_F(V8IntegrationTestFixture, EventEmitterPattern) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         class EventEmitter {
@@ -825,15 +751,12 @@ TEST_F(V8IntegrationTestFixture, EventEmitterPattern) {
         count;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
-    EXPECT_EQ(result->Int32Value(context).FromJust(), 3);
+    Local<Value> result = RunScript(js_code, env.context);
+    EXPECT_EQ(result->Int32Value(env.context).FromJust(), 3);
 }
 
 TEST_F(V8IntegrationTestFixture, PromiseChainErrorHandling) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let result = 'none';
@@ -848,16 +771,13 @@ TEST_F(V8IntegrationTestFixture, PromiseChainErrorHandling) {
         result;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     String::Utf8Value str(isolate, result);
     EXPECT_STREQ(*str, "caught: test error");
 }
 
 TEST_F(V8IntegrationTestFixture, ArrayMethodComposition) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -866,15 +786,12 @@ TEST_F(V8IntegrationTestFixture, ArrayMethodComposition) {
             .reduce((sum, x) => sum + x, 0);
     )";
     
-    Local<Value> result = RunScript(js_code, context);
-    EXPECT_EQ(result->Int32Value(context).FromJust(), 220); // 4+16+36+64+100
+    Local<Value> result = RunScript(js_code, env.context);
+    EXPECT_EQ(result->Int32Value(env.context).FromJust(), 220); // 4+16+36+64+100
 }
 
 TEST_F(V8IntegrationTestFixture, ObjectFreezing) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let obj = {a: 1, b: 2};
@@ -890,15 +807,12 @@ TEST_F(V8IntegrationTestFixture, ObjectFreezing) {
         Object.keys(obj).length;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
-    EXPECT_EQ(result->Int32Value(context).FromJust(), 2);
+    Local<Value> result = RunScript(js_code, env.context);
+    EXPECT_EQ(result->Int32Value(env.context).FromJust(), 2);
 }
 
 TEST_F(V8IntegrationTestFixture, SetOperationsAdvanced) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         let set1 = new Set([1, 2, 3, 4]);
@@ -920,21 +834,18 @@ TEST_F(V8IntegrationTestFixture, SetOperationsAdvanced) {
         });
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> unionSize = obj->Get(context, String::NewFromUtf8(isolate, "union").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(unionSize->Int32Value(context).FromJust(), 6);
+    Local<Value> unionSize = obj->Get(env.context, String::NewFromUtf8(isolate, "union").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(unionSize->Int32Value(env.context).FromJust(), 6);
     
-    Local<Value> intersectionSize = obj->Get(context, String::NewFromUtf8(isolate, "intersection").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(intersectionSize->Int32Value(context).FromJust(), 2);
+    Local<Value> intersectionSize = obj->Get(env.context, String::NewFromUtf8(isolate, "intersection").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(intersectionSize->Int32Value(env.context).FromJust(), 2);
 }
 
 TEST_F(V8IntegrationTestFixture, DeepObjectComparison) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         function deepEqual(a, b) {
@@ -968,21 +879,18 @@ TEST_F(V8IntegrationTestFixture, DeepObjectComparison) {
         });
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> equal = obj->Get(context, String::NewFromUtf8(isolate, "equal").ToLocalChecked()).ToLocalChecked();
+    Local<Value> equal = obj->Get(env.context, String::NewFromUtf8(isolate, "equal").ToLocalChecked()).ToLocalChecked();
     EXPECT_TRUE(equal->BooleanValue(isolate));
     
-    Local<Value> notEqual = obj->Get(context, String::NewFromUtf8(isolate, "notEqual").ToLocalChecked()).ToLocalChecked();
+    Local<Value> notEqual = obj->Get(env.context, String::NewFromUtf8(isolate, "notEqual").ToLocalChecked()).ToLocalChecked();
     EXPECT_FALSE(notEqual->BooleanValue(isolate));
 }
 
 TEST_F(V8IntegrationTestFixture, FunctionCurrying) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         function curry(fn) {
@@ -1009,15 +917,12 @@ TEST_F(V8IntegrationTestFixture, FunctionCurrying) {
         result1 + result2 + result3;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
-    EXPECT_EQ(result->Int32Value(context).FromJust(), 18); // 6 + 6 + 6
+    Local<Value> result = RunScript(js_code, env.context);
+    EXPECT_EQ(result->Int32Value(env.context).FromJust(), 18); // 6 + 6 + 6
 }
 
 TEST_F(V8IntegrationTestFixture, AsyncFunctionComposition) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         function compose(...fns) {
@@ -1041,16 +946,13 @@ TEST_F(V8IntegrationTestFixture, AsyncFunctionComposition) {
         typeof result.then;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     String::Utf8Value str(isolate, result);
     EXPECT_STREQ(*str, "function");
 }
 
 TEST_F(V8IntegrationTestFixture, MemoizationPattern) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         function memoize(fn) {
@@ -1086,18 +988,15 @@ TEST_F(V8IntegrationTestFixture, MemoizationPattern) {
         });
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> callCount = obj->Get(context, String::NewFromUtf8(isolate, "callCount").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(callCount->Int32Value(context).FromJust(), 2); // Only called twice due to memoization
+    Local<Value> callCount = obj->Get(env.context, String::NewFromUtf8(isolate, "callCount").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(callCount->Int32Value(env.context).FromJust(), 2); // Only called twice due to memoization
 }
 
 TEST_F(V8IntegrationTestFixture, ObserverPattern) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         class Observable {
@@ -1130,16 +1029,13 @@ TEST_F(V8IntegrationTestFixture, ObserverPattern) {
         results;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     Local<Array> arr = result.As<Array>();
     EXPECT_EQ(arr->Length(), 3); // A:hello, B:hello, B:world
 }
 
 TEST_F(V8IntegrationTestFixture, StateManager) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         class StateManager {
@@ -1180,18 +1076,15 @@ TEST_F(V8IntegrationTestFixture, StateManager) {
         });
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> notifications = obj->Get(context, String::NewFromUtf8(isolate, "notifications").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(notifications->Int32Value(context).FromJust(), 2);
+    Local<Value> notifications = obj->Get(env.context, String::NewFromUtf8(isolate, "notifications").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(notifications->Int32Value(env.context).FromJust(), 2);
 }
 
 TEST_F(V8IntegrationTestFixture, LazyEvaluation) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         class Lazy {
@@ -1241,21 +1134,18 @@ TEST_F(V8IntegrationTestFixture, LazyEvaluation) {
         });
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> count1 = obj->Get(context, String::NewFromUtf8(isolate, "count1").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(count1->Int32Value(context).FromJust(), 0);
+    Local<Value> count1 = obj->Get(env.context, String::NewFromUtf8(isolate, "count1").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(count1->Int32Value(env.context).FromJust(), 0);
     
-    Local<Value> count3 = obj->Get(context, String::NewFromUtf8(isolate, "count3").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(count3->Int32Value(context).FromJust(), 1); // Computed only once
+    Local<Value> count3 = obj->Get(env.context, String::NewFromUtf8(isolate, "count3").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(count3->Int32Value(env.context).FromJust(), 1); // Computed only once
 }
 
 TEST_F(V8IntegrationTestFixture, StrategyPattern) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         class SortStrategy {
@@ -1302,15 +1192,12 @@ TEST_F(V8IntegrationTestFixture, StrategyPattern) {
         JSON.stringify(result1) === JSON.stringify(result2);
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     EXPECT_TRUE(result->BooleanValue(isolate));
 }
 
 TEST_F(V8IntegrationTestFixture, PipelinePattern) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         class Pipeline {
@@ -1338,16 +1225,13 @@ TEST_F(V8IntegrationTestFixture, PipelinePattern) {
         pipeline.execute('Hello World This Is A Test');
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     String::Utf8Value str(isolate, result);
     EXPECT_STREQ(*str, "hello-test-this-world");
 }
 
 TEST_F(V8IntegrationTestFixture, ChainOfResponsibilityPattern) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         class Handler {
@@ -1405,16 +1289,13 @@ TEST_F(V8IntegrationTestFixture, ChainOfResponsibilityPattern) {
         results;
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     Local<Array> arr = result.As<Array>();
     EXPECT_EQ(arr->Length(), 3);
 }
 
 TEST_F(V8IntegrationTestFixture, CommandPattern) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
-    Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    v8_test::V8TestEnvironment env(isolate);
     
     const char* js_code = R"(
         class Calculator {
@@ -1470,14 +1351,14 @@ TEST_F(V8IntegrationTestFixture, CommandPattern) {
         ({value1, value2});
     )";
     
-    Local<Value> result = RunScript(js_code, context);
+    Local<Value> result = RunScript(js_code, env.context);
     Local<Object> obj = result.As<Object>();
     
-    Local<Value> value1 = obj->Get(context, String::NewFromUtf8(isolate, "value1").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(value1->Int32Value(context).FromJust(), 15);
+    Local<Value> value1 = obj->Get(env.context, String::NewFromUtf8(isolate, "value1").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(value1->Int32Value(env.context).FromJust(), 15);
     
-    Local<Value> value2 = obj->Get(context, String::NewFromUtf8(isolate, "value2").ToLocalChecked()).ToLocalChecked();
-    EXPECT_EQ(value2->Int32Value(context).FromJust(), 10);
+    Local<Value> value2 = obj->Get(env.context, String::NewFromUtf8(isolate, "value2").ToLocalChecked()).ToLocalChecked();
+    EXPECT_EQ(value2->Int32Value(env.context).FromJust(), 10);
 }
 
 int main(int argc, char** argv) {

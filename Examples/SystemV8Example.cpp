@@ -8,7 +8,7 @@ using namespace v8;
 // C++ function that will be called from JavaScript
 void CppPrint(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
-    HandleScope handle_scope(isolate);
+    HandleScope HandleScope(isolate);
     
     if (args.Length() > 0) {
         String::Utf8Value str(isolate, args[0]);
@@ -46,12 +46,12 @@ int main(int, char* argv[]) {
     Isolate* isolate = Isolate::New(create_params);
     
     {
-        Isolate::Scope isolate_scope(isolate);
-        HandleScope handle_scope(isolate);
+        Isolate::Scope IsolateScope(isolate);
+        HandleScope HandleScope(isolate);
         
         // Create context
         Local<Context> context = Context::New(isolate);
-        Context::Scope context_scope(context);
+        Context::Scope ContextScope(context);
         
         // Get global object
         Local<Object> global = context->Global();

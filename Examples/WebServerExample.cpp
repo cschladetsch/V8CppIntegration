@@ -51,8 +51,8 @@ public:
         create_params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
         isolate_ = v8::Isolate::New(create_params);
         
-        v8::Isolate::Scope isolate_scope(isolate_);
-        v8::HandleScope handle_scope(isolate_);
+        v8::Isolate::Scope IsolateScope(isolate_);
+        v8::HandleScope HandleScope(isolate_);
         v8::Local<v8::Context> context = v8::Context::New(isolate_);
         context_.Reset(isolate_, context);
         
@@ -68,15 +68,15 @@ public:
     }
     
     void setupJavaScriptEnvironment() {
-        v8::Isolate::Scope isolate_scope(isolate_);
-        v8::HandleScope handle_scope(isolate_);
+        v8::Isolate::Scope IsolateScope(isolate_);
+        v8::HandleScope HandleScope(isolate_);
         v8::Local<v8::Context> context = v8::Local<v8::Context>::New(isolate_, context_);
-        v8::Context::Scope context_scope(context);
+        v8::Context::Scope ContextScope(context);
         
         // Add console.log function
         auto console_log = [](const v8::FunctionCallbackInfo<v8::Value>& args) {
             v8::Isolate* isolate = args.GetIsolate();
-            v8::HandleScope handle_scope(isolate);
+            v8::HandleScope HandleScope(isolate);
             
             for (int i = 0; i < args.Length(); i++) {
                 if (i > 0) std::cout << " ";
@@ -121,24 +121,24 @@ public:
         buffer << file.rdbuf();
         std::string script_content = buffer.str();
         
-        v8::Isolate::Scope isolate_scope(isolate_);
-        v8::HandleScope handle_scope(isolate_);
+        v8::Isolate::Scope IsolateScope(isolate_);
+        v8::HandleScope HandleScope(isolate_);
         v8::Local<v8::Context> context = v8::Local<v8::Context>::New(isolate_, context_);
-        v8::Context::Scope context_scope(context);
+        v8::Context::Scope ContextScope(context);
         
-        v8::TryCatch try_catch(isolate_);
+        v8::TryCatch TryCatch(isolate_);
         v8::Local<v8::String> source = v8::String::NewFromUtf8(isolate_, script_content.c_str()).ToLocalChecked();
         v8::Local<v8::Script> script = v8::Script::Compile(context, source).ToLocalChecked();
         
         if (script.IsEmpty()) {
-            v8::String::Utf8Value error(isolate_, try_catch.Exception());
+            v8::String::Utf8Value error(isolate_, TryCatch.Exception());
             std::cerr << "Script compilation error: " << *error << std::endl;
             return;
         }
         
         v8::Local<v8::Value> result = script->Run(context).ToLocalChecked();
         if (result.IsEmpty()) {
-            v8::String::Utf8Value error(isolate_, try_catch.Exception());
+            v8::String::Utf8Value error(isolate_, TryCatch.Exception());
             std::cerr << "Script execution error: " << *error << std::endl;
             return;
         }
@@ -149,10 +149,10 @@ public:
     HttpResponse handleRequest(const HttpRequest& request) {
         std::lock_guard<std::mutex> lock(request_mutex_);
         
-        v8::Isolate::Scope isolate_scope(isolate_);
-        v8::HandleScope handle_scope(isolate_);
+        v8::Isolate::Scope IsolateScope(isolate_);
+        v8::HandleScope HandleScope(isolate_);
         v8::Local<v8::Context> context = v8::Local<v8::Context>::New(isolate_, context_);
-        v8::Context::Scope context_scope(context);
+        v8::Context::Scope ContextScope(context);
         
         // Create request object
         v8::Local<v8::Object> req_obj = v8::Object::New(isolate_);
@@ -232,11 +232,11 @@ public:
             v8::Local<v8::Function> handler = v8::Local<v8::Function>::Cast(handler_val);
             v8::Local<v8::Value> args[] = { req_obj, res_obj };
             
-            v8::TryCatch try_catch(isolate_);
+            v8::TryCatch TryCatch(isolate_);
             handler->Call(context, context->Global(), 2, args).ToLocalChecked();
             
-            if (try_catch.HasCaught()) {
-                v8::String::Utf8Value error(isolate_, try_catch.Exception());
+            if (TryCatch.HasCaught()) {
+                v8::String::Utf8Value error(isolate_, TryCatch.Exception());
                 std::cerr << "Handler error: " << *error << std::endl;
                 response.status_code = 500;
                 response.body = "Internal Server Error";
@@ -248,8 +248,8 @@ public:
                 
                 v8::Local<v8::Value> body_val = res_obj->Get(context,
                     v8::String::NewFromUtf8(isolate_, "body").ToLocalChecked()).ToLocalChecked();
-                v8::String::Utf8Value body_str(isolate_, body_val);
-                response.body = *body_str;
+                v8::String::Utf8Value BodyStr(isolate_, body_val);
+                response.body = *BodyStr;
                 
                 // Extract headers
                 v8::Local<v8::Value> headers_val = res_obj->Get(context,
@@ -260,9 +260,9 @@ public:
                     for (uint32_t i = 0; i < keys->Length(); i++) {
                         v8::Local<v8::Value> key = keys->Get(context, i).ToLocalChecked();
                         v8::Local<v8::Value> value = headers_obj->Get(context, key).ToLocalChecked();
-                        v8::String::Utf8Value key_str(isolate_, key);
-                        v8::String::Utf8Value value_str(isolate_, value);
-                        response.headers[*key_str] = *value_str;
+                        v8::String::Utf8Value KeyStr(isolate_, key);
+                        v8::String::Utf8Value ValueStr(isolate_, value);
+                        response.headers[*KeyStr] = *ValueStr;
                     }
                 }
             }
@@ -314,8 +314,8 @@ int main() {
     V8WebServer server;
     
     // Create a sample JavaScript request handler
-    std::ofstream script_file("request_handler.js");
-    script_file << R"(
+    std::ofstream ScriptFile("request_handler.js");
+    ScriptFile << R"(
         function handleRequest(req, res) {
             console.log('Handling request:', req.method, req.path);
             
@@ -338,7 +338,7 @@ int main() {
         
         console.log('Request handler loaded');
     )";
-    script_file.close();
+    ScriptFile.close();
     
     // Load the JavaScript handler
     server.loadScript("request_handler.js");

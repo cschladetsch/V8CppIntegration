@@ -40,8 +40,8 @@ public:
         isolate = Isolate::New(*create_params);
         
         // Create persistent context
-        Isolate::Scope isolate_scope(isolate);
-        HandleScope handle_scope(isolate);
+        Isolate::Scope IsolateScope(isolate);
+        HandleScope HandleScope(isolate);
         Local<Context> context = CreateContext();
         context_.Reset(isolate, context);
     }
@@ -136,24 +136,24 @@ public:
     }
     
     std::string Execute(const std::string& code) {
-        Isolate::Scope isolate_scope(isolate);
-        HandleScope handle_scope(isolate);
+        Isolate::Scope IsolateScope(isolate);
+        HandleScope HandleScope(isolate);
         
         Local<Context> context = context_.Get(isolate);
-        Context::Scope context_scope(context);
+        Context::Scope ContextScope(context);
         
         // Clear buffers
         output_buffer.clear();
         error_buffer.clear();
         
-        TryCatch try_catch(isolate);
+        TryCatch TryCatch(isolate);
         
         // Compile the script
         Local<String> source = String::NewFromUtf8(isolate, code.c_str()).ToLocalChecked();
         Local<Script> script;
         if (!Script::Compile(context, source).ToLocal(&script)) {
             // Compilation error
-            String::Utf8Value error(isolate, try_catch.Exception());
+            String::Utf8Value error(isolate, TryCatch.Exception());
             return std::string("[Compilation Error] ") + *error;
         }
         
@@ -161,7 +161,7 @@ public:
         Local<Value> result;
         if (!script->Run(context).ToLocal(&result)) {
             // Runtime error
-            String::Utf8Value error(isolate, try_catch.Exception());
+            String::Utf8Value error(isolate, TryCatch.Exception());
             return std::string("[Runtime Error] ") + *error;
         }
         

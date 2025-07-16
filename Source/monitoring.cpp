@@ -454,7 +454,7 @@ std::string TracingManager::exportJaeger() const {
             oss << "          \"spanID\": \"" << span.span_id << "\",\n";
             oss << "          \"operationName\": \"" << span.operation_name << "\",\n";
             oss << "          \"startTime\": " << std::chrono::duration_cast<std::chrono::microseconds>(
-                span.start_time.time_since_epoch()).count() << ",\n";
+                span.start_time.TimeSinceEpoch()).count() << ",\n";
             oss << "          \"duration\": " << std::chrono::duration_cast<std::chrono::microseconds>(
                 span.end_time - span.start_time).count() << "\n";
             oss << "        }";
