@@ -315,7 +315,7 @@ private:
 ### Include Paths
 ```bash
 # Compile with framework headers
-g++ -std=c++17 \
+g++ -std=c++20 \
     -I./Include \
     -I/usr/include/v8 \
     myapp.cpp \

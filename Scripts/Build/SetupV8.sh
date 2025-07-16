@@ -60,12 +60,30 @@ fi
 export PATH="$PROJECT_ROOT/depot_tools:\$PATH"
 
 # Fetch V8
+# Handle various states: no v8 dir, partial checkout, full checkout
 if [ ! -d "v8" ]; then
-    echo "Fetching V8 source code..."
-    fetch v8
-    echo "Running gclient sync..."
-    cd v8
-    gclient sync
+    echo "V8 directory not found..."
+    # Check if we have a .gclient file (partial checkout)
+    if [ -f ".gclient" ] || gclient root >/dev/null 2>&1; then
+        echo "Found existing .gclient file. Running gclient sync to restore V8..."
+        gclient sync --force
+        # If v8 dir still doesn't exist, we need to recreate .gclient
+        if [ ! -d "v8" ]; then
+            echo "gclient sync failed to create v8 directory. Recreating checkout..."
+            rm -f .gclient .gclient_entries
+            fetch v8
+            cd v8
+            gclient sync
+        else
+            cd v8
+        fi
+    else
+        echo "No existing checkout found. Fetching V8..."
+        fetch v8
+        echo "Running gclient sync..."
+        cd v8
+        gclient sync
+    fi
 else
     cd v8
     echo "Updating V8..."
@@ -98,12 +116,30 @@ else
     export PATH="$PROJECT_ROOT/depot_tools:$PATH"
 
     # Fetch V8
+    # Handle various states: no v8 dir, partial checkout, full checkout
     if [ ! -d "v8" ]; then
-        echo "Fetching V8 source code..."
-        fetch v8
-        echo "Running gclient sync..."
-        cd v8
-        gclient sync
+        echo "V8 directory not found..."
+        # Check if we have a .gclient file (partial checkout)
+        if [ -f ".gclient" ] || gclient root >/dev/null 2>&1; then
+            echo "Found existing .gclient file. Running gclient sync to restore V8..."
+            gclient sync --force
+            # If v8 dir still doesn't exist, we need to recreate .gclient
+            if [ ! -d "v8" ]; then
+                echo "gclient sync failed to create v8 directory. Recreating checkout..."
+                rm -f .gclient .gclient_entries
+                fetch v8
+                cd v8
+                gclient sync
+            else
+                cd v8
+            fi
+        else
+            echo "No existing checkout found. Fetching V8..."
+            fetch v8
+            echo "Running gclient sync..."
+            cd v8
+            gclient sync
+        fi
     else
         cd v8
         echo "Updating V8..."

@@ -13,11 +13,14 @@
 #   - CI/CD environments
 #   - First-time V8 builds
 #   - Ensuring all dependencies are present
+#   - Recovering from partial/failed V8 checkouts
 #
 # Usage: ./build_from_source.sh
 #
 # Note: This script may require sudo for installing system dependencies
 #       and will download several GB of data.
+#       This script can be safely run multiple times - it will handle
+#       existing checkouts and update them as needed.
 #
 # For regular project builds after V8 is built, use:
 #   ./build.sh

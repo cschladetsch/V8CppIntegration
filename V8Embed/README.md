@@ -50,7 +50,7 @@ target_link_libraries(my_app PRIVATE V8Embed::V8Embed)
 
 - CMake 3.14 or higher
 - V8 libraries (system or built from source)
-- C++17 compatible compiler
+- C++20 compatible compiler
 
 ## Integration
 
