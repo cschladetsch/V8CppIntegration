@@ -1,87 +1,57 @@
 # Source Directory
 
-This directory contains reference implementation files for advanced V8 integration features.
+This directory contains the main source code for the V8 C++ Integration framework.
 
-## Structure
+## Directory Structure
 
 ```
-src/
-├── advanced_features.cpp    # Implementation of advanced V8 features
-├── error_handler.cpp       # Error handling and logging implementation
-├── monitoring.cpp         # Monitoring and observability implementation
-└── security.cpp          # Security and sandboxing implementation
+Source/
+├── App/              # Applications
+│   └── Console/      # V8 console application with DLL hot-loading
+├── error_handler.cpp # Error handling utilities (if present)
+├── monitoring.cpp    # Monitoring and metrics (if present)
+├── advanced_features.cpp # Advanced V8 features (if present)
+└── security.cpp      # Security features (if present)
 ```
 
-## Important Note
+## App/Console
 
-These source files are provided as reference implementations to accompany the headers in `include/v8_integration/`. They are not currently integrated into the main build system due to V8 API version compatibility considerations. They serve as examples of how the interfaces could be implemented.
+The console application (`v8console`) provides:
+- Interactive JavaScript REPL
+- Dynamic DLL loading and hot-reloading
+- JavaScript file execution
+- Built-in functions for system interaction
 
-## Implementation Files
+### Building
 
-### advanced_features.cpp
-Implements advanced V8 functionality including:
-- WebAssembly module management
-- Async/await and Promise handling
-- ES6 module system support
-- Context isolation and management
-- Worker thread functionality
+The console app is built as part of the main project:
+```bash
+./build.sh
+# Binary will be in /Bin/v8console
+```
 
-### error_handler.cpp
-Provides comprehensive error handling:
-- Error capture with stack traces
-- Multi-level logging system
-- V8 exception handling
-- Performance monitoring
-- Security violation tracking
+### Usage
 
-### monitoring.cpp
-Implements monitoring and observability:
-- Prometheus metrics export
-- Health check system
-- Distributed tracing (Jaeger/Zipkin)
-- Resource monitoring
-- Log aggregation
-- Service discovery
+```bash
+# Interactive mode
+./Bin/v8console
 
-### security.cpp
-Handles security features:
-- Sandbox creation and management
-- Resource limiting (memory, CPU, execution time)
-- Code validation and pattern matching
-- Cryptographic operations
-- Security policy enforcement
+# Run a script
+./Bin/v8console script.js
 
-## Using These Implementations
+# Load DLLs and run script
+./Bin/v8console script.js mylib.so anotherlib.so
 
-To use these reference implementations in your project:
+# Interactive mode with pre-loaded DLL
+./Bin/v8console -i mylib.so
+```
 
-1. **Copy the needed files** to your project
-2. **Adapt for your V8 version** - The code may need modifications for different V8 API versions
-3. **Add to your build system**:
-   ```cmake
-   add_library(v8_integration STATIC
-       src/error_handler.cpp
-       src/monitoring.cpp
-       src/advanced_features.cpp
-       src/security.cpp
-   )
-   target_link_libraries(v8_integration PUBLIC V8::V8 Threads::Threads)
-   ```
+## Framework Components
 
-## Dependencies
+The framework provides modular components for:
+- **Error Handling**: Robust error management and logging
+- **Monitoring**: Performance metrics and observability
+- **Security**: Sandboxing and security features
+- **Advanced Features**: WebAssembly, modules, async support
 
-- V8 JavaScript Engine (version-specific APIs)
-- C++20 or later
-- POSIX threads
-- OpenSSL (optional, for cryptographic operations)
-
-## Compatibility Notes
-
-- Written for V8 API version 8.x-9.x
-- Some APIs (like `SetFatalErrorCallback`) may not exist in all V8 versions
-- `CpuProfiler` API has changed across V8 versions
-- Resource limit APIs vary by V8 build configuration
-
-## Thread Safety
-
-All implementations use appropriate synchronization primitives (mutexes, atomic operations) to ensure thread safety in multi-threaded environments.
+These components are designed to be extended based on specific application needs.

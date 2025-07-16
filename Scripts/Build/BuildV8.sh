@@ -12,6 +12,20 @@ cd "$PROJECT_ROOT"
 # Add depot_tools to PATH
 export PATH="$PROJECT_ROOT/depot_tools:$PATH"
 
+# Ensure gn is available
+if ! command -v gn &> /dev/null; then
+    echo "Error: gn not found in PATH. Checking depot_tools..."
+    if [ -x "$PROJECT_ROOT/depot_tools/gn" ]; then
+        echo "Found gn in depot_tools, using full path"
+        GN_CMD="$PROJECT_ROOT/depot_tools/gn"
+    else
+        echo "Error: Could not find gn. Please ensure depot_tools is properly installed."
+        exit 1
+    fi
+else
+    GN_CMD="gn"
+fi
+
 # Check if V8 directory exists
 if [ ! -d "v8" ]; then
     echo "Error: V8 directory not found. Please run SetupV8.sh first."
@@ -39,18 +53,24 @@ export PATH="$PROJECT_ROOT/depot_tools:\$PATH"
 echo "Configuring V8 build..."
 
 # Create build directory with release configuration
-gn gen out/x64.release --args='
+$GN_CMD gen out/x64.release --args='
     is_debug=false
     target_cpu="x64"
     v8_monolithic=true
     v8_use_external_startup_data=false
     v8_enable_31bit_smis_on_64bit_arch=false
     v8_enable_i18n_support=false
+    use_custom_libcxx=false
+    use_system_libc++=true
 '
 
 # Build V8
 echo "Building V8..."
 ninja -C out/x64.release v8_monolith
+
+# Fix archive symbol tables
+echo "Fixing archive symbol tables..."
+find out/x64.release/obj -name "*.a" -exec ranlib {} \;
 EOF
 )" "$REAL_USER"
     fi
@@ -59,7 +79,7 @@ else
     echo "Configuring V8 build..."
 
     # Create build directory with release configuration
-    gn gen out/x64.release --args='
+    $GN_CMD gen out/x64.release --args='
         is_debug=false
         target_cpu="x64"
         v8_monolithic=true
@@ -71,6 +91,10 @@ else
     # Build V8
     echo "Building V8..."
     ninja -C out/x64.release v8_monolith
+    
+    # Fix archive symbol tables
+    echo "Fixing archive symbol tables..."
+    find out/x64.release/obj -name "*.a" -exec ranlib {} \;
 fi
 
 echo "V8 build complete!"
