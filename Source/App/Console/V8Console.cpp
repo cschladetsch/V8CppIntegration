@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <chrono>
 #include <libplatform/libplatform.h>
 #include <rang/rang.hpp>
 
@@ -99,6 +100,8 @@ void V8Console::RunRepl() {
               << fg::magenta << ".dll <path>" << style::reset << ", "
               << fg::magenta << ".dlls" << style::reset << ", "
               << fg::magenta << ".reload <path>" << style::reset << ", "
+              << fg::magenta << ".vars" << style::reset << ", "
+              << fg::magenta << ".help" << style::reset << ", "
               << fg::magenta << ".quit" << style::reset << std::endl;
     std::cout << "Type JavaScript code or commands:" << std::endl;
     std::cout << std::endl;
@@ -120,39 +123,72 @@ void V8Console::RunRepl() {
         
         // Handle special commands
         if (line[0] == '.') {
+            auto start_time = std::chrono::high_resolution_clock::now();
+            
             if (line == ".quit") {
                 std::cout << fg::yellow << "Goodbye!" << style::reset << std::endl;
                 break;
             } else if (line.substr(0, 6) == ".load ") {
                 std::string filename = line.substr(6);
-                std::cout << fg::cyan << "Loading: " << filename << style::reset << std::endl;
+                std::cout << fg::cyan << "Loading: " << filename << style::reset;
                 ExecuteFile(filename);
+                auto end_time = std::chrono::high_resolution_clock::now();
+                auto duration = end_time - start_time;
+                std::cout << " " << fg::gray << "⏱ " << FormatDuration(duration) << style::reset << std::endl;
             } else if (line.substr(0, 5) == ".dll ") {
                 std::string dllPath = line.substr(5);
-                std::cout << fg::cyan << "Loading DLL: " << dllPath << style::reset << std::endl;
+                std::cout << fg::cyan << "Loading DLL: " << dllPath << style::reset;
                 LoadDll(dllPath);
+                auto end_time = std::chrono::high_resolution_clock::now();
+                auto duration = end_time - start_time;
+                std::cout << " " << fg::gray << "⏱ " << FormatDuration(duration) << style::reset << std::endl;
             } else if (line == ".dlls") {
+                std::cout << fg::cyan << "Loaded DLLs:" << style::reset;
                 auto dlls = dllLoader_.GetLoadedDlls();
-                std::cout << fg::cyan << "Loaded DLLs:" << style::reset << std::endl;
+                auto end_time = std::chrono::high_resolution_clock::now();
+                auto duration = end_time - start_time;
+                std::cout << " " << fg::gray << "⏱ " << FormatDuration(duration) << style::reset << std::endl;
                 for (const auto& dll : dlls) {
                     std::cout << "  " << fg::green << dll << style::reset << std::endl;
                 }
             } else if (line.substr(0, 8) == ".reload ") {
                 std::string path = line.substr(8);
-                std::cout << fg::cyan << "Reloading: " << path << style::reset << std::endl;
-                if (dllLoader_.ReloadDll(path, isolate_, context)) {
+                std::cout << fg::cyan << "Reloading: " << path << style::reset;
+                bool success = dllLoader_.ReloadDll(path, isolate_, context);
+                auto end_time = std::chrono::high_resolution_clock::now();
+                auto duration = end_time - start_time;
+                std::cout << " " << fg::gray << "⏱ " << FormatDuration(duration) << style::reset << std::endl;
+                if (success) {
                     std::cout << fg::green << "✓ Reloaded: " << path << style::reset << std::endl;
                 } else {
                     std::cout << fg::red << "✗ Failed to reload: " << path << style::reset << std::endl;
                 }
+            } else if (line == ".help") {
+                std::cout << fg::gray << "⏱ " << FormatDuration(std::chrono::high_resolution_clock::now() - start_time) << style::reset << std::endl;
+                DisplayHelp();
+            } else if (line == ".vars") {
+                std::cout << fg::gray << "⏱ " << FormatDuration(std::chrono::high_resolution_clock::now() - start_time) << style::reset << std::endl;
+                DisplayVars();
             } else {
-                std::cout << fg::red << "Unknown command: " << line << style::reset << std::endl;
-                std::cout << fg::yellow << "Type " << fg::magenta << ".quit" << fg::yellow 
-                          << " to exit or try " << fg::magenta << ".load <file>" << style::reset << std::endl;
+                auto end_time = std::chrono::high_resolution_clock::now();
+                auto duration = end_time - start_time;
+                std::cout << fg::red << "Unknown command: " << line << style::reset 
+                          << " " << fg::gray << "⏱ " << FormatDuration(duration) << style::reset << std::endl;
+                std::cout << fg::yellow << "Type " << fg::magenta << ".help" << fg::yellow 
+                          << " for available commands or " << fg::magenta << ".quit" << fg::yellow 
+                          << " to exit" << style::reset << std::endl;
             }
         } else {
             // Execute as JavaScript
-            CompileAndRun(line, "<repl>");
+            auto start_time = std::chrono::high_resolution_clock::now();
+            bool success = CompileAndRun(line, "<repl>");
+            auto end_time = std::chrono::high_resolution_clock::now();
+            auto duration = end_time - start_time;
+            
+            // Show timing right after result (if there was a result)
+            if (success) {
+                std::cout << fg::gray << "⏱ " << FormatDuration(duration) << style::reset << std::endl;
+            }
         }
         
         std::cout << fg::blue << "λ " << style::reset;
@@ -329,6 +365,12 @@ void V8Console::RegisterBuiltins(v8::Local<v8::Context> context) {
         v8::String::NewFromUtf8(isolate_, "quit").ToLocalChecked(),
         v8::Function::New(context, Quit).ToLocalChecked()
     ).Check();
+    
+    // help() function
+    global->Set(context,
+        v8::String::NewFromUtf8(isolate_, "help").ToLocalChecked(),
+        v8::Function::New(context, Help).ToLocalChecked()
+    ).Check();
 }
 
 // Built-in function implementations
@@ -443,4 +485,202 @@ void V8Console::ListDlls(const v8::FunctionCallbackInfo<v8::Value>& args) {
 void V8Console::Quit(const v8::FunctionCallbackInfo<v8::Value>& args) {
     V8Console* console = static_cast<V8Console*>(args.GetIsolate()->GetData(0));
     console->shouldQuit_ = true;
+}
+
+void V8Console::Help(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    V8Console* console = static_cast<V8Console*>(args.GetIsolate()->GetData(0));
+    console->DisplayHelp();
+}
+
+void V8Console::DisplayHelp() {
+    using namespace rang;
+    
+    std::cout << std::endl;
+    std::cout << style::bold << fg::cyan << "V8 Console Help" << style::reset << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << style::bold << fg::yellow << "REPL Commands:" << style::reset << std::endl;
+    std::cout << "  " << fg::magenta << ".help" << style::reset 
+              << "               Show this help message" << std::endl;
+    std::cout << "  " << fg::magenta << ".load <file>" << style::reset 
+              << "        Load and execute JavaScript file" << std::endl;
+    std::cout << "  " << fg::magenta << ".dll <path>" << style::reset 
+              << "         Load a DLL/shared library" << std::endl;
+    std::cout << "  " << fg::magenta << ".dlls" << style::reset 
+              << "               List all loaded DLLs" << std::endl;
+    std::cout << "  " << fg::magenta << ".reload <path>" << style::reset 
+              << "      Reload a DLL (hot-reload)" << std::endl;
+    std::cout << "  " << fg::magenta << ".vars" << style::reset 
+              << "               Show all variables and functions" << std::endl;
+    std::cout << "  " << fg::magenta << ".quit" << style::reset 
+              << "               Exit the console" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << style::bold << fg::yellow << "JavaScript Functions:" << style::reset << std::endl;
+    std::cout << "  " << fg::cyan << "help()" << style::reset 
+              << "              Show this help message" << std::endl;
+    std::cout << "  " << fg::cyan << "print(...)" << style::reset 
+              << "          Print arguments to console" << std::endl;
+    std::cout << "  " << fg::cyan << "load(file)" << style::reset 
+              << "          Load and execute JS file" << std::endl;
+    std::cout << "  " << fg::cyan << "loadDll(path)" << style::reset 
+              << "       Load a DLL/shared library" << std::endl;
+    std::cout << "  " << fg::cyan << "unloadDll(path)" << style::reset 
+              << "     Unload a DLL" << std::endl;
+    std::cout << "  " << fg::cyan << "reloadDll(path)" << style::reset 
+              << "     Reload a DLL (hot-reload)" << std::endl;
+    std::cout << "  " << fg::cyan << "listDlls()" << style::reset 
+              << "          Get array of loaded DLLs" << std::endl;
+    std::cout << "  " << fg::cyan << "quit()" << style::reset 
+              << "              Exit the console" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << style::bold << fg::yellow << "Console Objects:" << style::reset << std::endl;
+    std::cout << "  " << fg::cyan << "console.log(...)" << style::reset 
+              << "     Print to console" << std::endl;
+    std::cout << "  " << fg::cyan << "console.error(...)" << style::reset 
+              << "   Print to error stream" << std::endl;
+    std::cout << "  " << fg::cyan << "console.warn(...)" << style::reset 
+              << "    Print warning message" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << style::bold << fg::yellow << "Examples:" << style::reset << std::endl;
+    std::cout << "  " << fg::green << "// Load and use Fibonacci DLL" << style::reset << std::endl;
+    std::cout << "  " << style::reset << "loadDll(\"./Bin/Fib.so\");" << std::endl;
+    std::cout << "  " << style::reset << "fib(10);  // Returns: 88" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  " << fg::green << "// Load JavaScript file" << style::reset << std::endl;
+    std::cout << "  " << style::reset << "load(\"script.js\");" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  " << fg::green << "// List loaded DLLs" << style::reset << std::endl;
+    std::cout << "  " << style::reset << "listDlls();" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << style::bold << fg::yellow << "Color Scheme:" << style::reset << std::endl;
+    std::cout << "  " << fg::cyan << "Cyan" << style::reset << "     - Titles and section headers" << std::endl;
+    std::cout << "  " << fg::yellow << "Yellow" << style::reset << "   - Command descriptions" << std::endl;
+    std::cout << "  " << fg::green << "Green" << style::reset << "    - Success messages and results" << std::endl;
+    std::cout << "  " << fg::red << "Red" << style::reset << "      - Error messages and exceptions" << std::endl;
+    std::cout << "  " << fg::blue << "Blue" << style::reset << "     - Lambda (λ) prompt character" << std::endl;
+    std::cout << "  " << fg::magenta << "Magenta" << style::reset << "  - Command names and functions" << std::endl;
+    std::cout << std::endl;
+}
+
+void V8Console::DisplayVars() {
+    using namespace rang;
+    
+    v8::Isolate::Scope isolate_scope(isolate_);
+    v8::HandleScope handle_scope(isolate_);
+    v8::Local<v8::Context> context = context_.Get(isolate_);
+    v8::Context::Scope context_scope(context);
+    
+    v8::Local<v8::Object> global = context->Global();
+    v8::Local<v8::Array> property_names = global->GetPropertyNames(context).ToLocalChecked();
+    
+    std::cout << std::endl;
+    std::cout << style::bold << fg::cyan << "Global Variables & Functions" << style::reset << std::endl;
+    std::cout << std::endl;
+    
+    // Filter built-in properties and only show user-defined ones
+    std::vector<std::string> user_vars;
+    std::vector<std::string> functions;
+    std::vector<std::string> builtin_functions;
+    
+    for (uint32_t i = 0; i < property_names->Length(); i++) {
+        v8::Local<v8::Value> key = property_names->Get(context, i).ToLocalChecked();
+        v8::Local<v8::Value> value = global->Get(context, key).ToLocalChecked();
+        
+        v8::String::Utf8Value key_str(isolate_, key);
+        std::string key_name = *key_str;
+        
+        // Skip internal V8 properties
+        if (key_name.find("__") == 0 || key_name == "global" || key_name == "this") {
+            continue;
+        }
+        
+        // Check if it's a function
+        if (value->IsFunction()) {
+            // Categorize functions
+            if (key_name == "print" || key_name == "load" || key_name == "loadDll" || 
+                key_name == "unloadDll" || key_name == "reloadDll" || key_name == "listDlls" || 
+                key_name == "quit" || key_name == "help" || key_name == "console") {
+                builtin_functions.push_back(key_name);
+            } else {
+                functions.push_back(key_name);
+            }
+        } else {
+            // It's a variable
+            user_vars.push_back(key_name);
+        }
+    }
+    
+    // Display user-defined variables
+    if (!user_vars.empty()) {
+        std::cout << style::bold << fg::yellow << "User Variables:" << style::reset << std::endl;
+        for (const auto& var : user_vars) {
+            v8::Local<v8::String> var_name = v8::String::NewFromUtf8(isolate_, var.c_str()).ToLocalChecked();
+            v8::Local<v8::Value> value = global->Get(context, var_name).ToLocalChecked();
+            
+            std::cout << "  " << fg::green << var << style::reset << " = ";
+            
+            if (value->IsString()) {
+                v8::String::Utf8Value str_value(isolate_, value);
+                std::cout << fg::yellow << "\"" << *str_value << "\"" << style::reset;
+            } else if (value->IsNumber()) {
+                std::cout << fg::cyan << value->NumberValue(context).ToChecked() << style::reset;
+            } else if (value->IsBoolean()) {
+                std::cout << fg::magenta << (value->BooleanValue(isolate_) ? "true" : "false") << style::reset;
+            } else if (value->IsObject()) {
+                std::cout << fg::blue << "[object]" << style::reset;
+            } else if (value->IsArray()) {
+                std::cout << fg::blue << "[array]" << style::reset;
+            } else {
+                std::cout << fg::gray << "[unknown type]" << style::reset;
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
+    
+    // Display user-defined functions
+    if (!functions.empty()) {
+        std::cout << style::bold << fg::yellow << "User Functions:" << style::reset << std::endl;
+        for (const auto& func : functions) {
+            std::cout << "  " << fg::cyan << func << "()" << style::reset << std::endl;
+        }
+        std::cout << std::endl;
+    }
+    
+    // Display built-in functions
+    if (!builtin_functions.empty()) {
+        std::cout << style::bold << fg::yellow << "Built-in Functions:" << style::reset << std::endl;
+        for (const auto& func : builtin_functions) {
+            std::cout << "  " << fg::magenta << func << "()" << style::reset << std::endl;
+        }
+        std::cout << std::endl;
+    }
+    
+    if (user_vars.empty() && functions.empty()) {
+        std::cout << fg::gray << "No user-defined variables or functions found." << style::reset << std::endl;
+        std::cout << fg::yellow << "Try creating some variables: " << style::reset << "let x = 42;" << std::endl;
+        std::cout << std::endl;
+    }
+}
+
+std::string V8Console::FormatDuration(const std::chrono::high_resolution_clock::duration& duration) {
+    using namespace std::chrono;
+    
+    auto microseconds = duration_cast<std::chrono::microseconds>(duration);
+    auto milliseconds = duration_cast<std::chrono::milliseconds>(duration);
+    auto seconds = duration_cast<std::chrono::seconds>(duration);
+    
+    if (seconds.count() > 0) {
+        double sec = microseconds.count() / 1000000.0;
+        return std::to_string(sec) + "s";
+    } else if (milliseconds.count() > 0) {
+        double ms = microseconds.count() / 1000.0;
+        return std::to_string(ms) + "ms";
+    } else {
+        return std::to_string(microseconds.count()) + "μs";
+    }
 }

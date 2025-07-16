@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <chrono>
 #include <v8.h>
 #include "DllLoader.h"
 
@@ -56,9 +57,19 @@ private:
     static void ReloadDll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void ListDlls(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void Quit(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void Help(const v8::FunctionCallbackInfo<v8::Value>& args);
     
     // Register built-in functions
     void RegisterBuiltins(v8::Local<v8::Context> context);
+    
+    // Help display
+    void DisplayHelp();
+    
+    // Display variables
+    void DisplayVars();
+    
+    // Timing helpers
+    std::string FormatDuration(const std::chrono::high_resolution_clock::duration& duration);
     
     // REPL state
     bool shouldQuit_ = false;

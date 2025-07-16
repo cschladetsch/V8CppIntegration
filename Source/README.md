@@ -65,17 +65,28 @@ The console app is built as part of the main project:
 ### Console Commands
 
 ```bash
+# Help and information
+.help                      # Show help message
+.vars                      # Show all variables and functions
+
 # DLL management
 .dll ./Bin/Fib.so          # Load a DLL
 .dlls                      # List loaded DLLs
 .reload ./Bin/Fib.so       # Reload a DLL
+
+# File operations
 .load script.js            # Load JavaScript file
+
+# Exit
 .quit                      # Exit console
 ```
 
 ### JavaScript Functions
 
 ```javascript
+// Help and information
+help();                      // Show help message
+
 // DLL management from JavaScript
 loadDll("./Bin/Fib.so");     // Load DLL
 unloadDll("./Bin/Fib.so");   // Unload DLL
