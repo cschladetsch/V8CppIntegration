@@ -282,22 +282,8 @@ if(ENABLE_COVERAGE)
     endif()
 endif()
 
-# Window Application with ImGui
-find_package(glfw3 3.3 QUIET)
-find_package(OpenGL QUIET)
-if(glfw3_FOUND AND OpenGL_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/Apps/Window/main.cpp")
-    add_subdirectory(Source/Apps/Window)
-    add_subdirectory(Source/Apps/SimpleWindow)
-    message(STATUS "Building V8JavaScriptWindow application")
-else()
-    if(NOT glfw3_FOUND)
-        message(STATUS "Skipping V8JavaScriptWindow - glfw3 not found")
-    elseif(NOT OpenGL_FOUND)
-        message(STATUS "Skipping V8JavaScriptWindow - OpenGL not found")
-    else()
-        message(STATUS "Skipping V8JavaScriptWindow - source files not found")
-    endif()
-endif()
+# SimpleWindow Console Application
+add_subdirectory(Source/Apps/SimpleWindow)
 
 # Installation
 install(TARGETS SystemV8Example BidirectionalExample AdvancedExample MinimalExample WebServerExample
