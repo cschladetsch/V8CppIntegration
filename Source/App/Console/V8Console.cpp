@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <libplatform/libplatform.h>
+#include <rang/rang.hpp>
 
 V8Console::V8Console() : isolate_(nullptr) {
 }
@@ -89,47 +90,72 @@ bool V8Console::ExecuteString(const std::string& source, const std::string& name
 }
 
 void V8Console::RunRepl() {
-    std::cout << "V8 Console - Interactive Mode" << std::endl;
-    std::cout << "Commands: .load <file>, .dll <path>, .dlls, .reload <path>, .quit" << std::endl;
+    using namespace rang;
+    
+    std::cout << style::bold << fg::cyan << "V8 Console" << style::reset 
+              << " - " << fg::green << "Interactive Mode" << style::reset << std::endl;
+    std::cout << fg::yellow << "Commands: " << style::reset 
+              << fg::magenta << ".load <file>" << style::reset << ", "
+              << fg::magenta << ".dll <path>" << style::reset << ", "
+              << fg::magenta << ".dlls" << style::reset << ", "
+              << fg::magenta << ".reload <path>" << style::reset << ", "
+              << fg::magenta << ".quit" << style::reset << std::endl;
     std::cout << "Type JavaScript code or commands:" << std::endl;
+    std::cout << std::endl;
     
     v8::Isolate::Scope isolate_scope(isolate_);
     v8::HandleScope handle_scope(isolate_);
     v8::Local<v8::Context> context = context_.Get(isolate_);
     v8::Context::Scope context_scope(context);
     
+    // Initial prompt
+    std::cout << fg::blue << "λ " << style::reset;
+    
     std::string line;
     while (!shouldQuit_ && std::getline(std::cin, line)) {
-        if (line.empty()) continue;
+        if (line.empty()) {
+            std::cout << fg::blue << "λ " << style::reset;
+            continue;
+        }
         
         // Handle special commands
         if (line[0] == '.') {
             if (line == ".quit") {
+                std::cout << fg::yellow << "Goodbye!" << style::reset << std::endl;
                 break;
             } else if (line.substr(0, 6) == ".load ") {
-                ExecuteFile(line.substr(6));
+                std::string filename = line.substr(6);
+                std::cout << fg::cyan << "Loading: " << filename << style::reset << std::endl;
+                ExecuteFile(filename);
             } else if (line.substr(0, 5) == ".dll ") {
-                LoadDll(line.substr(5));
+                std::string dllPath = line.substr(5);
+                std::cout << fg::cyan << "Loading DLL: " << dllPath << style::reset << std::endl;
+                LoadDll(dllPath);
             } else if (line == ".dlls") {
                 auto dlls = dllLoader_.GetLoadedDlls();
-                std::cout << "Loaded DLLs:" << std::endl;
+                std::cout << fg::cyan << "Loaded DLLs:" << style::reset << std::endl;
                 for (const auto& dll : dlls) {
-                    std::cout << "  " << dll << std::endl;
+                    std::cout << "  " << fg::green << dll << style::reset << std::endl;
                 }
             } else if (line.substr(0, 8) == ".reload ") {
                 std::string path = line.substr(8);
+                std::cout << fg::cyan << "Reloading: " << path << style::reset << std::endl;
                 if (dllLoader_.ReloadDll(path, isolate_, context)) {
-                    std::cout << "Reloaded: " << path << std::endl;
+                    std::cout << fg::green << "✓ Reloaded: " << path << style::reset << std::endl;
+                } else {
+                    std::cout << fg::red << "✗ Failed to reload: " << path << style::reset << std::endl;
                 }
             } else {
-                std::cout << "Unknown command: " << line << std::endl;
+                std::cout << fg::red << "Unknown command: " << line << style::reset << std::endl;
+                std::cout << fg::yellow << "Type " << fg::magenta << ".quit" << fg::yellow 
+                          << " to exit or try " << fg::magenta << ".load <file>" << style::reset << std::endl;
             }
         } else {
             // Execute as JavaScript
             CompileAndRun(line, "<repl>");
         }
         
-        std::cout << "> ";
+        std::cout << fg::blue << "λ " << style::reset;
     }
 }
 
@@ -171,7 +197,7 @@ bool V8Console::CompileAndRun(const std::string& source, const std::string& name
     // Print result in REPL mode
     if (name == "<repl>" && !result->IsUndefined()) {
         v8::String::Utf8Value utf8(isolate_, result);
-        std::cout << *utf8 << std::endl;
+        std::cout << rang::fg::green << *utf8 << rang::style::reset << std::endl;
     }
     
     return true;
@@ -189,24 +215,27 @@ std::string V8Console::ReadFile(const std::string& path) {
 }
 
 void V8Console::ReportException(v8::TryCatch* tryCatch) {
+    using namespace rang;
+    
     v8::HandleScope handle_scope(isolate_);
     v8::String::Utf8Value exception(isolate_, tryCatch->Exception());
     
     v8::Local<v8::Message> message = tryCatch->Message();
     if (message.IsEmpty()) {
-        std::cerr << *exception << std::endl;
+        std::cerr << fg::red << "Error: " << style::reset << *exception << std::endl;
         return;
     }
     
     // Print filename:line:column
     v8::String::Utf8Value filename(isolate_, message->GetScriptResourceName());
     int linenum = message->GetLineNumber(context_.Get(isolate_)).FromJust();
-    std::cerr << *filename << ":" << linenum << ": " << *exception << std::endl;
+    std::cerr << fg::red << *filename << ":" << linenum << ": " << style::reset 
+              << fg::yellow << *exception << style::reset << std::endl;
     
     // Print line of source code
     v8::String::Utf8Value sourceline(isolate_, 
         message->GetSourceLine(context_.Get(isolate_)).ToLocalChecked());
-    std::cerr << *sourceline << std::endl;
+    std::cerr << fg::gray << *sourceline << style::reset << std::endl;
     
     // Print wavy underline
     int start = message->GetStartColumn();
@@ -214,17 +243,18 @@ void V8Console::ReportException(v8::TryCatch* tryCatch) {
         std::cerr << " ";
     }
     int end = message->GetEndColumn();
+    std::cerr << fg::red;
     for (int i = start; i < end; i++) {
         std::cerr << "^";
     }
-    std::cerr << std::endl;
+    std::cerr << style::reset << std::endl;
     
     // Print stack trace
     v8::Local<v8::Value> stack_trace_string;
     if (tryCatch->StackTrace(context_.Get(isolate_)).ToLocal(&stack_trace_string) &&
         stack_trace_string->IsString()) {
         v8::String::Utf8Value stack_trace(isolate_, stack_trace_string);
-        std::cerr << *stack_trace << std::endl;
+        std::cerr << fg::gray << *stack_trace << style::reset << std::endl;
     }
 }
 
