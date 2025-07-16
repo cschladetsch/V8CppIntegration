@@ -282,8 +282,6 @@ if(ENABLE_COVERAGE)
     endif()
 endif()
 
-# SimpleWindow Console Application
-add_subdirectory(Source/Apps/SimpleWindow)
 
 # Installation
 install(TARGETS SystemV8Example BidirectionalExample AdvancedExample MinimalExample WebServerExample

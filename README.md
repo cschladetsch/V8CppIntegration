@@ -24,7 +24,7 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 - Git
 - CMake 3.14+
 - Python 3
-- C++ compiler with C++17 support
+- C++ compiler with C++20 support
 - Ninja build system (optional but recommended)
 
 ### For System V8 Option
@@ -111,15 +111,18 @@ V8/
 │   │   └── SetupV8.sh
 │   └── Testing/         # Test scripts
 │       └── RunTests.sh
+├── Source/              # Source code  
 ├── src/                 # Framework implementation files
 ├── Tests/               # Test suites
 │   ├── Integration/     # Integration tests
-│   │   └── IntegrationTests.cpp
+│   │   ├── IntegrationTests.cpp
+│   │   └── InteroperabilityTests.cpp
 │   ├── Performance/     # Performance benchmarks
 │   │   └── BenchmarkTests.cpp
 │   └── Unit/            # Unit tests
 │       ├── AdvancedTests.cpp
 │       └── BasicTests.cpp
+├── V8Embed/             # V8 embedding utilities
 ├── build.sh             # Convenience script
 ├── run_tests.sh         # Convenience script
 ├── Dockerfile           # Docker configuration
@@ -154,11 +157,6 @@ V8/
 - JavaScript-based routing
 - JSON API support
 
-### 6. JavaScript Window Application (`Source/Apps/Window/`)
-- Interactive GUI for JavaScript execution
-- Built with Dear ImGui and GLFW
-- Features code editor with console output
-- Real-time execution and debugging
 
 ## Test Suite
 

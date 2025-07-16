@@ -71,7 +71,7 @@ To use these reference implementations in your project:
 ## Dependencies
 
 - V8 JavaScript Engine (version-specific APIs)
-- C++17 or later
+- C++20 or later
 - POSIX threads
 - OpenSSL (optional, for cryptographic operations)
 
