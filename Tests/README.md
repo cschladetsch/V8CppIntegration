@@ -1,6 +1,6 @@
 # V8 Integration Test Suites
 
-This directory contains comprehensive test suites for the V8 C++ Integration framework, totaling 154 tests that ensure reliability and correctness.
+This directory contains comprehensive test suites for the V8 C++ Integration framework, totaling 160 tests that ensure reliability and correctness.
 
 ## Test Organization
 
@@ -12,6 +12,8 @@ Tests/
 ├── Integration/             # Integration tests
 │   ├── IntegrationTests.cpp # 40 tests - Complex integrations
 │   └── InteroperabilityTests.cpp # 34 tests - C++/JS interop
+├── Dlls/                    # DLL-specific tests
+│   └── FibonacciTests.cpp   # 6 tests - Fibonacci DLL functionality
 └── Performance/             # Performance benchmarks
     └── BenchmarkTests.cpp   # Google Benchmark suite
 ```
@@ -20,7 +22,7 @@ Tests/
 
 ### Quick Start
 ```bash
-# Run all tests (154 tests)
+# Run all tests (160 tests)
 ./run_tests.sh
 
 # Run individual test suites
@@ -28,6 +30,7 @@ Tests/
 ./build/AdvancedTests
 ./build/IntegrationTests
 ./build/InteroperabilityTests
+./build/FibonacciTests
 ```
 
 ### Using CMake
@@ -106,6 +109,17 @@ Tests C++/JavaScript interoperability:
 - Performance optimizations
 - Memory management
 
+### DLL Tests
+
+#### FibonacciTests.cpp (6 tests, ~12ms)
+Tests Fibonacci DLL functionality:
+- Basic Fibonacci calculations (small values)
+- Large Fibonacci calculations (performance testing)
+- Sequence verification and mathematical correctness
+- Error handling for negative numbers and edge cases
+- Performance benchmarking (sum of first 45 Fibonacci numbers)
+- Edge case handling (zero, very large numbers)
+
 ## Performance Benchmarks
 
 ### BenchmarkTests.cpp
@@ -182,6 +196,8 @@ The test suites provide comprehensive coverage of:
 - ✅ C++/JS interoperability
 - ✅ Performance characteristics
 - ✅ Edge cases and error conditions
+- ✅ DLL hot-loading and integration
+- ✅ Dynamic library functionality
 
 ## Continuous Integration
 
@@ -233,9 +249,9 @@ When adding new tests:
 
 ## Test Results Summary
 
-**Total Tests**: 154
+**Total Tests**: 160
 **Pass Rate**: 100%
-**Total Execution Time**: ~240ms
+**Total Execution Time**: ~252ms
 
 | Test Suite | Tests | Time | Status |
 |------------|-------|------|--------|
@@ -243,3 +259,4 @@ When adding new tests:
 | AdvancedTests | 40 | ~58ms | ✅ PASS |
 | IntegrationTests | 40 | ~62ms | ✅ PASS |
 | InteroperabilityTests | 34 | ~42ms | ✅ PASS |
+| FibonacciTests | 6 | ~12ms | ✅ PASS |
