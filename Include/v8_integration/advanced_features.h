@@ -104,10 +104,10 @@ public:
     };
     
     static void initialize(v8::Isolate* isolate);
-    static std::unique_ptr<Worker> createWorker(v8::Isolate* isolate, const std::string& script);
+    static std::shared_ptr<Worker> createWorker(v8::Isolate* isolate, const std::string& script);
     
 private:
-    static void workerConstructor(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void workerConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 // Advanced HTTP Server Integration

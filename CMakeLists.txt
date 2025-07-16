@@ -250,26 +250,36 @@ if(ENABLE_TESTING AND GTest_FOUND)
     )
 endif()
 
-# Core V8 integration library (simplified for now)
-# if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/error_handler.cpp")
-#     add_library(v8_integration STATIC
-#         Source/error_handler.cpp
-#         Source/monitoring.cpp
-#         Source/advanced_features.cpp
-#         Source/security.cpp
-#     )
-#     target_include_directories(v8_integration PUBLIC Include)
-#     target_link_libraries(v8_integration PUBLIC V8::V8 Threads::Threads)
-#     
-#     # Link examples with the integration library
-#     target_link_libraries(system_v8_example PRIVATE v8_integration)
-#     if(TARGET test_suite)
-#         target_link_libraries(test_suite PRIVATE v8_integration)
-#     endif()
-#     if(TARGET advanced_test_suite)
-#         target_link_libraries(advanced_test_suite PRIVATE v8_integration)
-#     endif()
-# endif()
+# Core V8 integration library
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/error_handler.cpp")
+    add_library(v8_integration STATIC
+        Source/error_handler.cpp
+        Source/monitoring.cpp
+        Source/advanced_features.cpp
+        Source/security.cpp
+    )
+    target_include_directories(v8_integration PUBLIC Include)
+    target_link_libraries(v8_integration PUBLIC V8::V8 Threads::Threads)
+    
+    # Add compile definitions for v8_integration
+    if(USE_SYSTEM_V8)
+        target_compile_definitions(v8_integration PUBLIC USE_SYSTEM_V8)
+    endif()
+    
+    # Link examples with the integration library
+    if(TARGET SystemV8Example)
+        target_link_libraries(SystemV8Example PRIVATE v8_integration)
+    endif()
+    if(TARGET AdvancedExample)
+        target_link_libraries(AdvancedExample PRIVATE v8_integration)
+    endif()
+    if(TARGET test_suite)
+        target_link_libraries(test_suite PRIVATE v8_integration)
+    endif()
+    if(TARGET advanced_test_suite)
+        target_link_libraries(advanced_test_suite PRIVATE v8_integration)
+    endif()
+endif()
 
 # Performance benchmarks
 if(benchmark_FOUND AND ENABLE_BENCHMARKS)

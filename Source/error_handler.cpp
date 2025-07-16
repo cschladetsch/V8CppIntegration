@@ -18,7 +18,7 @@ ErrorInfo::ErrorInfo(ErrorCode c, const std::string& msg, const std::string& f,
     // Capture stack trace
     void* trace[16];
     int trace_size = backtrace(trace, 16);
-    char** messages = BacktraceSymbols(trace, trace_size);
+    char** messages = backtrace_symbols(trace, trace_size);
     
     std::ostringstream oss;
     for (int i = 0; i < trace_size; ++i) {
@@ -66,7 +66,7 @@ void Logger::log(LogLevel level, const std::string& message,
         std::cout << formatted << std::endl;
     }
     
-    if (file_stream_ && file_stream_->IsOpen()) {
+    if (file_stream_ && file_stream_->is_open()) {
         *file_stream_ << formatted << std::endl;
         file_stream_->flush();
     }
@@ -110,10 +110,10 @@ std::string Logger::formatMessage(LogLevel level, const std::string& message,
                                  const std::string& file, int line,
                                  const std::string& function) {
     auto now = std::chrono::system_clock::now();
-    auto time_t = std::chrono::system_clock::ToTimeT(now);
+    auto time_t = std::chrono::system_clock::to_time_t(now);
     
     std::ostringstream oss;
-    oss << std::PutTime(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S");
+    oss << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S");
     oss << " [" << levelToString(level) << "] ";
     
     if (!file.empty()) {
@@ -150,11 +150,11 @@ void V8ErrorHandler::setPromiseRejectHandler(v8::Isolate* isolate) {
 }
 
 void V8ErrorHandler::setFatalErrorHandler() {
-    v8::V8::SetFatalErrorCallback(fatalErrorHandler);
+    // v8::V8::SetFatalErrorCallback(fatalErrorHandler); // Not available in all V8 versions
 }
 
 void V8ErrorHandler::setOOMErrorHandler() {
-    v8::V8::SetOOMErrorCallback(oomErrorHandler);
+    // v8::V8::SetOOMErrorCallback(oomErrorHandler); // Not available in all V8 versions
 }
 
 ErrorInfo V8ErrorHandler::extractErrorInfo(v8::Isolate* isolate, v8::Local<v8::Context> context,
@@ -229,12 +229,12 @@ void V8ErrorHandler::logError(const ErrorInfo& error) {
         oss << "\nStack trace:\n" << error.stack_trace;
     }
     
-    V8LogError(oss.str());
+    Logger::getInstance().error(oss.str());
 }
 
 void V8ErrorHandler::handleFatalError(const ErrorInfo& error) {
     logError(error);
-    V8LogFatal("Fatal V8 error occurred, terminating application");
+    Logger::getInstance().fatal("Fatal V8 error occurred, terminating application");
     std::exit(1);
 }
 
@@ -258,7 +258,7 @@ void V8ErrorHandler::promiseRejectHandler(v8::PromiseRejectMessage message) {
 }
 
 void V8ErrorHandler::fatalErrorHandler(const char* location, const char* message) {
-    ErrorInfo info(ErrorCode::FATAL, 
+    ErrorInfo info(ErrorCode::FATAL_ERROR, 
                    std::string("Fatal V8 error at ") + location + ": " + message);
     handleFatalError(info);
 }
@@ -273,14 +273,14 @@ void V8ErrorHandler::oomErrorHandler(const char* location, bool is_heap_oom) {
 // SecurityManager implementation
 void SecurityManager::enableSandbox(v8::Isolate* isolate) {
     setupSecurityCallbacks(isolate);
-    V8LogInfo("V8 sandbox enabled");
+    Logger::getInstance().info("V8 sandbox enabled");
 }
 
 void SecurityManager::setResourceLimits(v8::Isolate* isolate, size_t max_memory_mb,
                                        uint32_t max_execution_time_ms) {
-    isolate->SetRAMSizeLimit(max_memory_mb * 1024 * 1024);
+    // isolate->SetRAMSizeLimit(max_memory_mb * 1024 * 1024); // Not available in all V8 versions
     // Note: Execution time limits would need custom implementation
-    V8LogInfo("Resource limits set: " + std::to_string(max_memory_mb) + "MB memory");
+    Logger::getInstance().info("Resource limits set: " + std::to_string(max_memory_mb) + "MB memory");
 }
 
 void SecurityManager::restrictGlobalAccess(v8::Local<v8::Context> context) {
@@ -294,10 +294,10 @@ void SecurityManager::restrictGlobalAccess(v8::Local<v8::Context> context) {
     
     for (const auto& name : dangerous_globals) {
         v8::Local<v8::String> key = v8::String::NewFromUtf8(isolate, name.c_str()).ToLocalChecked();
-        global->Delete(context, key);
+        global->Delete(context, key).Check();
     }
     
-    V8LogInfo("Global access restricted");
+    Logger::getInstance().info("Global access restricted");
 }
 
 bool SecurityManager::validateScript(const std::string& script) {
@@ -308,7 +308,7 @@ bool SecurityManager::validateScript(const std::string& script) {
     
     for (const auto& pattern : dangerous_patterns) {
         if (script.find(pattern) != std::string::npos) {
-            V8LogWarn("Dangerous pattern detected: " + pattern);
+            Logger::getInstance().warn("Dangerous pattern detected: " + pattern);
             return false;
         }
     }
@@ -318,26 +318,27 @@ bool SecurityManager::validateScript(const std::string& script) {
 
 void SecurityManager::enableCodeSigning(bool enable) {
     // Implementation would depend on specific requirements
-    V8LogInfo("Code signing " + std::string(enable ? "enabled" : "disabled"));
+    Logger::getInstance().info("Code signing " + std::string(enable ? "enabled" : "disabled"));
 }
 
 void SecurityManager::setupSecurityCallbacks(v8::Isolate* isolate) {
-    isolate->SetAllowCodeGenerationFromStringsCallback(allowCodeGeneration);
+    isolate->SetModifyCodeGenerationFromStringsCallback(allowCodeGeneration);
     isolate->SetAllowWasmCodeGenerationCallback(allowWasmCodeGeneration);
 }
 
-bool SecurityManager::allowCodeGeneration(v8::Local<v8::Context> context,
-                                         v8::Local<v8::String> source,
-                                         bool is_code_like) {
+v8::ModifyCodeGenerationFromStringsResult SecurityManager::allowCodeGeneration(
+    v8::Local<v8::Context> context,
+    v8::Local<v8::Value> source,
+    bool is_code_like) {
     // By default, disallow code generation for security
-    V8LogWarn("Code generation attempt blocked");
-    return false;
+    Logger::getInstance().warn("Code generation attempt blocked");
+    return {false, v8::Local<v8::String>()};
 }
 
 bool SecurityManager::allowWasmCodeGeneration(v8::Local<v8::Context> context,
                                              v8::Local<v8::String> source) {
     // By default, disallow WASM code generation
-    V8LogWarn("WASM code generation attempt blocked");
+    Logger::getInstance().warn("WASM code generation attempt blocked");
     return false;
 }
 
@@ -380,7 +381,7 @@ void PerformanceMonitor::recordCounter(const std::string& name, int64_t value) {
 void PerformanceMonitor::generateReport() {
     std::lock_guard<std::mutex> lock(performance_mutex_);
     
-    V8LogInfo("=== Performance Report ===");
+    Logger::getInstance().info("=== Performance Report ===");
     
     for (const auto& [name, values] : metrics_) {
         if (!values.empty()) {
@@ -396,7 +397,7 @@ void PerformanceMonitor::generateReport() {
             
             double avg = sum / values.size();
             
-            V8LogInfo(name + " - Count: " + std::to_string(values.size()) +
+            Logger::getInstance().info(name + " - Count: " + std::to_string(values.size()) +
                        ", Avg: " + std::to_string(avg) + "ms" +
                        ", Min: " + std::to_string(min_val) + "ms" +
                        ", Max: " + std::to_string(max_val) + "ms");
@@ -404,7 +405,7 @@ void PerformanceMonitor::generateReport() {
     }
     
     for (const auto& [name, count] : counters_) {
-        V8LogInfo(name + " - Count: " + std::to_string(count));
+        Logger::getInstance().info(name + " - Count: " + std::to_string(count));
     }
 }
 

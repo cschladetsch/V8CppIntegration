@@ -231,7 +231,34 @@ void V8Console::ReportException(v8::TryCatch* tryCatch) {
 void V8Console::RegisterBuiltins(v8::Local<v8::Context> context) {
     v8::Local<v8::Object> global = context->Global();
     
-    // print() function
+    // Create console object
+    v8::Local<v8::Object> console = v8::Object::New(isolate_);
+    
+    // console.log() function
+    console->Set(context,
+        v8::String::NewFromUtf8(isolate_, "log").ToLocalChecked(),
+        v8::Function::New(context, ConsoleLog).ToLocalChecked()
+    ).Check();
+    
+    // console.error() function
+    console->Set(context,
+        v8::String::NewFromUtf8(isolate_, "error").ToLocalChecked(),
+        v8::Function::New(context, ConsoleError).ToLocalChecked()
+    ).Check();
+    
+    // console.warn() function
+    console->Set(context,
+        v8::String::NewFromUtf8(isolate_, "warn").ToLocalChecked(),
+        v8::Function::New(context, ConsoleWarn).ToLocalChecked()
+    ).Check();
+    
+    // Add console object to global
+    global->Set(context,
+        v8::String::NewFromUtf8(isolate_, "console").ToLocalChecked(),
+        console
+    ).Check();
+    
+    // print() function (for backward compatibility)
     global->Set(context,
         v8::String::NewFromUtf8(isolate_, "print").ToLocalChecked(),
         v8::Function::New(context, Print).ToLocalChecked()
@@ -282,6 +309,34 @@ void V8Console::Print(const v8::FunctionCallbackInfo<v8::Value>& args) {
         std::cout << *str;
     }
     std::cout << std::endl;
+}
+
+void V8Console::ConsoleLog(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    for (int i = 0; i < args.Length(); i++) {
+        if (i > 0) std::cout << " ";
+        v8::String::Utf8Value str(args.GetIsolate(), args[i]);
+        std::cout << *str;
+    }
+    std::cout << std::endl;
+}
+
+void V8Console::ConsoleError(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    for (int i = 0; i < args.Length(); i++) {
+        if (i > 0) std::cerr << " ";
+        v8::String::Utf8Value str(args.GetIsolate(), args[i]);
+        std::cerr << *str;
+    }
+    std::cerr << std::endl;
+}
+
+void V8Console::ConsoleWarn(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    std::cerr << "Warning: ";
+    for (int i = 0; i < args.Length(); i++) {
+        if (i > 0) std::cerr << " ";
+        v8::String::Utf8Value str(args.GetIsolate(), args[i]);
+        std::cerr << *str;
+    }
+    std::cerr << std::endl;
 }
 
 void V8Console::Load(const v8::FunctionCallbackInfo<v8::Value>& args) {
