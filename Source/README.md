@@ -6,12 +6,15 @@ This directory contains the main source code for the V8 C++ Integration framewor
 
 ```
 Source/
-├── App/              # Applications
-│   └── Console/      # V8 console application with DLL hot-loading
-├── error_handler.cpp # Error handling utilities (if present)
-├── monitoring.cpp    # Monitoring and metrics (if present)
-├── advanced_features.cpp # Advanced V8 features (if present)
-└── security.cpp      # Security features (if present)
+├── App/                      # Applications
+│   └── Console/              # V8 console application with DLL hot-loading
+├── advanced_features.cpp     # Advanced V8 features implementation
+├── advanced_features_old.cpp # Legacy advanced features (deprecated)
+├── error_handler.cpp         # Error handling utilities
+├── monitoring.cpp            # Monitoring and metrics
+├── security.cpp              # Security features
+├── v8_compat.cpp             # V8 version compatibility layer
+└── v8_platform_wrapper.cpp   # V8 platform abstraction
 ```
 
 ## App/Console
