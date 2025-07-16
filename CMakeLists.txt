@@ -361,6 +361,11 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/App/Console/CMakeLists.txt")
     add_subdirectory(Source/App/Console)
 endif()
 
+# Example DLLs
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/Cpp/Dlls/CMakeLists.txt")
+    add_subdirectory(Source/Cpp/Dlls)
+endif()
+
 # Print configuration summary
 message(STATUS "")
 message(STATUS "V8 Examples Configuration:")
