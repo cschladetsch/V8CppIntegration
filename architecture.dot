@@ -4,206 +4,303 @@ digraph V8CppIntegrationArchitecture {
     node [shape=box, style="rounded,filled", fontname="Arial", fontsize=10];
     edge [fontname="Arial", fontsize=9];
     compound=true;
+    nodesep=0.5;
+    ranksep=0.8;
     
     // Color scheme
     node [fillcolor=lightblue];
     
-    // Subgraphs for organization
+    // Title
+    labelloc="t";
+    label=<<B>V8 C++ Integration Framework Architecture</B><BR/><FONT POINT-SIZE="10">Comprehensive V8 JavaScript Engine Integration with C++</FONT>>;
+    fontsize=16;
+    
+    // ========== Build System Layer ==========
     subgraph cluster_build {
-        label="Build System";
+        label=<<B>Build System Layer</B>>;
         style=filled;
-        fillcolor=lightyellow;
+        fillcolor="#fff8dc";
         fontsize=12;
         
-        // Shell scripts
-        node [fillcolor=lightgreen];
-        "build.sh" [label="build.sh\n(Main Build Script)"];
-        "from_source.sh" [label="from_source.sh\n(Complete V8 Setup)"];
-        "SetupV8.sh" [label="Scripts/Build/SetupV8.sh\n(Download V8)"];
-        "BuildV8.sh" [label="Scripts/Build/BuildV8.sh\n(Compile V8)"];
-        "run_tests.sh" [label="run_tests.sh\n(Test Runner)"];
+        subgraph cluster_scripts {
+            label="Build Scripts";
+            style=filled;
+            fillcolor="#f0e68c";
+            
+            node [fillcolor="#90ee90", shape=note];
+            "build.sh" [label=<<B>build.sh</B><BR/><FONT POINT-SIZE="8">Main Build Entry<BR/>--system-v8 | --debug<BR/>--setup-v8 | --build-v8</FONT>>];
+            "from_source.sh" [label=<<B>from_source.sh</B><BR/><FONT POINT-SIZE="8">Complete V8 Setup<BR/>Auto-downloads deps<BR/>Builds V8 + Project</FONT>>];
+            "run_tests.sh" [label=<<B>run_tests.sh</B><BR/><FONT POINT-SIZE="8">Test Runner<BR/>160 Total Tests<BR/>All Test Suites</FONT>>];
+            "compile_standalone.sh" [label=<<B>compile_standalone.sh</B><BR/><FONT POINT-SIZE="8">Single File Build<BR/>Direct V8 Linking</FONT>>];
+        }
         
-        // CMake
-        node [fillcolor=lightcoral];
-        "CMakeLists.txt" [label="CMakeLists.txt\n(Project Config)"];
-        "BuildV8.cmake" [label="CMake/BuildV8.cmake\n(V8 Integration)"];
-        "FindV8.cmake" [label="CMake/FindV8.cmake\n(System V8)"];
-        "BuildGTest.cmake" [label="CMake/BuildGTest.cmake\n(Test Framework)"];
+        subgraph cluster_cmake {
+            label="CMake Configuration";
+            style=filled;
+            fillcolor="#ffa07a";
+            
+            node [fillcolor="#ff6347", shape=folder];
+            "CMakeLists.txt" [label=<<B>CMakeLists.txt</B><BR/><FONT POINT-SIZE="8">Project Root Config<BR/>Targets Definition<BR/>Dependencies</FONT>>];
+            "CMakePresets.json" [label=<<B>CMakePresets.json</B><BR/><FONT POINT-SIZE="8">Build Presets<BR/>Config Options</FONT>>];
+            
+            node [fillcolor="#ff7f50", shape=tab];
+            "FindV8.cmake" [label=<<B>FindV8.cmake</B><BR/><FONT POINT-SIZE="8">System V8 Detection<BR/>Library Paths</FONT>>];
+            "BuildV8.cmake" [label=<<B>BuildV8.cmake</B><BR/><FONT POINT-SIZE="8">V8 Source Build<BR/>Compilation Rules</FONT>>];
+            "BuildGTest.cmake" [label=<<B>BuildGTest.cmake</B><BR/><FONT POINT-SIZE="8">Test Framework<BR/>GTest Setup</FONT>>];
+        }
     }
     
+    // ========== V8 Engine Layer ==========
     subgraph cluster_v8 {
-        label="V8 Engine Options";
+        label=<<B>V8 Engine Layer</B>>;
         style=filled;
-        fillcolor=lightgray;
+        fillcolor="#e6e6fa";
         fontsize=12;
         
-        node [fillcolor=darkseagreen];
-        "depot_tools" [label="depot_tools\n(Google Build Tools)"];
-        "V8 Source" [label="v8/\n(JavaScript Engine Source)"];
-        "libv8_monolith.a" [label="libv8_monolith.a\n(Static Library)"];
-        "System V8" [label="System V8\n(apt: libv8-dev)"];
+        node [fillcolor="#9370db", shape=cylinder];
+        "depot_tools" [label=<<B>depot_tools/</B><BR/><FONT POINT-SIZE="8">Google Build Tools<BR/>gclient, gn, ninja<BR/>(908MB)</FONT>>];
+        "v8_source" [label=<<B>v8/</B><BR/><FONT POINT-SIZE="8">V8 Source Code<BR/>JavaScript Engine<BR/>(7.5GB)</FONT>>];
+        
+        node [fillcolor="#8a2be2", shape=component];
+        "libv8_monolith" [label=<<B>libv8_monolith.a</B><BR/><FONT POINT-SIZE="8">Static V8 Library<BR/>Built from Source</FONT>>];
+        "system_v8" [label=<<B>System V8</B><BR/><FONT POINT-SIZE="8">libv8-dev Package<BR/>Pre-installed V8</FONT>>];
     }
     
+    // ========== Integration Layer ==========
     subgraph cluster_integration {
-        label="Integration Layer";
+        label=<<B>Integration Layer</B>>;
         style=filled;
-        fillcolor=lavender;
+        fillcolor="#ffd4e5";
         fontsize=12;
         
         subgraph cluster_headers {
-            label="Headers (Include/)";
+            label="Public API (Include/)";
             style=filled;
-            fillcolor=thistle;
+            fillcolor="#ffb6c1";
             
-            node [fillcolor=plum];
-            "v8_compat.h" [label="v8_compat.h\n(V8 Version Compatibility)"];
-            "error_handler.h" [label="v8_integration/error_handler.h\n(Error Management)"];
-            "monitoring.h" [label="v8_integration/monitoring.h\n(Performance Metrics)"];
-            "security.h" [label="v8_integration/security.h\n(Sandboxing)"];
-            "advanced_features.h" [label="v8_integration/advanced_features.h\n(WebAssembly, Modules)"];
+            node [fillcolor="#ff69b4", shape=note];
+            "v8_compat.h" [label=<<B>v8_compat.h</B><BR/><FONT POINT-SIZE="8">Version Compatibility<BR/>API Abstraction<BR/>Cross-version Support</FONT>>];
+            
+            node [fillcolor="#ff1493", shape=note];
+            "error_handler.h" [label=<<B>error_handler.h</B><BR/><FONT POINT-SIZE="8">Exception Management<BR/>Error Reporting</FONT>>];
+            "monitoring.h" [label=<<B>monitoring.h</B><BR/><FONT POINT-SIZE="8">Performance Metrics<BR/>Resource Tracking</FONT>>];
+            "security.h" [label=<<B>security.h</B><BR/><FONT POINT-SIZE="8">Sandbox Control<BR/>Code Generation</FONT>>];
+            "advanced_features.h" [label=<<B>advanced_features.h</B><BR/><FONT POINT-SIZE="8">WebAssembly<BR/>ES Modules<BR/>Async Support</FONT>>];
         }
         
         subgraph cluster_impl {
             label="Implementation (Source/)";
             style=filled;
-            fillcolor=lavenderblush;
+            fillcolor="#dda0dd";
             
-            node [fillcolor=orchid];
-            "v8_compat.cpp" [label="v8_compat.cpp\n(Compatibility Implementation)"];
-            "error_handler.cpp" [label="error_handler.cpp\n(Error Handling)"];
-            "monitoring.cpp" [label="monitoring.cpp\n(Metrics Collection)"];
-            "security.cpp" [label="security.cpp\n(Security Features)"];
-            "advanced_features.cpp" [label="advanced_features.cpp\n(Advanced V8 Features)"];
-            "v8_platform_wrapper.cpp" [label="v8_platform_wrapper.cpp\n(Platform Abstraction)"];
+            node [fillcolor="#9932cc", shape=box3d];
+            "v8_compat.cpp" [label=<<B>v8_compat.cpp</B><BR/><FONT POINT-SIZE="8">Compatibility Layer</FONT>>];
+            "error_handler.cpp" [label=<<B>error_handler.cpp</B><BR/><FONT POINT-SIZE="8">Error Implementation</FONT>>];
+            "monitoring.cpp" [label=<<B>monitoring.cpp</B><BR/><FONT POINT-SIZE="8">Metrics Collection</FONT>>];
+            "security.cpp" [label=<<B>security.cpp</B><BR/><FONT POINT-SIZE="8">Security Features</FONT>>];
+            "advanced_features.cpp" [label=<<B>advanced_features.cpp</B><BR/><FONT POINT-SIZE="8">Advanced Features</FONT>>];
+            "v8_platform_wrapper.cpp" [label=<<B>v8_platform_wrapper.cpp</B><BR/><FONT POINT-SIZE="8">Platform Abstraction</FONT>>];
+        }
+        
+        node [fillcolor="#8b008b", shape=component];
+        "libv8_integration.a" [label=<<B>libv8_integration.a</B><BR/><FONT POINT-SIZE="8">Integration Library<BR/>Core Framework</FONT>>];
+    }
+    
+    // ========== Examples Layer ==========
+    subgraph cluster_examples {
+        label=<<B>Example Applications</B>>;
+        style=filled;
+        fillcolor="#e0ffff";
+        fontsize=12;
+        
+        node [fillcolor="#87ceeb", shape=hexagon];
+        "MinimalExample" [label=<<B>MinimalExample</B><BR/><FONT POINT-SIZE="8">Basic V8 Setup<BR/>Hello World</FONT>>];
+        "SystemV8Example" [label=<<B>SystemV8Example</B><BR/><FONT POINT-SIZE="8">System V8 Usage<BR/>Package Integration</FONT>>];
+        "BidirectionalExample" [label=<<B>BidirectionalExample</B><BR/><FONT POINT-SIZE="8">C++ ⟷ JS Calls<BR/>Data Exchange</FONT>>];
+        "AdvancedExample" [label=<<B>AdvancedExample</B><BR/><FONT POINT-SIZE="8">Complex Patterns<BR/>Native Objects</FONT>>];
+        "WebServerExample" [label=<<B>WebServerExample</B><BR/><FONT POINT-SIZE="8">HTTP Server<BR/>JS Request Handler</FONT>>];
+        "standalone_example" [label=<<B>standalone_example</B><BR/><FONT POINT-SIZE="8">Single File Demo<BR/>Quick Test</FONT>>];
+    }
+    
+    // ========== Applications Layer ==========
+    subgraph cluster_apps {
+        label=<<B>Production Applications</B>>;
+        style=filled;
+        fillcolor="#b0e0e6";
+        fontsize=12;
+        
+        node [fillcolor="#4682b4", shape=doubleoctagon];
+        "v8console" [label=<<B>v8console</B><BR/><FONT POINT-SIZE="8">Interactive REPL<BR/>DLL Hot-Loading<BR/>Script Execution</FONT>>];
+        
+        subgraph cluster_dlls {
+            label="Dynamic Libraries";
+            style=filled;
+            fillcolor="#5f9ea0";
+            
+            node [fillcolor="#008b8b", shape=component];
+            "Fib.so" [label=<<B>Fib.so</B><BR/><FONT POINT-SIZE="8">Fibonacci DLL<BR/>Sum Calculator<BR/>Demo Library</FONT>>];
         }
     }
     
-    subgraph cluster_examples {
-        label="Example Applications (Examples/)";
-        style=filled;
-        fillcolor=lightcyan;
-        fontsize=12;
-        
-        node [fillcolor=skyblue];
-        "MinimalExample" [label="MinimalExample.cpp\n(Basic V8 Setup)"];
-        "SystemV8Example" [label="SystemV8Example.cpp\n(System V8 Usage)"];
-        "BidirectionalExample" [label="BidirectionalExample.cpp\n(C++ ⟷ JS Communication)"];
-        "AdvancedExample" [label="AdvancedExample.cpp\n(Complex Patterns)"];
-        "WebServerExample" [label="WebServerExample.cpp\n(HTTP Server)"];
-        "standalone_example" [label="standalone_example.cpp\n(Single File Demo)"];
-    }
-    
-    subgraph cluster_apps {
-        label="Applications (Source/App/)";
-        style=filled;
-        fillcolor=lightsteelblue;
-        fontsize=12;
-        
-        node [fillcolor=cornflowerblue];
-        "v8console" [label="v8console\n(Interactive REPL\nDLL Hot-Loading)"];
-    }
-    
+    // ========== Test Layer ==========
     subgraph cluster_tests {
-        label="Test Infrastructure (Tests/) - 154 Total Tests";
+        label=<<B>Test Infrastructure - 160 Total Tests</B>>;
         style=filled;
-        fillcolor=mistyrose;
+        fillcolor="#ffe4e1";
         fontsize=12;
         
-        node [fillcolor=lightsalmon];
-        "BasicTests" [label="Unit/BasicTests.cpp\n(40 tests)"];
-        "AdvancedTests" [label="Unit/AdvancedTests.cpp\n(40 tests)"];
-        "IntegrationTests" [label="Integration/IntegrationTests.cpp\n(40 tests)"];
-        "InteroperabilityTests" [label="Integration/InteroperabilityTests.cpp\n(34 tests)"];
-        "BenchmarkTests" [label="Performance/BenchmarkTests.cpp\n(Performance Metrics)"];
+        subgraph cluster_unit {
+            label="Unit Tests";
+            style=filled;
+            fillcolor="#ffc0cb";
+            
+            node [fillcolor="#ff69b4", shape=diamond];
+            "BasicTests" [label=<<B>BasicTests</B><BR/><FONT POINT-SIZE="8">40 tests<BR/>Core V8 Features<BR/>~75ms</FONT>>];
+            "AdvancedTests" [label=<<B>AdvancedTests</B><BR/><FONT POINT-SIZE="8">40 tests<BR/>ES6+ Features<BR/>~58ms</FONT>>];
+            "FibonacciTests" [label=<<B>FibonacciTests</B><BR/><FONT POINT-SIZE="8">6 tests<BR/>DLL Testing<BR/>~25ms</FONT>>];
+        }
+        
+        subgraph cluster_integration_tests {
+            label="Integration Tests";
+            style=filled;
+            fillcolor="#ffb6c1";
+            
+            node [fillcolor="#ff1493", shape=diamond];
+            "IntegrationTests" [label=<<B>IntegrationTests</B><BR/><FONT POINT-SIZE="8">40 tests<BR/>Complex Patterns<BR/>~62ms</FONT>>];
+            "InteroperabilityTests" [label=<<B>InteroperabilityTests</B><BR/><FONT POINT-SIZE="8">34 tests<BR/>C++ ⟷ JS<BR/>~42ms</FONT>>];
+        }
+        
+        node [fillcolor="#dc143c", shape=octagon];
+        "BenchmarkTests" [label=<<B>BenchmarkTests</B><BR/><FONT POINT-SIZE="8">Performance<BR/>Benchmarking<BR/>Google Benchmark</FONT>>];
     }
     
-    // Build flow connections
-    edge [color=black];
+    // ========== Output Layer ==========
+    subgraph cluster_output {
+        label=<<B>Build Output (Bin/)</B>>;
+        style=filled;
+        fillcolor="#f5deb3";
+        fontsize=12;
+        
+        node [fillcolor="#daa520", shape=folder];
+        "executables" [label=<<B>Executables</B><BR/><FONT POINT-SIZE="8">All Examples<BR/>v8console<BR/>Test Binaries</FONT>>];
+        "libraries" [label=<<B>Libraries</B><BR/><FONT POINT-SIZE="8">libv8_integration.a<BR/>Fib.so<BR/>Other DLLs</FONT>>];
+    }
+    
+    // ========== Connections ==========
+    
+    // Build flow
+    edge [color="#2e8b57", style=bold, penwidth=2];
     "build.sh" -> "CMakeLists.txt" [label="invokes"];
-    "from_source.sh" -> "SetupV8.sh" [label="1. setup"];
-    "from_source.sh" -> "BuildV8.sh" [label="2. build"];
-    "from_source.sh" -> "build.sh" [label="3. project"];
+    "from_source.sh" -> "depot_tools" [label="downloads"];
+    "from_source.sh" -> "v8_source" [label="fetches"];
+    "from_source.sh" -> "build.sh" [label="then runs"];
     
-    "SetupV8.sh" -> "depot_tools" [label="downloads"];
-    "depot_tools" -> "V8 Source" [label="fetches"];
-    "BuildV8.sh" -> "V8 Source" [label="builds"];
-    "V8 Source" -> "libv8_monolith.a" [label="produces"];
+    // V8 building
+    edge [color="#4169e1", style=bold];
+    "depot_tools" -> "v8_source" [label="builds with"];
+    "v8_source" -> "libv8_monolith" [label="produces"];
+    "BuildV8.cmake" -> "libv8_monolith" [label="manages"];
+    "FindV8.cmake" -> "system_v8" [label="locates"];
     
+    // CMake flow
+    edge [color="#ff4500", style=dashed];
     "CMakeLists.txt" -> "BuildV8.cmake" [label="includes"];
-    "CMakeLists.txt" -> "FindV8.cmake" [label="uses"];
+    "CMakeLists.txt" -> "FindV8.cmake" [label="includes"];
     "CMakeLists.txt" -> "BuildGTest.cmake" [label="includes"];
-    "BuildV8.cmake" -> "libv8_monolith.a" [label="links"];
-    "FindV8.cmake" -> "System V8" [label="finds"];
     
-    // Integration connections
-    edge [color=purple];
-    "v8_compat.h" -> "libv8_monolith.a" [label="abstracts", style=dashed];
-    "v8_compat.h" -> "System V8" [label="abstracts", style=dashed];
+    // Compatibility layer
+    edge [color="#9400d3", style=bold, penwidth=2];
+    "v8_compat.h" -> "libv8_monolith" [label="abstracts", style=dashed];
+    "v8_compat.h" -> "system_v8" [label="abstracts", style=dashed];
     
-    // Header to implementation
-    edge [color=gray, style=dotted];
-    "v8_compat.h" -> "v8_compat.cpp" [label="implements"];
-    "error_handler.h" -> "error_handler.cpp" [label="implements"];
-    "monitoring.h" -> "monitoring.cpp" [label="implements"];
-    "security.h" -> "security.cpp" [label="implements"];
-    "advanced_features.h" -> "advanced_features.cpp" [label="implements"];
+    // Implementation connections
+    edge [color="#808080", style=dotted];
+    "v8_compat.h" -> "v8_compat.cpp";
+    "error_handler.h" -> "error_handler.cpp";
+    "monitoring.h" -> "monitoring.cpp";
+    "security.h" -> "security.cpp";
+    "advanced_features.h" -> "advanced_features.cpp";
     
-    // Example connections
-    edge [color=blue];
-    "v8_compat.h" -> "MinimalExample" [label="uses"];
-    "v8_compat.h" -> "SystemV8Example" [label="uses"];
-    "v8_compat.h" -> "BidirectionalExample" [label="uses"];
-    "v8_compat.h" -> "AdvancedExample" [label="uses"];
-    "v8_compat.h" -> "WebServerExample" [label="uses"];
-    "v8_compat.h" -> "standalone_example" [label="uses"];
-    "v8_compat.h" -> "v8console" [label="uses"];
+    // Library building
+    edge [color="#8b008b", style=bold];
+    "v8_compat.cpp" -> "libv8_integration.a" [label="compiles to"];
+    "error_handler.cpp" -> "libv8_integration.a";
+    "monitoring.cpp" -> "libv8_integration.a";
+    "security.cpp" -> "libv8_integration.a";
+    "advanced_features.cpp" -> "libv8_integration.a";
+    
+    // Example dependencies
+    edge [color="#4682b4", penwidth=2];
+    "v8_compat.h" -> "MinimalExample" [label="includes"];
+    "v8_compat.h" -> "SystemV8Example";
+    "v8_compat.h" -> "BidirectionalExample";
+    "v8_compat.h" -> "AdvancedExample";
+    "v8_compat.h" -> "WebServerExample";
+    "v8_compat.h" -> "v8console";
+    
+    // DLL connections
+    edge [color="#008b8b", style=bold];
+    "v8console" -> "Fib.so" [label="loads", style=dashed];
+    "FibonacciTests" -> "Fib.so" [label="tests"];
     
     // Test connections
-    edge [color=red];
-    "v8_compat.h" -> "BasicTests" [label="tested by"];
-    "v8_compat.h" -> "AdvancedTests" [label="tested by"];
-    "v8_compat.h" -> "IntegrationTests" [label="tested by"];
-    "v8_compat.h" -> "InteroperabilityTests" [label="tested by"];
-    "v8_compat.h" -> "BenchmarkTests" [label="benchmarked by"];
+    edge [color="#dc143c"];
+    "run_tests.sh" -> "BasicTests" [label="executes"];
+    "run_tests.sh" -> "AdvancedTests";
+    "run_tests.sh" -> "IntegrationTests";
+    "run_tests.sh" -> "InteroperabilityTests";
+    "run_tests.sh" -> "FibonacciTests";
     
-    // Test runner
-    "run_tests.sh" -> "BasicTests" [label="runs"];
-    "run_tests.sh" -> "AdvancedTests" [label="runs"];
-    "run_tests.sh" -> "IntegrationTests" [label="runs"];
-    "run_tests.sh" -> "InteroperabilityTests" [label="runs"];
+    // Output connections
+    edge [color="#ff8c00", style=bold, penwidth=2];
+    "CMakeLists.txt" -> "executables" [label="builds"];
+    "CMakeLists.txt" -> "libraries" [label="creates"];
     
-    // Output artifacts
-    edge [color=darkgreen, style=bold];
-    "CMakeLists.txt" -> "Bin/" [label="outputs to", style=bold];
+    // Integration library usage
+    edge [color="#9932cc"];
+    "libv8_integration.a" -> "AdvancedExample" [label="links"];
+    "libv8_integration.a" -> "v8console" [label="links"];
     
-    // Legend
+    // ========== Legend ==========
     subgraph cluster_legend {
-        label="Legend";
+        label=<<B>Legend</B>>;
         style=filled;
         fillcolor=white;
         fontsize=10;
+        rank=sink;
         
         node [shape=plaintext, fillcolor=white];
         legend [label=<
-            <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
-            <TR><TD COLSPAN="2" BGCOLOR="lightgray"><B>Component Types</B></TD></TR>
-            <TR><TD BGCOLOR="lightgreen">Shell Scripts</TD><TD>Build automation</TD></TR>
-            <TR><TD BGCOLOR="lightcoral">CMake Files</TD><TD>Build configuration</TD></TR>
-            <TR><TD BGCOLOR="darkseagreen">V8 Components</TD><TD>JavaScript engine</TD></TR>
-            <TR><TD BGCOLOR="plum">Headers</TD><TD>Public API</TD></TR>
-            <TR><TD BGCOLOR="orchid">Implementation</TD><TD>Source files</TD></TR>
-            <TR><TD BGCOLOR="skyblue">Examples</TD><TD>Demo applications</TD></TR>
-            <TR><TD BGCOLOR="cornflowerblue">Applications</TD><TD>Production tools</TD></TR>
-            <TR><TD BGCOLOR="lightsalmon">Tests</TD><TD>Test suites</TD></TR>
-            <TR><TD COLSPAN="2" BGCOLOR="lightgray"><B>Edge Types</B></TD></TR>
-            <TR><TD>Solid</TD><TD>Direct dependency</TD></TR>
-            <TR><TD>Dashed</TD><TD>Abstraction/Interface</TD></TR>
-            <TR><TD>Dotted</TD><TD>Implementation</TD></TR>
+            <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4">
+            <TR><TD COLSPAN="3" BGCOLOR="lightgray"><B>Component Types</B></TD></TR>
+            <TR><TD BGCOLOR="#90ee90">Build Scripts</TD><TD>Shell scripts</TD><TD SHAPE="note">note</TD></TR>
+            <TR><TD BGCOLOR="#ff6347">CMake Config</TD><TD>Build configuration</TD><TD SHAPE="folder">folder</TD></TR>
+            <TR><TD BGCOLOR="#9370db">V8 Engine</TD><TD>V8 components</TD><TD SHAPE="cylinder">cylinder</TD></TR>
+            <TR><TD BGCOLOR="#ff69b4">Headers</TD><TD>Public API</TD><TD SHAPE="note">note</TD></TR>
+            <TR><TD BGCOLOR="#9932cc">Implementation</TD><TD>Source files</TD><TD SHAPE="box3d">box3d</TD></TR>
+            <TR><TD BGCOLOR="#87ceeb">Examples</TD><TD>Demo apps</TD><TD SHAPE="hexagon">hexagon</TD></TR>
+            <TR><TD BGCOLOR="#4682b4">Applications</TD><TD>Production tools</TD><TD SHAPE="doubleoctagon">doubleoctagon</TD></TR>
+            <TR><TD BGCOLOR="#ff69b4">Tests</TD><TD>Test suites</TD><TD SHAPE="diamond">diamond</TD></TR>
+            <TR><TD COLSPAN="3" BGCOLOR="lightgray"><B>Edge Styles</B></TD></TR>
+            <TR><TD>Solid Bold</TD><TD COLSPAN="2">Primary dependency/flow</TD></TR>
+            <TR><TD>Dashed</TD><TD COLSPAN="2">Abstraction/indirect relationship</TD></TR>
+            <TR><TD>Dotted</TD><TD COLSPAN="2">Implementation detail</TD></TR>
+            <TR><TD COLSPAN="3" BGCOLOR="lightgray"><B>Key Metrics</B></TD></TR>
+            <TR><TD>Total Tests</TD><TD COLSPAN="2">160 tests</TD></TR>
+            <TR><TD>Build Options</TD><TD COLSPAN="2">System V8 / Source Build</TD></TR>
+            <TR><TD>Examples</TD><TD COLSPAN="2">6 example applications</TD></TR>
+            <TR><TD>DLL Support</TD><TD COLSPAN="2">Hot-loading with v8console</TD></TR>
             </TABLE>
         >];
     }
     
-    // Note about the project
-    labelloc="b";
-    label="V8 C++ Integration Architecture\n154 tests | Multiple build options | Cross-version compatibility";
+    // Invisible edges to control layout
+    edge [style=invis];
+    cluster_build -> cluster_v8;
+    cluster_v8 -> cluster_integration;
+    cluster_integration -> cluster_examples;
+    cluster_integration -> cluster_apps;
+    cluster_examples -> cluster_tests;
+    cluster_apps -> cluster_tests;
+    cluster_tests -> cluster_output;
 }
