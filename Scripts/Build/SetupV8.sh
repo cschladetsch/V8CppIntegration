@@ -69,7 +69,18 @@ if [ ! -d "v8" ]; then
 else
     cd v8
     echo "Updating V8..."
-    git pull
+    # Handle detached HEAD state
+    git fetch origin
+    # Check if we're on a branch or detached HEAD
+    if git symbolic-ref -q HEAD >/dev/null 2>&1; then
+        # On a branch, pull normally
+        git pull
+    else
+        # Detached HEAD, checkout main branch first
+        echo "V8 is in detached HEAD state, checking out main branch..."
+        git checkout main || git checkout master
+        git pull
+    fi
     gclient sync
 fi
 EOF
@@ -96,7 +107,18 @@ else
     else
         cd v8
         echo "Updating V8..."
-        git pull
+        # Handle detached HEAD state
+        git fetch origin
+        # Check if we're on a branch or detached HEAD
+        if git symbolic-ref -q HEAD >/dev/null 2>&1; then
+            # On a branch, pull normally
+            git pull
+        else
+            # Detached HEAD, checkout main branch first
+            echo "V8 is in detached HEAD state, checking out main branch..."
+            git checkout main || git checkout master
+            git pull
+        fi
         gclient sync
     fi
 fi
