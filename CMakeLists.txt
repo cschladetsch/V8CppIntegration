@@ -207,7 +207,7 @@ endif()
 
 # Run target
 add_custom_target(run
-    COMMAND SystemV8Example
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/SystemV8Example
     DEPENDS SystemV8Example
     COMMENT "Running V8 example..."
 )
@@ -216,35 +216,35 @@ add_custom_target(run
 if(ENABLE_TESTING AND GTest_FOUND)
     # Test target
     add_custom_target(run_tests
-        COMMAND BasicTests
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/BasicTests
         DEPENDS BasicTests
         COMMENT "Running basic test suite..."
     )
 
     # Advanced test target
     add_custom_target(run_advanced_tests
-        COMMAND AdvancedTests
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AdvancedTests
         DEPENDS AdvancedTests
         COMMENT "Running advanced test suite..."
     )
 
     # Integration test target
     add_custom_target(run_integration_tests
-        COMMAND IntegrationTests
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/IntegrationTests
         DEPENDS IntegrationTests
         COMMENT "Running integration test suite..."
     )
 
     # Interoperability test target
     add_custom_target(run_interoperability_tests
-        COMMAND InteroperabilityTests
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/InteroperabilityTests
         DEPENDS InteroperabilityTests
         COMMENT "Running interoperability test suite..."
     )
 
     # Run all tests target
     add_custom_target(run_all_tests
-        COMMAND ./BasicTests && ./AdvancedTests && ./IntegrationTests && ./InteroperabilityTests
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/BasicTests && ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AdvancedTests && ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/IntegrationTests && ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/InteroperabilityTests
         DEPENDS BasicTests AdvancedTests IntegrationTests InteroperabilityTests
         COMMENT "Running all test suites..."
     )
