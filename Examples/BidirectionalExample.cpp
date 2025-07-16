@@ -13,7 +13,7 @@ Isolate* g_isolate = nullptr;
 // C++ function that will be called from JavaScript
 void CppFunction(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
-    HandleScope handle_scope(isolate);
+    HandleScope HandleScope(isolate);
     
     // Check arguments
     if (args.Length() < 1) {
@@ -50,8 +50,8 @@ void AddNumbers(const FunctionCallbackInfo<Value>& args) {
 // Function to call JavaScript from C++
 void CallJavaScriptFunction(Isolate* isolate, Local<Context> context, 
                            const char* js_code, const char* function_name) {
-    HandleScope handle_scope(isolate);
-    Context::Scope context_scope(context);
+    HandleScope HandleScope(isolate);
+    Context::Scope ContextScope(context);
     
     // Compile and run the JavaScript code
     Local<String> source = String::NewFromUtf8(isolate, js_code).ToLocalChecked();
@@ -98,12 +98,12 @@ int main(int, char* argv[]) {
     g_isolate = isolate;
     
     {
-        Isolate::Scope isolate_scope(isolate);
-        HandleScope handle_scope(isolate);
+        Isolate::Scope IsolateScope(isolate);
+        HandleScope HandleScope(isolate);
         
         // Create a new context
         Local<Context> context = Context::New(isolate);
-        Context::Scope context_scope(context);
+        Context::Scope ContextScope(context);
         
         // Register C++ functions to be callable from JavaScript
         Local<Object> global = context->Global();

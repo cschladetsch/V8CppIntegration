@@ -34,9 +34,9 @@ public:
 };
 
 // Wrapper functions for V8
-void NativeObject_Constructor(const FunctionCallbackInfo<Value>& args) {
+void NativeobjectConstructor(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
-    HandleScope handle_scope(isolate);
+    HandleScope HandleScope(isolate);
     
     if (!args.IsConstructCall()) {
         isolate->ThrowException(Exception::TypeError(
@@ -52,7 +52,7 @@ void NativeObject_Constructor(const FunctionCallbackInfo<Value>& args) {
     args.GetReturnValue().Set(args.This());
 }
 
-void NativeObject_SetValue(const FunctionCallbackInfo<Value>& args) {
+void NativeobjectSetvalue(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
     
     // Get the C++ object
@@ -65,7 +65,7 @@ void NativeObject_SetValue(const FunctionCallbackInfo<Value>& args) {
     obj->SetValue(*key, value);
 }
 
-void NativeObject_GetValue(const FunctionCallbackInfo<Value>& args) {
+void NativeobjectGetvalue(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
     
     Local<External> wrap = Local<External>::Cast(args.This()->GetInternalField(0));
@@ -77,7 +77,7 @@ void NativeObject_GetValue(const FunctionCallbackInfo<Value>& args) {
     args.GetReturnValue().Set(Number::New(isolate, value));
 }
 
-void NativeObject_GetName(const FunctionCallbackInfo<Value>& args) {
+void NativeobjectGetname(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
     
     Local<External> wrap = Local<External>::Cast(args.This()->GetInternalField(0));
@@ -90,7 +90,7 @@ void NativeObject_GetName(const FunctionCallbackInfo<Value>& args) {
 // Async callback example
 void AsyncOperation(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
-    HandleScope handle_scope(isolate);
+    HandleScope HandleScope(isolate);
     
     if (!args[0]->IsFunction()) {
         isolate->ThrowException(Exception::TypeError(
@@ -100,16 +100,16 @@ void AsyncOperation(const FunctionCallbackInfo<Value>& args) {
     
     // Get the callback function
     Local<Function> callback = Local<Function>::Cast(args[0]);
-    Global<Function> persistent_callback(isolate, callback);
+    Global<Function> PersistentCallback(isolate, callback);
     
     std::cout << "[C++] Starting async operation..." << std::endl;
     
     // Simulate async work (in real code, this would be on another thread)
     // For demonstration, we'll just call it immediately
     {
-        HandleScope handle_scope(isolate);
+        HandleScope HandleScope(isolate);
         Local<Context> context = isolate->GetCurrentContext();
-        Context::Scope context_scope(context);
+        Context::Scope ContextScope(context);
         
         // Prepare callback arguments
         Local<Value> argv[] = {
@@ -118,7 +118,7 @@ void AsyncOperation(const FunctionCallbackInfo<Value>& args) {
         };
         
         // Call the JavaScript callback
-        Local<Function> local_callback = Local<Function>::New(isolate, persistent_callback);
+        Local<Function> local_callback = Local<Function>::New(isolate, PersistentCallback);
         local_callback->Call(context, context->Global(), 2, argv).ToLocalChecked();
     }
 }
@@ -140,9 +140,9 @@ public:
     void Emit(const std::string& event, Local<Value> data) {
         auto it = listeners_.find(event);
         if (it != listeners_.end()) {
-            HandleScope handle_scope(isolate_);
+            HandleScope HandleScope(isolate_);
             Local<Context> context = isolate_->GetCurrentContext();
-            Context::Scope context_scope(context);
+            Context::Scope ContextScope(context);
             
             Local<Function> callback = Local<Function>::New(isolate_, it->second);
             Local<Value> argv[] = { data };
@@ -153,7 +153,7 @@ public:
 
 EventEmitter* g_emitter = nullptr;
 
-void EventEmitter_On(const FunctionCallbackInfo<Value>& args) {
+void EventemitterOn(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
     
     String::Utf8Value event(isolate, args[0]);
@@ -162,7 +162,7 @@ void EventEmitter_On(const FunctionCallbackInfo<Value>& args) {
     g_emitter->On(*event, callback);
 }
 
-void EventEmitter_Emit(const FunctionCallbackInfo<Value>& args) {
+void EventemitterEmit(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
     
     String::Utf8Value event(isolate, args[0]);
@@ -184,33 +184,33 @@ int main(int, char* argv[]) {
     Isolate* isolate = Isolate::New(create_params);
     
     {
-        Isolate::Scope isolate_scope(isolate);
-        HandleScope handle_scope(isolate);
+        Isolate::Scope IsolateScope(isolate);
+        HandleScope HandleScope(isolate);
         
         // Create context
         Local<Context> context = Context::New(isolate);
-        Context::Scope context_scope(context);
+        Context::Scope ContextScope(context);
         
         // Create event emitter
         g_emitter = new EventEmitter(isolate);
         
         // Register native object constructor
-        Local<FunctionTemplate> native_obj_template = FunctionTemplate::New(isolate, NativeObject_Constructor);
+        Local<FunctionTemplate> native_obj_template = FunctionTemplate::New(isolate, NativeobjectConstructor);
         native_obj_template->SetClassName(String::NewFromUtf8(isolate, "NativeObject").ToLocalChecked());
         native_obj_template->InstanceTemplate()->SetInternalFieldCount(1);
         
         // Add methods to prototype
         native_obj_template->PrototypeTemplate()->Set(
             String::NewFromUtf8(isolate, "setValue").ToLocalChecked(),
-            FunctionTemplate::New(isolate, NativeObject_SetValue));
+            FunctionTemplate::New(isolate, NativeobjectSetvalue));
         
         native_obj_template->PrototypeTemplate()->Set(
             String::NewFromUtf8(isolate, "getValue").ToLocalChecked(),
-            FunctionTemplate::New(isolate, NativeObject_GetValue));
+            FunctionTemplate::New(isolate, NativeobjectGetvalue));
         
         native_obj_template->PrototypeTemplate()->Set(
             String::NewFromUtf8(isolate, "getName").ToLocalChecked(),
-            FunctionTemplate::New(isolate, NativeObject_GetName));
+            FunctionTemplate::New(isolate, NativeobjectGetname));
         
         // Register in global scope
         Local<Object> global = context->Global();
@@ -226,11 +226,11 @@ int main(int, char* argv[]) {
         // Register event emitter functions
         global->Set(context,
             String::NewFromUtf8(isolate, "on").ToLocalChecked(),
-            Function::New(context, EventEmitter_On).ToLocalChecked()).Check();
+            Function::New(context, EventemitterOn).ToLocalChecked()).Check();
         
         global->Set(context,
             String::NewFromUtf8(isolate, "emit").ToLocalChecked(),
-            Function::New(context, EventEmitter_Emit).ToLocalChecked()).Check();
+            Function::New(context, EventemitterEmit).ToLocalChecked()).Check();
         
         // JavaScript code demonstrating all features
         const char* js_code = R"(

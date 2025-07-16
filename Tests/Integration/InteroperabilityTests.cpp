@@ -1,4 +1,5 @@
 #include "v8_compat.h"
+#include "../TestUtils.h"
 #include <gtest/gtest.h>
 #include <v8.h>
 #include <libplatform/libplatform.h>
@@ -59,10 +60,10 @@ bool V8InteroperabilityTest::v8_initialized = false;
 // ============================================================================
 
 TEST_F(V8InteroperabilityTest, IntegerConversion) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // C++ to JavaScript
     int32_t cppInt = 42;
@@ -87,10 +88,10 @@ TEST_F(V8InteroperabilityTest, IntegerConversion) {
 }
 
 TEST_F(V8InteroperabilityTest, FloatingPointConversion) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // C++ to JavaScript
     double cppDouble = 3.14159265359;
@@ -115,10 +116,10 @@ TEST_F(V8InteroperabilityTest, FloatingPointConversion) {
 }
 
 TEST_F(V8InteroperabilityTest, BooleanConversion) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // C++ to JavaScript
     Local<Boolean> jsTrue = Boolean::New(isolate, true);
@@ -137,10 +138,10 @@ TEST_F(V8InteroperabilityTest, BooleanConversion) {
 }
 
 TEST_F(V8InteroperabilityTest, StringConversion) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // C++ to JavaScript
     std::string cppString = "Hello, V8! 你好 🚀";
@@ -164,10 +165,10 @@ TEST_F(V8InteroperabilityTest, StringConversion) {
 // ============================================================================
 
 TEST_F(V8InteroperabilityTest, VectorToArrayConversion) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // C++ vector to JavaScript array
     std::vector<double> cppVector = {1.0, 2.0, 3.0, 4.0, 5.0};
@@ -204,10 +205,10 @@ TEST_F(V8InteroperabilityTest, VectorToArrayConversion) {
 }
 
 TEST_F(V8InteroperabilityTest, MapConversion) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // C++ map to JavaScript Map
     std::map<std::string, double> cppMap = {
@@ -234,10 +235,10 @@ TEST_F(V8InteroperabilityTest, MapConversion) {
 }
 
 TEST_F(V8InteroperabilityTest, SetConversion) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // C++ set to JavaScript Set
     std::set<int> cppSet = {1, 2, 3, 4, 5};
@@ -255,10 +256,10 @@ TEST_F(V8InteroperabilityTest, SetConversion) {
 // ============================================================================
 
 TEST_F(V8InteroperabilityTest, NestedContainers) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Vector of vectors (2D array)
     std::vector<std::vector<int>> matrix = {
@@ -290,10 +291,10 @@ TEST_F(V8InteroperabilityTest, NestedContainers) {
 // ============================================================================
 
 TEST_F(V8InteroperabilityTest, LargeVectorPerformance) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     const size_t size = 10000;
     std::vector<double> largeVector(size);
@@ -322,10 +323,10 @@ TEST_F(V8InteroperabilityTest, LargeVectorPerformance) {
 // ============================================================================
 
 TEST_F(V8InteroperabilityTest, CppCallbackFromJS) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Static variable to capture values (lambdas can't capture in V8 callbacks)
     static std::vector<double> capturedValues;
@@ -369,10 +370,10 @@ TEST_F(V8InteroperabilityTest, CppCallbackFromJS) {
 // ============================================================================
 
 TEST_F(V8InteroperabilityTest, CppStructToJSObject) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     struct Point {
         double x, y, z;
@@ -416,10 +417,10 @@ TEST_F(V8InteroperabilityTest, CppStructToJSObject) {
 // ============================================================================
 
 TEST_F(V8InteroperabilityTest, TypeConversionErrors) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Try to convert non-number to number
     Local<String> source = String::NewFromUtf8(isolate, "'not a number'").ToLocalChecked();
@@ -438,10 +439,10 @@ TEST_F(V8InteroperabilityTest, TypeConversionErrors) {
 // ============================================================================
 
 TEST_F(V8InteroperabilityTest, BufferSharing) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Create shared ArrayBuffer
     size_t length = 1024;
@@ -488,10 +489,10 @@ TEST_F(V8InteroperabilityTest, BufferSharing) {
 }
 
 TEST_F(V8InteroperabilityTest, PromiseInteroperability) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Create a Promise that resolves with a value
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -522,10 +523,10 @@ TEST_F(V8InteroperabilityTest, PromiseInteroperability) {
 // Additional 20 unique interoperability tests
 
 TEST_F(V8InteroperabilityTest, ArrayBufferSlicing) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Create ArrayBuffer and slice it
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -542,13 +543,13 @@ TEST_F(V8InteroperabilityTest, ArrayBufferSlicing) {
 }
 
 TEST_F(V8InteroperabilityTest, JSONStringifyCircularReference) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test circular reference handling
-    TryCatch try_catch(isolate);
+    TryCatch TryCatch(isolate);
     Local<String> source = String::NewFromUtf8(isolate, R"(
         let obj = {};
         obj.self = obj;
@@ -566,10 +567,10 @@ TEST_F(V8InteroperabilityTest, JSONStringifyCircularReference) {
 }
 
 TEST_F(V8InteroperabilityTest, FunctionBindingAndCall) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Create function with specific context
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -587,10 +588,10 @@ TEST_F(V8InteroperabilityTest, FunctionBindingAndCall) {
 }
 
 TEST_F(V8InteroperabilityTest, ProxyTraps) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test proxy with multiple traps
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -612,10 +613,10 @@ TEST_F(V8InteroperabilityTest, ProxyTraps) {
 }
 
 TEST_F(V8InteroperabilityTest, SymbolInteroperability) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test symbol creation and usage
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -636,10 +637,10 @@ TEST_F(V8InteroperabilityTest, SymbolInteroperability) {
 }
 
 TEST_F(V8InteroperabilityTest, WeakMapWeakRefInteraction) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test WeakMap with WeakRef
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -657,10 +658,10 @@ TEST_F(V8InteroperabilityTest, WeakMapWeakRefInteraction) {
 }
 
 TEST_F(V8InteroperabilityTest, GeneratorYieldStar) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test generator delegation
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -686,10 +687,10 @@ TEST_F(V8InteroperabilityTest, GeneratorYieldStar) {
 }
 
 TEST_F(V8InteroperabilityTest, AsyncIteratorPattern) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test async iterator (simplified)
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -710,10 +711,10 @@ TEST_F(V8InteroperabilityTest, AsyncIteratorPattern) {
 }
 
 TEST_F(V8InteroperabilityTest, ClassStaticBlocks) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test class static initialization
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -736,10 +737,10 @@ TEST_F(V8InteroperabilityTest, ClassStaticBlocks) {
 }
 
 TEST_F(V8InteroperabilityTest, PrivateFieldAccess) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test private field access patterns
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -761,10 +762,10 @@ TEST_F(V8InteroperabilityTest, PrivateFieldAccess) {
 }
 
 TEST_F(V8InteroperabilityTest, BigIntComputation) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test BigInt arithmetic
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -781,10 +782,10 @@ TEST_F(V8InteroperabilityTest, BigIntComputation) {
 }
 
 TEST_F(V8InteroperabilityTest, ErrorStackTraces) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test error stack trace
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -807,10 +808,10 @@ TEST_F(V8InteroperabilityTest, ErrorStackTraces) {
 }
 
 TEST_F(V8InteroperabilityTest, RegexNamedGroups) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test regex named capture groups
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -825,10 +826,10 @@ TEST_F(V8InteroperabilityTest, RegexNamedGroups) {
 }
 
 TEST_F(V8InteroperabilityTest, PromiseAllSettled) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test Promise.allSettled
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -850,10 +851,10 @@ TEST_F(V8InteroperabilityTest, PromiseAllSettled) {
 }
 
 TEST_F(V8InteroperabilityTest, ObjectGetOwnPropertyDescriptors) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test property descriptors
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -869,10 +870,10 @@ TEST_F(V8InteroperabilityTest, ObjectGetOwnPropertyDescriptors) {
 }
 
 TEST_F(V8InteroperabilityTest, StringPadStartEnd) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test string padding methods
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -887,10 +888,10 @@ TEST_F(V8InteroperabilityTest, StringPadStartEnd) {
 }
 
 TEST_F(V8InteroperabilityTest, ArrayIncludesAndIndexOf) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test array search methods
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -906,10 +907,10 @@ TEST_F(V8InteroperabilityTest, ArrayIncludesAndIndexOf) {
 }
 
 TEST_F(V8InteroperabilityTest, NumberIsFiniteNaN) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test Number static methods
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -931,10 +932,10 @@ TEST_F(V8InteroperabilityTest, NumberIsFiniteNaN) {
 }
 
 TEST_F(V8InteroperabilityTest, MathSignTrunc) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test Math sign and trunc
     Local<String> source = String::NewFromUtf8(isolate, R"(
@@ -959,10 +960,10 @@ TEST_F(V8InteroperabilityTest, MathSignTrunc) {
 }
 
 TEST_F(V8InteroperabilityTest, GlobalThisEnvironment) {
-    Isolate::Scope isolate_scope(isolate);
-    HandleScope handle_scope(isolate);
+    Isolate::Scope IsolateScope(isolate);
+    HandleScope HandleScope(isolate);
     Local<Context> context = Context::New(isolate);
-    Context::Scope context_scope(context);
+    Context::Scope ContextScope(context);
     
     // Test globalThis access
     Local<String> source = String::NewFromUtf8(isolate, R"(

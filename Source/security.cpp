@@ -17,7 +17,7 @@ SandboxManager& SandboxManager::getInstance() {
 
 bool SandboxManager::createSandbox(v8::Isolate* isolate, const std::string& sandbox_name,
                                   const SandboxConfig& config) {
-    v8::HandleScope handle_scope(isolate);
+    v8::HandleScope HandleScope(isolate);
     
     // Create isolated context
     v8::Local<v8::Context> context = v8::Context::New(isolate);
@@ -27,7 +27,7 @@ bool SandboxManager::createSandbox(v8::Isolate* isolate, const std::string& sand
     
     // Apply restrictions
     {
-        v8::Context::Scope context_scope(context);
+        v8::Context::Scope ContextScope(context);
         applySandboxRestrictions(isolate, context, config);
     }
     
@@ -62,11 +62,11 @@ bool SandboxManager::executeSandboxed(v8::Isolate* isolate, const std::string& s
         return false;
     }
     
-    v8::Context::Scope context_scope(context);
-    v8::HandleScope handle_scope(isolate);
+    v8::Context::Scope ContextScope(context);
+    v8::HandleScope HandleScope(isolate);
     
     // Compile and run code
-    v8::TryCatch try_catch(isolate);
+    v8::TryCatch TryCatch(isolate);
     v8::Local<v8::String> source = v8::String::NewFromUtf8(isolate, code.c_str()).ToLocalChecked();
     v8::Local<v8::Script> script = v8::Script::Compile(context, source).ToLocalChecked();
     
@@ -164,7 +164,7 @@ bool ResourceLimiter::checkMemoryUsage(v8::Isolate* isolate) {
     v8::HeapStatistics heap_stats;
     isolate->GetHeapStatistics(&heap_stats);
     
-    return heap_stats.used_heap_size() < memory_limit_;
+    return heap_stats.UsedHeapSize() < memory_limit_;
 }
 
 bool ResourceLimiter::checkExecutionTime(const std::chrono::steady_clock::time_point& start_time) {
@@ -188,10 +188,10 @@ ResourceLimiter::ResourceUsage ResourceLimiter::getCurrentUsage(v8::Isolate* iso
     v8::HeapStatistics heap_stats;
     isolate->GetHeapStatistics(&heap_stats);
     
-    usage.memory_used = heap_stats.used_heap_size();
-    usage.memory_total = heap_stats.total_heap_size();
+    usage.memory_used = heap_stats.UsedHeapSize();
+    usage.memory_total = heap_stats.TotalHeapSize();
     usage.memory_limit = memory_limit_;
-    usage.heap_size_limit = heap_stats.heap_size_limit();
+    usage.HeapSizeLimit = heap_stats.HeapSizeLimit();
     
     return usage;
 }
@@ -256,7 +256,7 @@ bool CodeValidator::validateScript(v8::Isolate* isolate, v8::Local<v8::Context> 
     }
     
     // Try to compile the script
-    v8::TryCatch try_catch(isolate);
+    v8::TryCatch TryCatch(isolate);
     v8::Local<v8::String> source = v8::String::NewFromUtf8(isolate, code.c_str()).ToLocalChecked();
     v8::Local<v8::Script> script = v8::Script::Compile(context, source).ToLocalChecked();
     
@@ -271,7 +271,7 @@ void CodeValidator::addDangerousPattern(const std::string& pattern) {
 void CodeValidator::removeDangerousPattern(const std::string& pattern) {
     std::lock_guard<std::mutex> lock(validation_mutex_);
     dangerous_patterns_.erase(
-        std::remove_if(dangerous_patterns_.begin(), dangerous_patterns_.end(),
+        std::RemoveIf(dangerous_patterns_.begin(), dangerous_patterns_.end(),
                       [&pattern](const std::regex& regex) {
                           // This is a simplified comparison
                           return false; // Would need proper regex comparison
@@ -314,14 +314,14 @@ bool CodeValidator::checkDangerousPatterns(const std::string& code) {
     
     for (const auto& pattern_str : default_patterns) {
         std::regex pattern(pattern_str);
-        if (std::regex_search(code, pattern)) {
+        if (std::RegexSearch(code, pattern)) {
             violations_.push_back("Dangerous pattern detected: " + pattern_str);
         }
     }
     
     // Check custom patterns
     for (const auto& pattern : dangerous_patterns_) {
-        if (std::regex_search(code, pattern)) {
+        if (std::RegexSearch(code, pattern)) {
             violations_.push_back("Custom dangerous pattern detected");
         }
     }
@@ -400,27 +400,27 @@ CryptoManager& CryptoManager::getInstance() {
 std::string CryptoManager::hashSHA256(const std::string& data) {
     std::lock_guard<std::mutex> lock(crypto_mutex_);
     
-    EVP_MD_CTX* context = EVP_MD_CTX_new();
+    EVP_MD_CTX* context = EvpMdCtxNew();
     if (!context) return "";
     
-    if (EVP_DigestInit_ex(context, EVP_sha256(), nullptr) != 1) {
-        EVP_MD_CTX_free(context);
+    if (EvpDigestinitEx(context, EvpSha256(), nullptr) != 1) {
+        EvpMdCtxFree(context);
         return "";
     }
     
-    if (EVP_DigestUpdate(context, data.c_str(), data.length()) != 1) {
-        EVP_MD_CTX_free(context);
+    if (EvpDigestupdate(context, data.c_str(), data.length()) != 1) {
+        EvpMdCtxFree(context);
         return "";
     }
     
     unsigned char hash[EVP_MAX_MD_SIZE];
     unsigned int hash_len;
-    if (EVP_DigestFinal_ex(context, hash, &hash_len) != 1) {
-        EVP_MD_CTX_free(context);
+    if (EvpDigestfinalEx(context, hash, &hash_len) != 1) {
+        EvpMdCtxFree(context);
         return "";
     }
     
-    EVP_MD_CTX_free(context);
+    EvpMdCtxFree(context);
     
     // Convert to hex string
     std::ostringstream oss;

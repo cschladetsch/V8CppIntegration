@@ -12,12 +12,12 @@ WebAssemblyManager& WebAssemblyManager::getInstance() {
 }
 
 bool WebAssemblyManager::loadWasmModule(v8::Isolate* isolate, v8::Local<v8::Context> context,
-                                       const std::string& module_name, const std::vector<uint8_t>& wasm_bytes) {
-    v8::HandleScope handle_scope(isolate);
+                                       const std::string& module_name, const std::vector<uint8_t>& WasmBytes) {
+    v8::HandleScope HandleScope(isolate);
     
     // Create WebAssembly module
     v8::Local<v8::WasmModuleObject> module;
-    if (!v8::WasmModuleObject::Compile(isolate, wasm_bytes.data(), wasm_bytes.size()).ToLocal(&module)) {
+    if (!v8::WasmModuleObject::Compile(isolate, WasmBytes.data(), WasmBytes.size()).ToLocal(&module)) {
         return false;
     }
     
@@ -38,10 +38,10 @@ bool WebAssemblyManager::loadWasmFromFile(v8::Isolate* isolate, v8::Local<v8::Co
     size_t file_size = file.tellg();
     file.seekg(0, std::ios::beg);
     
-    std::vector<uint8_t> wasm_bytes(file_size);
-    file.read(reinterpret_cast<char*>(wasm_bytes.data()), file_size);
+    std::vector<uint8_t> WasmBytes(file_size);
+    file.read(reinterpret_cast<char*>(WasmBytes.data()), file_size);
     
-    return loadWasmModule(isolate, context, module_name, wasm_bytes);
+    return loadWasmModule(isolate, context, module_name, WasmBytes);
 }
 
 v8::Local<v8::Object> WebAssemblyManager::instantiateModule(v8::Isolate* isolate, v8::Local<v8::Context> context,
@@ -113,7 +113,7 @@ AsyncManager& AsyncManager::getInstance() {
 }
 
 void AsyncManager::enableAsyncAwait(v8::Isolate* isolate, v8::Local<v8::Context> context) {
-    v8::HandleScope handle_scope(isolate);
+    v8::HandleScope HandleScope(isolate);
     
     // Set up Promise support
     v8::Local<v8::Object> global = context->Global();
@@ -173,11 +173,11 @@ void AsyncManager::processScheduledCallbacks(v8::Isolate* isolate) {
     
     while (it != callbacks_.end()) {
         if (it->execute_at <= now) {
-            v8::HandleScope handle_scope(isolate);
+            v8::HandleScope HandleScope(isolate);
             v8::Local<v8::Context> context = it->context.Get(isolate);
             v8::Local<v8::Function> callback = it->callback.Get(isolate);
             
-            v8::Context::Scope context_scope(context);
+            v8::Context::Scope ContextScope(context);
             callback->Call(context, context->Global(), 0, nullptr).ToLocalChecked();
             
             it->callback.Reset();
@@ -216,7 +216,7 @@ ModuleManager& ModuleManager::getInstance() {
 
 bool ModuleManager::loadModule(v8::Isolate* isolate, v8::Local<v8::Context> context,
                               const std::string& module_name, const std::string& module_source) {
-    v8::HandleScope handle_scope(isolate);
+    v8::HandleScope HandleScope(isolate);
     
     // Create module source
     v8::Local<v8::String> source = v8::String::NewFromUtf8(isolate, module_source.c_str()).ToLocalChecked();
@@ -312,8 +312,8 @@ v8::MaybeLocal<v8::Module> ModuleManager::resolveModule(v8::Local<v8::Context> c
                                                         v8::Local<v8::String> specifier,
                                                         v8::Local<v8::Module> referrer) {
     // Simple module resolution - in production this would be more sophisticated
-    v8::String::Utf8Value specifier_str(context->GetIsolate(), specifier);
-    std::string module_name = *specifier_str;
+    v8::String::Utf8Value SpecifierStr(context->GetIsolate(), specifier);
+    std::string module_name = *SpecifierStr;
     
     auto& manager = ModuleManager::getInstance();
     std::lock_guard<std::mutex> lock(manager.modules_mutex_);
@@ -334,7 +334,7 @@ namespace {
 }
 
 v8::Local<v8::Context> createContext(v8::Isolate* isolate, const std::string& context_name) {
-    v8::HandleScope handle_scope(isolate);
+    v8::HandleScope HandleScope(isolate);
     v8::Local<v8::Context> context = v8::Context::New(isolate);
     
     // Store context
