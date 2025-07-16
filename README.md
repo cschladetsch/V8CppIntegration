@@ -181,8 +181,8 @@ V8/
 - Full-featured REPL with colored output using rang.hpp
 - Lambda (λ) prompt character for modern terminal experience
 - Hot-loading of C++ DLLs with automatic V8 function registration
-- Built-in commands: `.load`, `.dll`, `.dlls`, `.reload`, `.quit`
-- JavaScript functions: `print()`, `load()`, `loadDll()`, `unloadDll()`, `reloadDll()`, `listDlls()`, `quit()`
+- Built-in commands: `.help`, `.load`, `.dll`, `.dlls`, `.reload`, `.vars`, `.quit`
+- JavaScript functions: `help()`, `print()`, `load()`, `loadDll()`, `unloadDll()`, `reloadDll()`, `listDlls()`, `quit()`
 - Comprehensive error reporting with syntax highlighting
 
 ### 7. Example DLLs (`Source/DllExamples/Dlls/`)
@@ -379,16 +379,27 @@ The project includes a full-featured interactive V8 console with colored output 
 
 ### Console Commands
 ```bash
+# Help and information
+.help                      # Show help message
+.vars                      # Show all variables and functions
+
 # DLL management
 .dll ./Bin/Fib.so          # Load a DLL
 .dlls                      # List loaded DLLs
 .reload ./Bin/Fib.so       # Reload a DLL
+
+# File operations
 .load script.js            # Load JavaScript file
+
+# Exit
 .quit                      # Exit console
 ```
 
 ### JavaScript Functions
 ```javascript
+// Help and information
+help();                      // Show help message
+
 // DLL management from JavaScript
 loadDll("./Bin/Fib.so");     // Load DLL
 unloadDll("./Bin/Fib.so");   // Unload DLL
@@ -409,6 +420,8 @@ quit();                      // Exit console
 - **Colored Output**: Cyan titles, yellow sections, green success, red errors, blue λ prompt
 - **Error Reporting**: Syntax highlighting with source code context and stack traces
 - **DLL Hot-loading**: Load/unload/reload C++ DLLs without restarting
+- **Interactive Help**: `.help` command and `help()` function for comprehensive documentation
+- **Variable Inspector**: `.vars` command to view all global variables and functions
 - **History**: Command history with up/down arrow keys
 - **Auto-completion**: Tab completion for built-in functions
 

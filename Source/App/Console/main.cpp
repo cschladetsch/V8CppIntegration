@@ -35,6 +35,8 @@ void printUsage(const char* programName) {
     std::cout << std::endl;
     
     std::cout << style::bold << fg::yellow << "REPL Commands:" << style::reset << std::endl;
+    std::cout << "  " << fg::magenta << ".help" << style::reset 
+              << "               Show help message" << std::endl;
     std::cout << "  " << fg::magenta << ".load <file>" << style::reset 
               << "        Load and execute JavaScript file" << std::endl;
     std::cout << "  " << fg::magenta << ".dll <path>" << style::reset 
@@ -43,6 +45,8 @@ void printUsage(const char* programName) {
               << "               List loaded DLLs" << std::endl;
     std::cout << "  " << fg::magenta << ".reload <path>" << style::reset 
               << "      Reload a DLL" << std::endl;
+    std::cout << "  " << fg::magenta << ".vars" << style::reset 
+              << "               Show all variables and functions" << std::endl;
     std::cout << "  " << fg::magenta << ".quit" << style::reset 
               << "               Exit the console" << std::endl;
     std::cout << std::endl;
@@ -62,6 +66,8 @@ void printUsage(const char* programName) {
               << "          Get array of loaded DLLs" << std::endl;
     std::cout << "  " << fg::cyan << "quit()" << style::reset 
               << "              Exit the console" << std::endl;
+    std::cout << "  " << fg::cyan << "help()" << style::reset 
+              << "              Show help message" << std::endl;
 }
 
 int main(int argc, char* argv[]) {

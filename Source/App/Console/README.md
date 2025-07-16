@@ -46,6 +46,8 @@ The binary will be located at: `/Bin/v8console`
 
 ## REPL Commands
 
+- `.help` - Show help message
+- `.vars` - Show all variables and functions
 - `.load <file>` - Load and execute a JavaScript file
 - `.dll <path>` - Load a DLL/shared library
 - `.dlls` - List all loaded DLLs
@@ -56,6 +58,7 @@ The binary will be located at: `/Bin/v8console`
 
 ### Built-in Functions
 
+- `help()` - Show help message
 - `print(...)` - Print to console
 - `load(file)` - Load and execute a JavaScript file
 - `loadDll(path)` - Load a DLL/shared library
@@ -67,6 +70,9 @@ The binary will be located at: `/Bin/v8console`
 ### Example Usage
 
 ```javascript
+// Show help
+help();
+
 // Load a DLL
 loadDll('./Bin/Fib.so');
 
