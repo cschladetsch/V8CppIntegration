@@ -137,9 +137,9 @@ endif()
 function(configure_v8_target target_name)
     target_link_libraries(${target_name} PRIVATE V8::V8)
     if(NOT USE_SYSTEM_V8 AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        # When using Clang with built V8, we need libc++
-        target_compile_options(${target_name} PRIVATE -stdlib=libc++)
-        target_link_options(${target_name} PRIVATE -stdlib=libc++ -fuse-ld=lld)
+        # When using Clang with built V8, use lld linker
+        # Chrome's libc++ is handled by V8::V8 target properties
+        target_link_options(${target_name} PRIVATE -fuse-ld=lld)
     endif()
 endfunction()
 

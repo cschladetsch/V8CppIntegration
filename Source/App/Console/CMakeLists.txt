@@ -20,6 +20,11 @@ set_target_properties(v8console PROPERTIES
 # Link V8 and other dependencies
 configure_v8_target(v8console)
 
+# Add compile definition based on USE_SYSTEM_V8
+if(USE_SYSTEM_V8)
+    target_compile_definitions(v8console PRIVATE USE_SYSTEM_V8)
+endif()
+
 # Platform-specific linking
 if(UNIX AND NOT APPLE)
     target_link_libraries(v8console PRIVATE dl)

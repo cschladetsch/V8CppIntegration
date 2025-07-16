@@ -42,11 +42,16 @@ protected:
         Isolate::CreateParams create_params;
         create_params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
         isolate = Isolate::New(create_params);
+        array_buffer_allocator = create_params.array_buffer_allocator;
     }
     
     void TearDown() override {
         isolate->Dispose();
+        delete array_buffer_allocator;
     }
+    
+private:
+    ArrayBuffer::Allocator* array_buffer_allocator;
 };
 
 // Static member definitions
