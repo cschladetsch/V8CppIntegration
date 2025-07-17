@@ -5,7 +5,7 @@ console.log("=== V8 Integration Advanced Features Demo ===\n");
 
 // 1. Basic JavaScript execution
 console.log("1. Basic JavaScript Execution:");
-console.log("   Hello from V8! Version:", process.version || "V8 Embedded");
+console.log("   Hello from V8! Version: V8 Embedded");
 console.log("");
 
 // 2. Object manipulation
