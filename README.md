@@ -1,4 +1,4 @@
-# V8 C++ Integration 
+# <img src="Resources/Logo.png" alt="V8 C++ Integration Logo" width="48" style="vertical-align: middle"> V8 C++ Integration 
 
 This repository demonstrates how to build V8 and create bidirectional communication between C++ and JavaScript, with comprehensive examples and testing.
 
