@@ -14,8 +14,8 @@ fi
 clang++ -std=c++20 \
     -stdlib=libc++ \
     -I./v8/include \
-    standalone_example.cpp \
-    -o standalone_example \
+    Examples/StandaloneExample.cpp \
+    -o Bin/StandaloneExample \
     -fuse-ld=lld \
     ./v8/out/x64.release/obj/libv8_monolith.a \
     ./v8/out/x64.release/obj/libv8_libbase.a \
@@ -26,7 +26,7 @@ clang++ -std=c++20 \
 
 if [ $? -eq 0 ]; then
     echo "Compilation successful!"
-    echo "Run with: ./standalone_example"
+    echo "Run with: ./Bin/StandaloneExample"
     echo ""
     echo "Note: This uses V8's bundled libc++ for ABI compatibility"
 else

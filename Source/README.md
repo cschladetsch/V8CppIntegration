@@ -18,13 +18,12 @@ Source/
 │   └── Dlls/                 # DLL implementations
 │       ├── Fib.cpp           # Fibonacci calculation DLL
 │       └── CMakeLists.txt    # DLL build configuration
-├── advanced_features.cpp     # Advanced V8 features implementation
-├── advanced_features_old.cpp # Legacy advanced features (deprecated)
-├── error_handler.cpp         # Error handling utilities
-├── monitoring.cpp            # Monitoring and metrics
-├── security.cpp              # Security features
-├── v8_compat.cpp             # V8 version compatibility layer
-└── v8_platform_wrapper.cpp   # V8 platform abstraction
+├── AdvancedFeatures.cpp      # Advanced V8 features implementation
+├── ErrorHandler.cpp          # Error handling utilities
+├── Monitoring.cpp            # Monitoring and metrics
+├── Security.cpp              # Security features
+├── V8Compat.cpp              # V8 version compatibility layer
+└── V8PlatformWrapper.cpp     # V8 platform abstraction
 ```
 
 ## App/Console
