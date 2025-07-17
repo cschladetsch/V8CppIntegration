@@ -204,3 +204,4 @@ yarn.lock
 .last_sync_chromium_commit
 .recipe_deps
 third_party/
+/_gclient*

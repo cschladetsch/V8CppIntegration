@@ -5,9 +5,9 @@
 echo "Testing V8 linking without rebuild..."
 
 # Create test program if it doesn't exist
-if [ ! -f test_v8.cpp ]; then
+if [ ! -f Tests/Unit/TestV8.cpp ]; then
     echo "Creating test program..."
-    cat > test_v8.cpp << 'EOF'
+    cat > Tests/Unit/TestV8.cpp << 'EOF'
 #include <iostream>
 #include <v8.h>
 #include <libplatform/libplatform.h>

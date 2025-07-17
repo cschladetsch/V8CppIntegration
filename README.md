@@ -111,25 +111,36 @@ sudo apt-get install libv8-dev libgtest-dev libreadline-dev
 ## Project Structure
 
 ```
-V8/
-├── .github/workflows/    # CI/CD pipeline configuration
-├── build/               # Build output directory (generated)
-├── cmake/               # CMake modules (FindV8.cmake)
-├── config/              # Configuration files
-├── docs/                # Documentation (Doxygen config)
-├── Examples/            # Example applications
+V8CppIntegration/
+├── .github/workflows/      # CI/CD pipeline configuration
+├── Bin/                    # Compiled binaries and runtime files
+│   ├── v8console           # Interactive V8 REPL console
+│   ├── demo.js             # Comprehensive demo script
+│   ├── demo_minimal.js     # Minimal demo for embedded V8
+│   └── Fib.so             # Example DLL
+├── CMake/                  # CMake modules
+│   ├── BuildGTest.cmake
+│   ├── BuildV8.cmake
+│   └── FindV8.cmake
+├── Config/                 # Configuration files
+├── Documentation/          # Documentation (Doxygen config)
+├── Examples/               # Example applications
 │   ├── AdvancedExample.cpp
 │   ├── BidirectionalExample.cpp
+│   ├── fibonacci_demo.js
 │   ├── MinimalExample.cpp
+│   ├── MinimalV8.cpp
+│   ├── SimpleV8Example.cpp
+│   ├── StandaloneExample.cpp
 │   ├── SystemV8Example.cpp
-│   ├── WebServerExample.cpp
-│   └── README.md
-├── Include/             # Header files for framework features
-│   ├── v8_compat.h      # V8 version compatibility layer
-│   └── v8_integration/  # Framework headers
-├── monitoring/          # Monitoring configuration
-├── Scripts/             # Build and test scripts
-│   ├── Build/           # Build scripts
+│   └── WebServerExample.cpp
+├── Include/                # Header files for framework features
+│   ├── third_party/        # Third-party libraries (rang.hpp)
+│   ├── v8_compat.h         # V8 version compatibility layer
+│   └── v8_integration/     # Framework headers
+├── Monitoring/             # Monitoring configuration
+├── Scripts/                # Build and test scripts
+│   ├── Build/              # Build scripts
 │   │   ├── Build.sh
 │   │   ├── BuildAll.sh
 │   │   ├── BuildCMake.sh
@@ -137,35 +148,39 @@ V8/
 │   │   ├── BuildV8.sh
 │   │   ├── QuickBuild.sh
 │   │   └── SetupV8.sh
-│   └── Testing/         # Test scripts
+│   └── Testing/            # Test scripts
 │       └── RunTests.sh
-├── Source/              # Source code  
-│   ├── App/             # Applications
-│   │   └── Console/     # V8 console with DLL hot-loading
-│   ├── DllExamples/     # Example DLLs
-│   │   └── Dlls/        # DLL implementations (Fibonacci, etc.)
-│   └── *                # Core V8 integration files
-├── src/                 # Framework implementation files
-├── Tests/               # Test suites
-│   ├── Dlls/            # DLL-specific tests (Fibonacci, etc.)
-│   ├── Integration/     # Integration tests
+├── Source/                 # Source code  
+│   ├── App/                # Applications
+│   │   └── Console/        # V8 console with DLL hot-loading
+│   ├── DllExamples/        # Example DLLs
+│   │   └── Dlls/           # DLL implementations (Fibonacci, etc.)
+│   ├── AdvancedFeatures.cpp
+│   ├── ErrorHandler.cpp
+│   ├── Monitoring.cpp
+│   ├── Security.cpp
+│   ├── V8Compat.cpp
+│   └── V8PlatformWrapper.cpp
+├── Tests/                  # Test suites
+│   ├── Dlls/               # DLL-specific tests (Fibonacci, etc.)
+│   ├── Integration/        # Integration tests
 │   │   ├── IntegrationTests.cpp
-│   │   └── InteroperabilityTests.cpp
-│   ├── Performance/     # Performance benchmarks
+│   │   ├── InteroperabilityTests.cpp
+│   │   └── test_console.js
+│   ├── Performance/        # Performance benchmarks
 │   │   └── BenchmarkTests.cpp
-│   └── Unit/            # Unit tests
+│   └── Unit/               # Unit tests
 │       ├── AdvancedTests.cpp
-│       └── BasicTests.cpp
-├── V8Embed/             # V8 embedding utilities
-├── build.sh             # Main build script
-├── setup_and_build_v8.sh       # Complete V8 source build
-├── compile_standalone.sh # Compile standalone examples
-├── run_tests.sh         # Test runner script
-├── standalone_example.cpp # Simple V8 example
-├── demo.js              # JavaScript feature showcase
-├── demo_minimal.js      # Minimal JS demo
-├── Dockerfile           # Docker configuration
-└── docker-compose.yml   # Docker Compose setup
+│       ├── BasicTests.cpp
+│       └── TestV8.cpp
+├── V8Embed/                # V8 embedding utilities
+├── build.sh                # Main build script
+├── compile_standalone.sh   # Standalone example compilation
+├── run_example.sh          # Example runner script
+├── run_tests.sh            # Test runner script
+├── setup_and_build_v8.sh   # Complete V8 source build
+├── Dockerfile              # Docker configuration
+└── docker-compose.yml      # Docker Compose setup
 ```
 
 ## Examples

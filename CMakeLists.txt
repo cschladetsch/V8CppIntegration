@@ -290,12 +290,12 @@ if(ENABLE_TESTING AND GTest_FOUND)
 endif()
 
 # Core V8 integration library
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/error_handler.cpp")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/ErrorHandler.cpp")
     add_library(v8_integration STATIC
-        Source/error_handler.cpp
-        Source/monitoring.cpp
-        Source/advanced_features.cpp
-        Source/security.cpp
+        Source/ErrorHandler.cpp
+        Source/Monitoring.cpp
+        Source/AdvancedFeatures.cpp
+        Source/Security.cpp
     )
     target_include_directories(v8_integration PUBLIC Include)
     target_link_libraries(v8_integration PUBLIC V8::V8 Threads::Threads)

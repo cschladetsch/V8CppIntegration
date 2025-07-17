@@ -94,12 +94,12 @@ digraph V8CppIntegrationArchitecture {
             fillcolor="#dda0dd";
             
             node [fillcolor="#9932cc", shape=box3d];
-            "v8_compat.cpp" [label=<<B>v8_compat.cpp</B><BR/><FONT POINT-SIZE="8">Compatibility Layer</FONT>>];
-            "error_handler.cpp" [label=<<B>error_handler.cpp</B><BR/><FONT POINT-SIZE="8">Error Implementation</FONT>>];
-            "monitoring.cpp" [label=<<B>monitoring.cpp</B><BR/><FONT POINT-SIZE="8">Metrics Collection</FONT>>];
-            "security.cpp" [label=<<B>security.cpp</B><BR/><FONT POINT-SIZE="8">Security Features</FONT>>];
-            "advanced_features.cpp" [label=<<B>advanced_features.cpp</B><BR/><FONT POINT-SIZE="8">Advanced Features</FONT>>];
-            "v8_platform_wrapper.cpp" [label=<<B>v8_platform_wrapper.cpp</B><BR/><FONT POINT-SIZE="8">Platform Abstraction</FONT>>];
+            "V8Compat.cpp" [label=<<B>V8Compat.cpp</B><BR/><FONT POINT-SIZE="8">Compatibility Layer</FONT>>];
+            "ErrorHandler.cpp" [label=<<B>ErrorHandler.cpp</B><BR/><FONT POINT-SIZE="8">Error Implementation</FONT>>];
+            "Monitoring.cpp" [label=<<B>Monitoring.cpp</B><BR/><FONT POINT-SIZE="8">Metrics Collection</FONT>>];
+            "Security.cpp" [label=<<B>Security.cpp</B><BR/><FONT POINT-SIZE="8">Security Features</FONT>>];
+            "AdvancedFeatures.cpp" [label=<<B>AdvancedFeatures.cpp</B><BR/><FONT POINT-SIZE="8">Advanced Features</FONT>>];
+            "V8PlatformWrapper.cpp" [label=<<B>V8PlatformWrapper.cpp</B><BR/><FONT POINT-SIZE="8">Platform Abstraction</FONT>>];
         }
         
         node [fillcolor="#8b008b", shape=component];
@@ -215,19 +215,19 @@ digraph V8CppIntegrationArchitecture {
     
     // Implementation connections
     edge [color="#808080", style=dotted];
-    "v8_compat.h" -> "v8_compat.cpp";
-    "error_handler.h" -> "error_handler.cpp";
-    "monitoring.h" -> "monitoring.cpp";
-    "security.h" -> "security.cpp";
-    "advanced_features.h" -> "advanced_features.cpp";
+    "v8_compat.h" -> "V8Compat.cpp";
+    "error_handler.h" -> "ErrorHandler.cpp";
+    "monitoring.h" -> "Monitoring.cpp";
+    "security.h" -> "Security.cpp";
+    "advanced_features.h" -> "AdvancedFeatures.cpp";
     
     // Library building
     edge [color="#8b008b", style=bold];
-    "v8_compat.cpp" -> "libv8_integration.a" [label="compiles to"];
-    "error_handler.cpp" -> "libv8_integration.a";
-    "monitoring.cpp" -> "libv8_integration.a";
-    "security.cpp" -> "libv8_integration.a";
-    "advanced_features.cpp" -> "libv8_integration.a";
+    "V8Compat.cpp" -> "libv8_integration.a" [label="compiles to"];
+    "ErrorHandler.cpp" -> "libv8_integration.a";
+    "Monitoring.cpp" -> "libv8_integration.a";
+    "Security.cpp" -> "libv8_integration.a";
+    "AdvancedFeatures.cpp" -> "libv8_integration.a";
     
     // Example dependencies
     edge [color="#4682b4", penwidth=2];

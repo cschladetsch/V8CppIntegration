@@ -1,7 +1,7 @@
 // Fibonacci DLL Demo
 // This script demonstrates using the Fib.so/Fib.dll library with v8console
 // 
-// Usage: ./Bin/v8console Examples/fib_demo.js Bin/Fib.so
+// Usage: ./Bin/v8console Examples/fibonacci_demo.js Bin/Fib.so
 
 console.log("=== Fibonacci Sum Calculator ===");
 console.log("This calculates the sum of the first N Fibonacci numbers\n");
