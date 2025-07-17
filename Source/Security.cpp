@@ -273,7 +273,7 @@ void CodeValidator::removeDangerousPattern(const std::string& pattern) {
     std::lock_guard<std::mutex> lock(validation_mutex_);
     dangerous_patterns_.erase(
         std::remove_if(dangerous_patterns_.begin(), dangerous_patterns_.end(),
-                      [&pattern](const std::regex& regex) {
+                      [&pattern](const std::regex&) {
                           // This is a simplified comparison
                           return false; // Would need proper regex comparison
                       }),

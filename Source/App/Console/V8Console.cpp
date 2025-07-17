@@ -14,7 +14,7 @@
 
 #ifndef NO_READLINE
 // Readline key binding callback for Ctrl+L
-static int clear_screen_handler(int count, int key) {
+static int clear_screen_handler(int, int) {
     // Clear screen
     printf("\033[H\033[2J");
     // Redraw the current line
@@ -158,7 +158,9 @@ void V8Console::RunRepl() {
     while (!shouldQuit_) {
 #ifndef NO_READLINE
         // Use readline for input
-        std::string prompt = std::string(rang::fg::blue) + "λ " + std::string(rang::style::reset);
+        std::stringstream promptStream;
+        promptStream << rang::fg::blue << "λ " << rang::style::reset;
+        std::string prompt = promptStream.str();
         char* line_cstr = readline(prompt.c_str());
         
         if (!line_cstr) {
