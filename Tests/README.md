@@ -8,14 +8,17 @@ This directory contains comprehensive test suites for the V8 C++ Integration fra
 Tests/
 ├── Unit/                    # Unit tests for core functionality
 │   ├── BasicTests.cpp       # 40 tests - Fundamental V8 operations
-│   └── AdvancedTests.cpp    # 40 tests - Advanced V8 features
+│   ├── AdvancedTests.cpp    # 40 tests - Advanced V8 features
+│   └── TestV8.cpp          # Simple V8 test example
 ├── Integration/             # Integration tests
 │   ├── IntegrationTests.cpp # 40 tests - Complex integrations
-│   └── InteroperabilityTests.cpp # 34 tests - C++/JS interop
+│   ├── InteroperabilityTests.cpp # 34 tests - C++/JS interop
+│   └── test_console.js      # Console application tests
 ├── Dlls/                    # DLL-specific tests
 │   └── FibonacciTests.cpp   # 6 tests - Fibonacci DLL functionality
-└── Performance/             # Performance benchmarks
-    └── BenchmarkTests.cpp   # Google Benchmark suite
+├── Performance/             # Performance benchmarks
+│   └── BenchmarkTests.cpp   # Google Benchmark suite
+└── TestUtils.h             # Common test utilities
 ```
 
 ## Running Tests
