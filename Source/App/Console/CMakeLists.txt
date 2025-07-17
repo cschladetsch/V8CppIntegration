@@ -25,9 +25,19 @@ if(USE_SYSTEM_V8)
     target_compile_definitions(v8console PRIVATE USE_SYSTEM_V8)
 endif()
 
+# Find readline
+find_library(READLINE_LIB readline)
+if(NOT READLINE_LIB)
+    message(WARNING "GNU Readline not found. Install libreadline-dev for enhanced console features.")
+    target_compile_definitions(v8console PRIVATE NO_READLINE)
+endif()
+
 # Platform-specific linking
 if(UNIX AND NOT APPLE)
-    target_link_libraries(v8console PRIVATE dl readline)
+    target_link_libraries(v8console PRIVATE dl)
+    if(READLINE_LIB)
+        target_link_libraries(v8console PRIVATE ${READLINE_LIB})
+    endif()
 elseif(WIN32)
     target_link_libraries(v8console PRIVATE kernel32)
 endif()

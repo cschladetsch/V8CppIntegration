@@ -28,6 +28,10 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 - Python 3
 - C++ compiler with C++20 support
 - Ninja build system (optional but recommended)
+- GNU Readline development package (for V8 console):
+  ```bash
+  sudo apt-get install libreadline-dev
+  ```
 
 ### For System V8 Option
 ```bash

@@ -6,9 +6,13 @@
 #include <cstdlib>
 #include <libplatform/libplatform.h>
 #include <rang/rang.hpp>
+
+#ifndef NO_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
 
+#ifndef NO_READLINE
 // Readline key binding callback for Ctrl+L
 static int clear_screen_handler(int count, int key) {
     // Clear screen
@@ -18,8 +22,10 @@ static int clear_screen_handler(int count, int key) {
     rl_redisplay();
     return 0;
 }
+#endif
 
 V8Console::V8Console() : isolate_(nullptr) {
+#ifndef NO_READLINE
     // Initialize readline with emacs mode (normal mode)
     rl_editing_mode = 1;  // 1 = emacs mode (default), 0 = vi mode
     
@@ -35,6 +41,7 @@ V8Console::V8Console() : isolate_(nullptr) {
         historyPath_ = std::string(home) + "/.v8console.history";
         read_history(historyPath_.c_str());
     }
+#endif
 }
 
 V8Console::~V8Console() {
@@ -149,6 +156,7 @@ void V8Console::RunRepl() {
     
     std::string line;
     while (!shouldQuit_) {
+#ifndef NO_READLINE
         // Use readline for input
         std::string prompt = std::string(rang::fg::blue) + "λ " + std::string(rang::style::reset);
         char* line_cstr = readline(prompt.c_str());
@@ -171,6 +179,15 @@ void V8Console::RunRepl() {
         }
         
         free(line_cstr);
+#else
+        // Fallback to basic input without readline
+        std::cout << fg::blue << "λ " << style::reset;
+        if (!std::getline(std::cin, line)) {
+            // EOF (Ctrl+D)
+            std::cout << std::endl;
+            break;
+        }
+#endif
         if (line.empty()) {
             continue;
         }
