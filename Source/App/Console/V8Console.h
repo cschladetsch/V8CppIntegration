@@ -73,4 +73,5 @@ private:
     
     // REPL state
     bool shouldQuit_ = false;
+    std::string historyPath_;
 };

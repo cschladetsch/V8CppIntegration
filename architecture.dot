@@ -29,7 +29,7 @@ digraph V8CppIntegrationArchitecture {
             
             node [fillcolor="#90ee90", shape=note];
             "build.sh" [label=<<B>build.sh</B><BR/><FONT POINT-SIZE="8">Main Build Entry<BR/>--system-v8 | --debug<BR/>--setup-v8 | --build-v8</FONT>>];
-            "from_source.sh" [label=<<B>from_source.sh</B><BR/><FONT POINT-SIZE="8">Complete V8 Setup<BR/>Auto-downloads deps<BR/>Builds V8 + Project</FONT>>];
+            "setup_and_build_v8.sh" [label=<<B>setup_and_build_v8.sh</B><BR/><FONT POINT-SIZE="8">Complete V8 Setup<BR/>Auto-downloads deps<BR/>Builds V8 + Project</FONT>>];
             "run_tests.sh" [label=<<B>run_tests.sh</B><BR/><FONT POINT-SIZE="8">Test Runner<BR/>160 Total Tests<BR/>All Test Suites</FONT>>];
             "compile_standalone.sh" [label=<<B>compile_standalone.sh</B><BR/><FONT POINT-SIZE="8">Single File Build<BR/>Direct V8 Linking</FONT>>];
         }
@@ -191,9 +191,9 @@ digraph V8CppIntegrationArchitecture {
     // Build flow
     edge [color="#2e8b57", style=bold, penwidth=2];
     "build.sh" -> "CMakeLists.txt" [label="invokes"];
-    "from_source.sh" -> "depot_tools" [label="downloads"];
-    "from_source.sh" -> "v8_source" [label="fetches"];
-    "from_source.sh" -> "build.sh" [label="then runs"];
+    "setup_and_build_v8.sh" -> "depot_tools" [label="downloads"];
+    "setup_and_build_v8.sh" -> "v8_source" [label="fetches"];
+    "setup_and_build_v8.sh" -> "build.sh" [label="then runs"];
     
     // V8 building
     edge [color="#4169e1", style=bold];

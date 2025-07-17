@@ -78,7 +78,7 @@ This directory contains example applications demonstrating various aspects of V8
 
 ```bash
 # Build with V8 from source
-./from_source.sh
+./setup_and_build_v8.sh
 
 # Or build with existing V8
 ./build.sh
