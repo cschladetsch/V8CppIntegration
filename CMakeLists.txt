@@ -202,6 +202,9 @@ if(ENABLE_TESTING AND GTest_FOUND)
                    Source/App/Console/DllLoader.cpp)
     configure_v8_target(V8ConsoleTests)
     target_link_libraries(V8ConsoleTests PRIVATE GTest::gtest GTest::gtest_main pthread dl)
+    if(USE_READLINE AND READLINE_LIB)
+        target_link_libraries(V8ConsoleTests PRIVATE ${READLINE_LIB})
+    endif()
     target_include_directories(V8ConsoleTests PRIVATE 
                               ${CMAKE_SOURCE_DIR}/Include
                               ${CMAKE_SOURCE_DIR}/Include/third_party)

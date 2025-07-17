@@ -634,14 +634,14 @@ TEST_F(V8AdvancedTestFixture, LogicalAssignment) {
     v8_test::V8TestEnvironment env(isolate);
     
     Local<String> source = String::NewFromUtf8(isolate, 
-        "let x = null; x ??= 42; x").ToLocalChecked();
+        "let x = null; x \?\?= 42; x").ToLocalChecked();
     Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
     Local<Value> result = script->Run(env.context).ToLocalChecked();
     
     EXPECT_EQ(result->NumberValue(env.context).ToChecked(), 42);
 }
 
-TEST_F(V8AdvancedTestFixture, NumericSeparators) {
+TEST_F(V8AdvancedTestFixture, NumericSeparatorsAddition) {
     v8_test::V8TestEnvironment env(isolate);
     
     Local<String> source = String::NewFromUtf8(isolate, 
