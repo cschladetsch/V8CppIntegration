@@ -5,7 +5,7 @@ echo "Compiling standalone V8 example..."
 
 # Check if V8 is built
 if [ ! -f "v8/out/x64.release/obj/libv8_monolith.a" ]; then
-    echo "Error: V8 not built yet. Please run ./from_source.sh first"
+    echo "Error: V8 not built yet. Please run ./setup_and_build_v8.sh first"
     exit 1
 fi
 
@@ -35,5 +35,5 @@ else
     echo "Make sure you have:"
     echo "1. clang++ installed"
     echo "2. lld installed (LLVM linker)"
-    echo "3. V8 built with ./from_source.sh"
+    echo "3. V8 built with ./setup_and_build_v8.sh"
 fi

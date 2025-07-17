@@ -1,29 +1,29 @@
 #!/bin/bash
 
-# build_from_source.sh - Complete V8 source build with dependency management
+# setup_and_build_v8.sh - Setup and build V8 from source
 # 
-# Purpose: Automate the complete V8 build process from scratch, including:
-#   - Installing system dependencies (git, curl, python3, ninja-build, etc.)
-#   - Downloading depot_tools
-#   - Downloading V8 source code
-#   - Building V8 from source
+# Purpose: Download and build V8 from source for use in this project
+#   - Checks and installs system dependencies (git, curl, python3, ninja-build, etc.)
+#   - Downloads depot_tools (if not present)
+#   - Downloads V8 source code (if not present)
+#   - Builds V8 from source (if not already built)
 #
 # This script is ideal for:
-#   - Fresh system installations
-#   - CI/CD environments
-#   - First-time V8 builds
-#   - Ensuring all dependencies are present
-#   - Recovering from partial/failed V8 checkouts
+#   - Initial V8 setup for the project
+#   - Setting up development environments
+#   - CI/CD pipelines that need V8 built from source
+#   - Ensuring V8 is available for the project
 #
-# Usage: ./build_from_source.sh
+# Usage: ./setup_and_build_v8.sh
 #
-# Note: This script may require sudo for installing system dependencies
-#       and will download several GB of data.
-#       This script can be safely run multiple times - it will handle
-#       existing checkouts and update them as needed.
+# Note: 
+#   - May require sudo for installing system dependencies
+#   - Downloads several GB of data on first run
+#   - Preserves existing builds (won't rebuild if V8 is already built)
+#   - Safe to run multiple times
 #
-# For regular project builds after V8 is built, use:
-#   ./build.sh
+# After running this script, use ./build.sh for regular project builds.
+# The project will automatically use the locally built V8.
 
 set -e
 
@@ -119,6 +119,8 @@ fi
 echo ""
 echo "Starting V8 build process..."
 echo "=========================="
+echo "Note: This will preserve existing build state and skip steps that are already complete."
+echo ""
 
 # Run the build script with V8 setup and build options
 if [ -x "./build.sh" ]; then

@@ -37,17 +37,28 @@ sudo apt-get install libv8-dev libgtest-dev
 
 ## Build Scripts Overview
 
-This project provides two main build scripts:
+This project provides three main build scripts:
 
-1. **`build.sh`** - Main project build script for regular development
-2. **`from_source.sh`** - Complete V8 source build with dependency management
+1. **`setup_and_build_v8.sh`** - Downloads and builds V8 from source
+2. **`build.sh`** - Main project build script (uses local V8 by default)
+3. **`compile_standalone.sh`** - Single-file compilation for quick experiments
 
-### When to use each script:
+### How the Build System Works
 
-| Script | Purpose | Use When |
-|--------|---------|----------|
-| `build.sh` | Build CppV8 project and examples | You already have V8 installed (system or built) |
-| `from_source.sh` | Build V8 from scratch + project | Fresh system, first-time setup, or CI/CD |
+| Script | Purpose | When to Use |
+|--------|---------|-------------|
+| `setup_and_build_v8.sh` | Download and build V8 from source | First-time setup, CI/CD |
+| `build.sh` | Build project (auto-detects V8) | Regular development |
+| `compile_standalone.sh` | Compile single C++ files | Quick experiments |
+
+### V8 Detection Priority
+
+The build system automatically selects V8 in this order:
+1. **Local V8** (default): If `v8/out/x64.release/obj/libv8_monolith.a` exists
+2. **System V8**: If `--system-v8` flag is passed to `build.sh`
+3. **Build fails**: If no V8 is found (run `setup_and_build_v8.sh` first)
+
+**Note**: When using locally built V8, the build system automatically uses clang/clang++ for ABI compatibility.
 
 ## Quick Start
 
@@ -74,7 +85,7 @@ sudo apt-get install libv8-dev libgtest-dev
 ### Option 2: Build V8 from Source (Complete Setup)
 ```bash
 # For a complete V8 build with automatic dependency installation:
-./from_source.sh
+./setup_and_build_v8.sh
 
 # OR manually control the process:
 # 1. Setup and build V8 (takes 30-45 minutes)
@@ -139,7 +150,7 @@ V8/
 │       └── BasicTests.cpp
 ├── V8Embed/             # V8 embedding utilities
 ├── build.sh             # Main build script
-├── from_source.sh       # Complete V8 source build
+├── setup_and_build_v8.sh       # Complete V8 source build
 ├── compile_standalone.sh # Compile standalone examples
 ├── run_tests.sh         # Test runner script
 ├── standalone_example.cpp # Simple V8 example
@@ -484,9 +495,9 @@ docker-compose up v8-benchmark
 ./build.sh --setup-v8 --build-v8    # Full V8 source build
 ```
 
-### Using from_source.sh (Complete V8 Setup)
+### Using setup_and_build_v8.sh (Complete V8 Setup)
 ```bash
-./from_source.sh
+./setup_and_build_v8.sh
 # No options needed - automatically:
 # - Checks and installs system dependencies
 # - Downloads depot_tools if needed

@@ -27,7 +27,7 @@ endif()
 
 # Platform-specific linking
 if(UNIX AND NOT APPLE)
-    target_link_libraries(v8console PRIVATE dl)
+    target_link_libraries(v8console PRIVATE dl readline)
 elseif(WIN32)
     target_link_libraries(v8console PRIVATE kernel32)
 endif()

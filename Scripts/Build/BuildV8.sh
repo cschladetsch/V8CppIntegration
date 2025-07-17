@@ -34,6 +34,15 @@ fi
 
 cd v8
 
+# Check if V8 is already built
+if [ -f "out/x64.release/obj/libv8_monolith.a" ]; then
+    echo "V8 appears to be already built."
+    echo "Found: out/x64.release/obj/libv8_monolith.a"
+    echo "To rebuild, delete the out/x64.release directory or run 'ninja -C out/x64.release v8_monolith'"
+    echo "Skipping V8 build."
+    exit 0
+fi
+
 # Drop sudo privileges if running as root
 if [ "$EUID" -eq 0 ]; then
     echo "Dropping root privileges for V8 build..."

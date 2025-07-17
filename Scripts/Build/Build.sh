@@ -95,16 +95,29 @@ cd ${BUILD_DIR}
 # Configure with CMake
 echo "Configuring with CMake (${BUILD_TYPE} build)..."
 
-# If using built V8, force Clang for ABI compatibility
-if [ "${USE_SYSTEM_V8}" != "ON" ]; then
-    echo "Using Clang for V8 ABI compatibility..."
+# Auto-detect V8 and set compiler if not explicitly set
+if [ -z "${USE_SYSTEM_V8}" ]; then
+    # Let CMake auto-detect
+    echo "Auto-detecting V8 configuration..."
+else
+    # If using built V8, force Clang for ABI compatibility
+    if [ "${USE_SYSTEM_V8}" != "ON" ]; then
+        echo "Using Clang for V8 ABI compatibility..."
+        export CC=clang
+        export CXX=clang++
+    fi
+fi
+
+# If local V8 exists and USE_SYSTEM_V8 is not explicitly set, ensure we use clang
+if [ -f "$PROJECT_ROOT/v8/out/x64.release/obj/libv8_monolith.a" ] && [ -z "${USE_SYSTEM_V8}" ]; then
+    echo "Local V8 detected, using Clang for ABI compatibility..."
     export CC=clang
     export CXX=clang++
 fi
 
 cmake .. \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-    -DUSE_SYSTEM_V8=${USE_SYSTEM_V8:-OFF} \
+    ${USE_SYSTEM_V8:+-DUSE_SYSTEM_V8=${USE_SYSTEM_V8}} \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 # Build examples

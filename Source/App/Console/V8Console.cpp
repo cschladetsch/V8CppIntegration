@@ -3,10 +3,38 @@
 #include <fstream>
 #include <sstream>
 #include <chrono>
+#include <cstdlib>
 #include <libplatform/libplatform.h>
 #include <rang/rang.hpp>
+#include <readline/readline.h>
+#include <readline/history.h>
+
+// Readline key binding callback for Ctrl+L
+static int clear_screen_handler(int count, int key) {
+    // Clear screen
+    printf("\033[H\033[2J");
+    // Redraw the current line
+    rl_on_new_line();
+    rl_redisplay();
+    return 0;
+}
 
 V8Console::V8Console() : isolate_(nullptr) {
+    // Initialize readline with emacs mode (normal mode)
+    rl_editing_mode = 1;  // 1 = emacs mode (default), 0 = vi mode
+    
+    // Bind Ctrl+L to clear screen
+    rl_bind_key('\014', clear_screen_handler);  // \014 is Ctrl+L
+    
+    // Initialize history
+    using_history();
+    
+    // Load history from file
+    const char* home = std::getenv("HOME");
+    if (home) {
+        historyPath_ = std::string(home) + "/.v8console.history";
+        read_history(historyPath_.c_str());
+    }
 }
 
 V8Console::~V8Console() {
@@ -93,6 +121,13 @@ bool V8Console::ExecuteString(const std::string& source, const std::string& name
 void V8Console::RunRepl() {
     using namespace rang;
     
+    // Reset terminal to ensure proper mouse and cursor handling
+    std::cout << "\033c";  // Reset terminal
+    std::cout << "\033[?1000l";  // Disable mouse reporting if it was on
+    std::cout << "\033[?1002l";  // Disable cell motion mouse tracking
+    std::cout << "\033[?1003l";  // Disable all motion mouse tracking
+    std::cout << "\033[?1049l";  // Use normal screen buffer
+    
     std::cout << style::bold << fg::cyan << "V8 Console" << style::reset 
               << " - " << fg::green << "Interactive Mode" << style::reset << std::endl;
     std::cout << fg::yellow << "Commands: " << style::reset 
@@ -101,6 +136,7 @@ void V8Console::RunRepl() {
               << fg::magenta << ".dlls" << style::reset << ", "
               << fg::magenta << ".reload <path>" << style::reset << ", "
               << fg::magenta << ".vars" << style::reset << ", "
+              << fg::magenta << ".clear" << style::reset << ", "
               << fg::magenta << ".help" << style::reset << ", "
               << fg::magenta << ".quit" << style::reset << std::endl;
     std::cout << "Type JavaScript code or commands:" << std::endl;
@@ -111,13 +147,31 @@ void V8Console::RunRepl() {
     v8::Local<v8::Context> context = context_.Get(isolate_);
     v8::Context::Scope context_scope(context);
     
-    // Initial prompt
-    std::cout << fg::blue << "λ " << style::reset;
-    
     std::string line;
-    while (!shouldQuit_ && std::getline(std::cin, line)) {
+    while (!shouldQuit_) {
+        // Use readline for input
+        std::string prompt = std::string(rang::fg::blue) + "λ " + std::string(rang::style::reset);
+        char* line_cstr = readline(prompt.c_str());
+        
+        if (!line_cstr) {
+            // EOF (Ctrl+D)
+            std::cout << std::endl;
+            break;
+        }
+        
+        line = std::string(line_cstr);
+        
+        // Add non-empty lines to history
+        if (!line.empty()) {
+            add_history(line_cstr);
+            // Save history after each command
+            if (!historyPath_.empty()) {
+                write_history(historyPath_.c_str());
+            }
+        }
+        
+        free(line_cstr);
         if (line.empty()) {
-            std::cout << fg::blue << "λ " << style::reset;
             continue;
         }
         
@@ -166,6 +220,9 @@ void V8Console::RunRepl() {
             } else if (line == ".help") {
                 std::cout << fg::gray << "⏱ " << FormatDuration(std::chrono::high_resolution_clock::now() - start_time) << style::reset << std::endl;
                 DisplayHelp();
+            } else if (line == ".clear") {
+                std::cout << "\033[H\033[2J";  // Clear screen
+                std::cout << fg::green << "✓ Screen cleared" << style::reset << std::endl;
             } else if (line == ".vars") {
                 std::cout << fg::gray << "⏱ " << FormatDuration(std::chrono::high_resolution_clock::now() - start_time) << style::reset << std::endl;
                 DisplayVars();
@@ -190,8 +247,6 @@ void V8Console::RunRepl() {
                 std::cout << fg::gray << "⏱ " << FormatDuration(duration) << style::reset << std::endl;
             }
         }
-        
-        std::cout << fg::blue << "λ " << style::reset;
     }
 }
 
@@ -512,6 +567,8 @@ void V8Console::DisplayHelp() {
               << "      Reload a DLL (hot-reload)" << std::endl;
     std::cout << "  " << fg::magenta << ".vars" << style::reset 
               << "               Show all variables and functions" << std::endl;
+    std::cout << "  " << fg::magenta << ".clear" << style::reset 
+              << "              Clear the screen (also Ctrl+L)" << std::endl;
     std::cout << "  " << fg::magenta << ".quit" << style::reset 
               << "               Exit the console" << std::endl;
     std::cout << std::endl;

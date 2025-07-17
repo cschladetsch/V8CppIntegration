@@ -14,7 +14,7 @@
 #   --system-v8   Use system-installed V8 libraries instead of building from source
 #
 # For a complete V8 source build with dependency installation, use:
-#   ./build_from_source.sh
+#   ./setup_and_build_v8.sh
 #
 # For quick builds using system V8:
 #   ./build.sh --system-v8

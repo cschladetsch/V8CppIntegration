@@ -145,7 +145,7 @@ v8_enable_i18n_support = false
 These scripts in the project root call the appropriate Scripts/ versions:
 
 - **build.sh**: Calls Scripts/Build/Build.sh
-- **from_source.sh**: Complete V8 build with dependency installation
+- **setup_and_build_v8.sh**: Complete V8 build with dependency installation
 - **run_tests.sh**: Calls Scripts/Testing/RunTests.sh
 - **compile_standalone.sh**: Compiles standalone examples
 
@@ -214,7 +214,7 @@ export PATH="$PWD/depot_tools:$PATH"
 ### Initial Setup
 ```bash
 # First time setup
-./from_source.sh
+./setup_and_build_v8.sh
 ```
 
 ### Daily Development

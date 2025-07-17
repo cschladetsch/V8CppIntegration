@@ -10,7 +10,16 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Bin)
 
 # Build options
-option(USE_SYSTEM_V8 "Use system-installed V8 instead of building from source" ON)
+# Auto-detect if local V8 exists
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/v8/out/x64.release/obj/libv8_monolith.a")
+    set(DEFAULT_USE_SYSTEM_V8 OFF)
+    message(STATUS "Found locally built V8, will use it by default")
+else()
+    set(DEFAULT_USE_SYSTEM_V8 ON)
+    message(STATUS "No local V8 found, will try system V8 by default")
+endif()
+
+option(USE_SYSTEM_V8 "Use system-installed V8 instead of building from source" ${DEFAULT_USE_SYSTEM_V8})
 option(ENABLE_TESTING "Enable testing" ON)
 option(ENABLE_BENCHMARKS "Enable benchmarks" ON)
 option(ENABLE_COVERAGE "Enable code coverage" OFF)
