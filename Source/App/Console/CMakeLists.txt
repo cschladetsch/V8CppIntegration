@@ -7,6 +7,9 @@ add_executable(v8console
     DllLoader.h
     V8Console.cpp
     V8Console.h
+    V8ConsoleBuiltins.cpp
+    V8ConsoleOutput.cpp
+    V8ConsoleHelp.cpp
 )
 
 # Set properties

@@ -192,6 +192,23 @@ if(ENABLE_TESTING AND GTest_FOUND)
         add_dependencies(AdvancedTests googletest)
     endif()
     add_test(NAME AdvancedTests COMMAND AdvancedTests)
+    
+    # V8Console test suite with GTest
+    add_executable(V8ConsoleTests Tests/Unit/V8ConsoleTests.cpp 
+                   Source/App/Console/V8Console.cpp
+                   Source/App/Console/V8ConsoleBuiltins.cpp
+                   Source/App/Console/V8ConsoleOutput.cpp
+                   Source/App/Console/V8ConsoleHelp.cpp
+                   Source/App/Console/DllLoader.cpp)
+    configure_v8_target(V8ConsoleTests)
+    target_link_libraries(V8ConsoleTests PRIVATE GTest::gtest GTest::gtest_main pthread dl)
+    target_include_directories(V8ConsoleTests PRIVATE 
+                              ${CMAKE_SOURCE_DIR}/Include
+                              ${CMAKE_SOURCE_DIR}/Include/third_party)
+    if(NOT USE_SYSTEM_V8)
+        add_dependencies(V8ConsoleTests googletest)
+    endif()
+    add_test(NAME V8ConsoleTests COMMAND V8ConsoleTests)
 
     # Integration test suite with GTest (third test suite)
     # Integration Tests
@@ -270,10 +287,11 @@ if(ENABLE_TESTING AND GTest_FOUND)
     set(ALL_TEST_COMMANDS 
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/BasicTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AdvancedTests
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/V8ConsoleTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/IntegrationTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/InteroperabilityTests
     )
-    set(ALL_TEST_TARGETS BasicTests AdvancedTests IntegrationTests InteroperabilityTests)
+    set(ALL_TEST_TARGETS BasicTests AdvancedTests V8ConsoleTests IntegrationTests InteroperabilityTests)
     
     if(TARGET FibonacciTests)
         list(APPEND ALL_TEST_COMMANDS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/FibonacciTests)
