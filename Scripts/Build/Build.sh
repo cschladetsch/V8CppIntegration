@@ -17,6 +17,7 @@ BUILD_DIR="build"
 ONLY_SETUP_V8=0
 ONLY_BUILD_V8=0
 DO_CMAKE_BUILD=1
+CMAKE_EXTRA_ARGS=""
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -43,9 +44,13 @@ while [[ $# -gt 0 ]]; do
             USE_SYSTEM_V8=ON
             shift
             ;;
+        --no-readline)
+            CMAKE_EXTRA_ARGS="${CMAKE_EXTRA_ARGS} -DUSE_READLINE=OFF"
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
-            echo "Usage: $0 [--debug] [--clean] [--setup-v8] [--build-v8] [--system-v8]"
+            echo "Usage: $0 [--debug] [--clean] [--setup-v8] [--build-v8] [--system-v8] [--no-readline]"
             exit 1
             ;;
     esac
@@ -118,7 +123,8 @@ fi
 cmake .. \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
     ${USE_SYSTEM_V8:+-DUSE_SYSTEM_V8=${USE_SYSTEM_V8}} \
-    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+    ${CMAKE_EXTRA_ARGS}
 
 # Build examples
 echo "Building examples..."
