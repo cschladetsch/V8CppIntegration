@@ -5,6 +5,7 @@ A feature-rich console application that provides an interactive JavaScript envir
 ## Features
 
 - **Interactive REPL**: Full JavaScript REPL with immediate feedback
+- **GNU Readline Support**: Command history, vim mode (ESC key), and line editing
 - **Colored Output**: Beautiful terminal output with rang.hpp integration
 - **Lambda Prompt**: Modern λ character prompt for enhanced terminal experience
 - **DLL Hot-Loading**: Load and reload shared libraries at runtime
@@ -12,6 +13,7 @@ A feature-rich console application that provides an interactive JavaScript envir
 - **Built-in Functions**: Extended JavaScript API for system interaction
 - **Syntax Highlighting**: Comprehensive error reporting with colored stack traces
 - **Cross-platform**: Works on Linux, macOS, and Windows
+- **Command History**: Persistent history stored in ~/.v8console.history
 
 ## Building
 
@@ -52,7 +54,16 @@ The binary will be located at: `/Bin/v8console`
 - `.dll <path>` - Load a DLL/shared library
 - `.dlls` - List all loaded DLLs
 - `.reload <path>` - Reload a DLL
+- `.clear` - Clear the screen (also Ctrl+L)
 - `.quit` - Exit the console
+
+## Keyboard Shortcuts
+
+- **ESC** - Enter vim mode for line editing
+- **Ctrl+L** - Clear the screen
+- **Ctrl+D** - Exit the console
+- **Up/Down** - Navigate command history
+- **Ctrl+R** - Reverse search through history
 
 ## JavaScript API
 
@@ -134,6 +145,14 @@ The console uses a consistent color scheme throughout:
 - **Gray**: Stack traces and source code context
 - **Magenta**: Command names and function references
 
+## Dependencies
+
+- GNU Readline (required by default):
+  ```bash
+  sudo apt-get install libreadline-dev
+  ```
+  To build without readline support: `cmake -DUSE_READLINE=OFF ...`
+
 ## Future Enhancements
 
 - Module system support
@@ -141,5 +160,4 @@ The console uses a consistent color scheme throughout:
 - Performance profiling
 - Network capabilities
 - File system sandboxing
-- Command history persistence
 - Tab completion for loaded functions

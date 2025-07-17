@@ -25,17 +25,30 @@ if(USE_SYSTEM_V8)
     target_compile_definitions(v8console PRIVATE USE_SYSTEM_V8)
 endif()
 
-# Find readline
-find_library(READLINE_LIB readline)
-if(NOT READLINE_LIB)
-    message(WARNING "GNU Readline not found. Install libreadline-dev for enhanced console features.")
+# Option to disable readline (enabled by default)
+option(USE_READLINE "Use GNU Readline for enhanced console features" ON)
+
+# Find readline if enabled
+if(USE_READLINE)
+    find_library(READLINE_LIB readline)
+    find_path(READLINE_INCLUDE readline/readline.h)
+    
+    if(NOT READLINE_LIB OR NOT READLINE_INCLUDE)
+        message(FATAL_ERROR "GNU Readline not found. Please install libreadline-dev:\n"
+                            "  sudo apt-get install libreadline-dev\n"
+                            "Or disable readline support with -DUSE_READLINE=OFF")
+    else()
+        message(STATUS "Found GNU Readline: ${READLINE_LIB}")
+    endif()
+else()
+    message(STATUS "Building without GNU Readline support")
     target_compile_definitions(v8console PRIVATE NO_READLINE)
 endif()
 
 # Platform-specific linking
 if(UNIX AND NOT APPLE)
     target_link_libraries(v8console PRIVATE dl)
-    if(READLINE_LIB)
+    if(USE_READLINE AND READLINE_LIB)
         target_link_libraries(v8console PRIVATE ${READLINE_LIB})
     endif()
 elseif(WIN32)
