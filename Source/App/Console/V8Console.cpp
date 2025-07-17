@@ -158,9 +158,8 @@ void V8Console::RunRepl() {
     while (!shouldQuit_) {
 #ifndef NO_READLINE
         // Use readline for input
-        std::stringstream promptStream;
-        promptStream << rang::fg::blue << "λ " << rang::style::reset;
-        std::string prompt = promptStream.str();
+        // For readline, we need to mark non-printing characters with \001 and \002
+        std::string prompt = "\001\033[34m\002λ \001\033[0m\002";
         char* line_cstr = readline(prompt.c_str());
         
         if (!line_cstr) {
