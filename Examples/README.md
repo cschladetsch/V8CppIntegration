@@ -63,7 +63,33 @@ This directory contains example applications demonstrating various aspects of V8
 
 **Key concepts:** Interactive programming, DLL integration, terminal UX
 
-### 7. DLL Examples
+### 7. StandaloneExample.cpp
+**Simple standalone V8 application**
+- Self-contained example that can be compiled directly
+- Shows basic V8 setup without CMake
+- Good for learning and experimentation
+- Can be compiled with the compile_standalone.sh script
+
+**Key concepts:** Direct compilation, minimal dependencies
+
+### 8. SimpleV8Example.cpp
+**Simple V8 integration example**
+- Basic JavaScript execution
+- Console output
+- Error handling
+- Clean structure for beginners
+
+**Key concepts:** Basic V8 usage, simple patterns
+
+### 9. MinimalV8.cpp
+**Minimal V8 setup**
+- Even simpler than MinimalExample
+- Absolute bare-bones V8 usage
+- Good for understanding core concepts
+
+**Key concepts:** Minimal V8 API usage
+
+### 10. DLL Examples
 **Demonstrates creating loadable C++ libraries**
 - **Fibonacci DLL** (`Source/DllExamples/Dlls/Fib.cpp`): Calculates sum of first N Fibonacci numbers
 - Shows proper V8 function registration pattern
@@ -85,7 +111,7 @@ This directory contains example applications demonstrating various aspects of V8
 
 # Build and run standalone example
 ./compile_standalone.sh
-./standalone_example
+./Bin/StandaloneExample
 ```
 
 ### Option 2: Using CMake Directly
@@ -228,10 +254,22 @@ if (try_catch.HasCaught()) {
 
 The project includes JavaScript demos to showcase V8 features:
 
-### demo.js
+### fibonacci_demo.js
+Demonstrates using the Fibonacci DLL:
+```bash
+./Bin/v8console Examples/fibonacci_demo.js Bin/Fib.so
+```
+
+Features demonstrated:
+- DLL function usage
+- Error handling
+- Performance testing
+- Interactive output
+
+### Bin/demo.js
 Comprehensive JavaScript feature showcase:
 ```bash
-./v8/out/x64.release/d8 demo.js
+./Bin/v8console Bin/demo.js
 ```
 
 Features demonstrated:
@@ -241,10 +279,10 @@ Features demonstrated:
 - Modern APIs (Map, Set, Proxy, etc.)
 - Advanced patterns
 
-### demo_minimal.js
+### Bin/demo_minimal.js
 Minimal JavaScript examples:
 ```bash
-./v8/out/x64.release/d8 demo_minimal.js
+./Bin/v8console Bin/demo_minimal.js
 ```
 
 ## Compiler Requirements
