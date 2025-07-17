@@ -29,10 +29,10 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 - C++ compiler with C++20 support
 - Ninja build system (optional but recommended)
 - GNU Readline development package (required for V8 console):
-  ```bash
-  sudo apt-get install libreadline-dev
-  ```
-  To build without readline: `cmake -DUSE_READLINE=OFF ...`
+  - **Automatic installation**: CMake will attempt to install it if missing (requires passwordless sudo)
+  - **Manual installation**: `sudo apt-get install libreadline-dev`
+  - **Disable auto-install**: `cmake -DAUTO_INSTALL_READLINE=OFF ...`
+  - **Build without readline**: `cmake -DUSE_READLINE=OFF ...`
 
 ### For System V8 Option
 ```bash
@@ -70,7 +70,7 @@ The build system automatically selects V8 in this order:
 ### Option 1: Using System V8 (Recommended for Quick Start)
 ```bash
 # 1. Install dependencies
-sudo apt-get install libv8-dev libgtest-dev
+sudo apt-get install libv8-dev libgtest-dev libreadline-dev
 
 # 2. Build with system V8
 ./build.sh --system-v8
@@ -82,6 +82,9 @@ sudo apt-get install libv8-dev libgtest-dev
 
 # 4. Run interactive V8 console with colored output
 ./Bin/v8console
+
+# Note: To build without readline support (not recommended):
+# ./build.sh --system-v8 --no-readline
 
 # 5. Run comprehensive test suite (160 tests)
 ./run_tests.sh

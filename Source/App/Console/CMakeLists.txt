@@ -27,6 +27,7 @@ endif()
 
 # Option to disable readline (enabled by default)
 option(USE_READLINE "Use GNU Readline for enhanced console features" ON)
+option(AUTO_INSTALL_READLINE "Automatically install readline if missing (requires sudo)" ON)
 
 # Find readline if enabled
 if(USE_READLINE)
@@ -34,9 +35,64 @@ if(USE_READLINE)
     find_path(READLINE_INCLUDE readline/readline.h)
     
     if(NOT READLINE_LIB OR NOT READLINE_INCLUDE)
-        message(FATAL_ERROR "GNU Readline not found. Please install libreadline-dev:\n"
-                            "  sudo apt-get install libreadline-dev\n"
-                            "Or disable readline support with -DUSE_READLINE=OFF")
+        if(AUTO_INSTALL_READLINE)
+            message(STATUS "GNU Readline not found. Attempting to install libreadline-dev...")
+            
+            # Check if we can use sudo
+            execute_process(
+                COMMAND sudo -n true
+                RESULT_VARIABLE SUDO_RESULT
+                OUTPUT_QUIET
+                ERROR_QUIET
+            )
+            
+            if(SUDO_RESULT EQUAL 0)
+                # We have passwordless sudo
+                message(STATUS "Installing libreadline-dev...")
+                execute_process(
+                    COMMAND sudo apt-get update -qq
+                    RESULT_VARIABLE UPDATE_RESULT
+                    OUTPUT_QUIET
+                    ERROR_QUIET
+                )
+                execute_process(
+                    COMMAND sudo apt-get install -y libreadline-dev
+                    RESULT_VARIABLE INSTALL_RESULT
+                    OUTPUT_VARIABLE INSTALL_OUTPUT
+                    ERROR_VARIABLE INSTALL_ERROR
+                )
+                
+                if(INSTALL_RESULT EQUAL 0)
+                    message(STATUS "Successfully installed libreadline-dev")
+                    # Clear the cache and try to find readline again
+                    unset(READLINE_LIB CACHE)
+                    unset(READLINE_INCLUDE CACHE)
+                    find_library(READLINE_LIB readline)
+                    find_path(READLINE_INCLUDE readline/readline.h)
+                    
+                    if(NOT READLINE_LIB OR NOT READLINE_INCLUDE)
+                        message(FATAL_ERROR "Failed to find readline after installation. Please check your system.")
+                    else()
+                        message(STATUS "Found GNU Readline after installation: ${READLINE_LIB}")
+                    endif()
+                else()
+                    message(WARNING "Failed to install libreadline-dev automatically: ${INSTALL_ERROR}")
+                    message(FATAL_ERROR "Please install manually with: sudo apt-get install libreadline-dev\n"
+                                        "Or disable readline support with -DUSE_READLINE=OFF")
+                endif()
+            else()
+                # No passwordless sudo, prompt user
+                message(STATUS "Cannot install libreadline-dev automatically (sudo requires password)")
+                message(FATAL_ERROR "Please install libreadline-dev manually:\n"
+                                    "  sudo apt-get install libreadline-dev\n"
+                                    "Or disable readline support with -DUSE_READLINE=OFF")
+            endif()
+        else()
+            # AUTO_INSTALL_READLINE is OFF
+            message(FATAL_ERROR "GNU Readline not found. Please install libreadline-dev:\n"
+                                "  sudo apt-get install libreadline-dev\n"
+                                "Or disable readline support with -DUSE_READLINE=OFF")
+        endif()
     else()
         message(STATUS "Found GNU Readline: ${READLINE_LIB}")
     endif()
