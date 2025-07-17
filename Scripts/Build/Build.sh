@@ -18,6 +18,8 @@ ONLY_SETUP_V8=0
 ONLY_BUILD_V8=0
 DO_CMAKE_BUILD=1
 CMAKE_EXTRA_ARGS=""
+ENABLE_PCH=OFF
+ENABLE_UNITY=OFF
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -48,9 +50,36 @@ while [[ $# -gt 0 ]]; do
             CMAKE_EXTRA_ARGS="${CMAKE_EXTRA_ARGS} -DUSE_READLINE=OFF"
             shift
             ;;
+        --pch)
+            ENABLE_PCH=ON
+            shift
+            ;;
+        --no-pch)
+            ENABLE_PCH=OFF
+            shift
+            ;;
+        --unity)
+            ENABLE_UNITY=ON
+            shift
+            ;;
+        -j*)
+            BUILD_JOBS="${1#-j}"
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
-            echo "Usage: $0 [--debug] [--clean] [--setup-v8] [--build-v8] [--system-v8] [--no-readline]"
+            echo "Usage: $0 [options]"
+            echo "Options:"
+            echo "  --debug       Build in debug mode"
+            echo "  --clean       Clean build directory before building"
+            echo "  --setup-v8    Download V8 source code"
+            echo "  --build-v8    Build V8 from source"
+            echo "  --system-v8   Use system-installed V8 libraries"
+            echo "  --no-readline Build without GNU Readline support"
+            echo "  --pch         Enable precompiled headers (disabled by default)"
+            echo "  --no-pch      Disable precompiled headers (default)"
+            echo "  --unity       Enable unity builds (experimental)"
+            echo "  -j<N>         Use N parallel jobs (default: all cores)"
             exit 1
             ;;
     esac
@@ -124,11 +153,17 @@ cmake .. \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
     ${USE_SYSTEM_V8:+-DUSE_SYSTEM_V8=${USE_SYSTEM_V8}} \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+    -DENABLE_PCH=${ENABLE_PCH} \
+    -DCMAKE_UNITY_BUILD=${ENABLE_UNITY} \
     ${CMAKE_EXTRA_ARGS}
 
 # Build examples
 echo "Building examples..."
-cmake --build . -j$(nproc)
+if [ -n "${BUILD_JOBS}" ]; then
+    cmake --build . -j${BUILD_JOBS}
+else
+    cmake --build . -j$(nproc)
+fi
 
 echo "Build complete!"
 echo "To run examples:"

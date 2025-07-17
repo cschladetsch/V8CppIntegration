@@ -13,8 +13,8 @@ target_include_directories(Fib PRIVATE
     ${CMAKE_SOURCE_DIR}/Include
 )
 
-# Link V8
-target_link_libraries(Fib PRIVATE ${V8_LIBRARIES})
+# Configure V8 and PCH
+configure_v8_target(Fib)
 
 # Platform-specific settings
 if(WIN32)

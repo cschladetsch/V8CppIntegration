@@ -38,33 +38,59 @@ endif()
 # Set V8 variables for the rest of the project
 set(V8_FOUND TRUE)
 set(V8_INCLUDE_DIRS ${V8_SOURCE_DIR}/include)
-set(V8_LIBRARIES ${V8_BUILD_DIR}/obj/libv8_monolith.a)
-set(V8_LIBCXX ${V8_BUILD_DIR}/obj/buildtools/third_party/libc++/libc++.a)
-set(V8_LIBCXXABI ${V8_BUILD_DIR}/obj/buildtools/third_party/libc++abi/libc++abi.a)
 set(V8_LIBBASE ${V8_BUILD_DIR}/obj/libv8_libbase.a)
 set(V8_LIBPLATFORM ${V8_BUILD_DIR}/obj/libv8_libplatform.a)
 
+# Try to find v8_monolith first, fallback to individual libraries
+if(EXISTS ${V8_BUILD_DIR}/obj/libv8_monolith.a)
+    set(V8_LIBRARIES ${V8_BUILD_DIR}/obj/libv8_monolith.a)
+else()
+    # Use individual V8 libraries if monolith is not available
+    file(GLOB V8_CORE_LIBS "${V8_BUILD_DIR}/obj/libv8_*.a")
+    list(REMOVE_ITEM V8_CORE_LIBS ${V8_LIBBASE} ${V8_LIBPLATFORM})
+    set(V8_LIBRARIES ${V8_CORE_LIBS})
+endif()
+
 # Update archives with symbol tables
-execute_process(COMMAND ranlib ${V8_LIBRARIES})
-execute_process(COMMAND ranlib ${V8_LIBCXX})
-execute_process(COMMAND ranlib ${V8_LIBCXXABI})
+if(V8_LIBRARIES)
+    foreach(lib ${V8_LIBRARIES})
+        execute_process(COMMAND ranlib ${lib})
+    endforeach()
+endif()
 execute_process(COMMAND ranlib ${V8_LIBBASE})
 execute_process(COMMAND ranlib ${V8_LIBPLATFORM})
 
 # Create an imported target for V8
-add_library(V8::V8 STATIC IMPORTED GLOBAL)
+add_library(V8::V8 INTERFACE IMPORTED GLOBAL)
 
-# V8's Chrome libc++ headers location
-set(V8_LIBCXX_INCLUDE "${V8_SOURCE_DIR}/third_party/libc++/src/include")
-set(V8_LIBCXXABI_INCLUDE "${V8_SOURCE_DIR}/third_party/libc++abi/src/include")
-set(V8_LIBCXX_CONFIG "${V8_SOURCE_DIR}/buildtools/third_party/libc++")
-
-set_target_properties(V8::V8 PROPERTIES
-    IMPORTED_LOCATION ${V8_LIBRARIES}
-    INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIRS};${V8_LIBCXX_CONFIG};${V8_LIBCXX_INCLUDE};${V8_LIBCXXABI_INCLUDE}"
-    INTERFACE_LINK_LIBRARIES "${V8_LIBPLATFORM};${V8_LIBBASE};${V8_LIBCXX};${V8_LIBCXXABI};pthread;dl;m"
-    INTERFACE_COMPILE_OPTIONS "-nostdinc++;-D_LIBCPP_ABI_NAMESPACE=__Cr;-D_LIBCPP_ABI_VERSION=2;-D_LIBCPP_DISABLE_AVAILABILITY;-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_NONE;-D_LIBCPP_ENABLE_NODISCARD;-D_LIBCPP_STD_VER=20"
-)
+# Link all V8 libraries
+if(V8_LIBRARIES)
+    list(LENGTH V8_LIBRARIES lib_count)
+    if(${lib_count} GREATER 1)
+        # Multiple libraries - use interface target
+        set_target_properties(V8::V8 PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIRS}"
+            INTERFACE_LINK_LIBRARIES "${V8_LIBRARIES};${V8_LIBPLATFORM};${V8_LIBBASE};pthread;dl;m"
+        )
+    else()
+        # Single library - use static imported target
+        add_library(V8::V8_STATIC STATIC IMPORTED GLOBAL)
+        set_target_properties(V8::V8_STATIC PROPERTIES
+            IMPORTED_LOCATION ${V8_LIBRARIES}
+            INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIRS}"
+        )
+        set_target_properties(V8::V8 PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIRS}"
+            INTERFACE_LINK_LIBRARIES "V8::V8_STATIC;${V8_LIBPLATFORM};${V8_LIBBASE};pthread;dl;m"
+        )
+    endif()
+else()
+    # No core libraries found - just use libplatform and libbase
+    set_target_properties(V8::V8 PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIRS}"
+        INTERFACE_LINK_LIBRARIES "${V8_LIBPLATFORM};${V8_LIBBASE};pthread;dl;m"
+    )
+endif()
 
 # Make sure V8 is built before any target that depends on it
 # Commented out to prevent constant rebuilding

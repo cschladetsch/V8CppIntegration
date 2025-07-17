@@ -28,7 +28,6 @@ inline v8::ScriptOrigin CreateScriptOrigin(
 #ifdef USE_SYSTEM_V8
     // Newer V8 API requires isolate as first parameter
     return v8::ScriptOrigin(
-        isolate,
         resource_name,
         line_offset,
         column_offset,
@@ -43,7 +42,6 @@ inline v8::ScriptOrigin CreateScriptOrigin(
     // Older V8 API - try to match whatever the system has
     // Note: This might need adjustment based on your V8 version
     return v8::ScriptOrigin(
-        isolate,
         resource_name,
         line_offset,
         column_offset,
