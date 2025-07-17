@@ -1,0 +1,20 @@
+#!/bin/bash
+# Script to install V8 build dependencies
+
+echo "V8 Build Dependencies Installation"
+echo "=================================="
+echo ""
+echo "The following packages need to be installed to build V8 from source:"
+echo "  - clang (C++ compiler required by V8)"
+echo "  - libc++-dev (C++ standard library)"
+echo "  - libc++abi-dev (C++ ABI library)"
+echo ""
+echo "Please run the following commands manually:"
+echo ""
+echo "sudo apt-get update"
+echo "sudo apt-get install -y clang libc++-dev libc++abi-dev"
+echo ""
+echo "After installing these dependencies, you can run:"
+echo "./setup_and_build_v8.sh"
+echo ""
+echo "This will build V8 from source locally."

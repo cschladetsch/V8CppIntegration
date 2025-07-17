@@ -28,7 +28,7 @@ public:
         
         v8::Isolate::Scope IsolateScope(isolate);
         v8::HandleScope HandleScope(isolate);
-        context = v8::Context::New(isolate);
+        context.Reset(isolate, v8::Context::New(isolate));
     }
     
     void TearDown(const ::benchmark::State& state) override {
