@@ -463,14 +463,56 @@ quit();                      // Exit console
 
 The project includes comprehensive performance benchmarks (`Tests/Performance/BenchmarkTests.cpp`):
 
+### Installing Google Benchmark
+
+Before building benchmarks, you need to install Google Benchmark:
+
+#### Option 1: Install from package manager (Ubuntu/Debian)
 ```bash
-# Build with benchmarks
-cmake -B build -DENABLE_BENCHMARKS=ON
+sudo apt-get update
+sudo apt-get install -y libbenchmark-dev
+```
+
+#### Option 2: Build from source
+```bash
+# Clone the repository
+git clone https://github.com/google/benchmark.git
+cd benchmark
+
+# Create build directory
+cmake -E make_directory "build"
+cd build
+
+# Configure and build
+cmake -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on ..
+cmake --build . --config Release
+sudo cmake --build . --target install
+```
+
+#### Option 3: Using vcpkg
+```bash
+vcpkg install benchmark
+```
+
+#### Option 4: Using Conan
+```bash
+conan install benchmark/1.8.3@
+```
+
+### Building and Running Benchmarks
+
+After installing Google Benchmark:
+
+```bash
+# Build with benchmarks (Release mode only)
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_BENCHMARKS=ON
 cmake --build build
 
 # Run benchmarks
-./build/BenchmarkTests
+./Bin/BenchmarkTests
 ```
+
+**Note**: Benchmarks are disabled by default and can only be enabled in Release mode for accurate performance measurements.
 
 Benchmarks include:
 - Simple JavaScript execution
