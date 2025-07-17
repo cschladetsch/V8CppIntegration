@@ -27,23 +27,8 @@ static int clear_screen_handler(int, int) {
 }
 #endif
 
-V8Console::V8Console() : isolate_(nullptr) {
-#ifndef NO_READLINE
-    // Initialize readline with emacs mode (normal mode)
-    rl_editing_mode = 1;  // 1 = emacs mode (default), 0 = vi mode
-    
-    // Bind Ctrl+L to clear screen
-    rl_bind_key('\014', clear_screen_handler);  // \014 is Ctrl+L
-    
-    // Initialize history
-    using_history();
-    
-    // Load history from file
-    if (const char* home = std::getenv("HOME")) {
-        historyPath_ = fs::path(home) / ".v8console.history";
-        read_history(historyPath_.c_str());
-    }
-#endif
+V8Console::V8Console() : isolate_(nullptr), shouldQuit_(false) {
+    // Readline will be initialized when RunRepl is called
 }
 
 V8Console::~V8Console() {
@@ -124,6 +109,23 @@ bool V8Console::LoadDll(const std::string& path) {
 
 void V8Console::RunRepl() {
     using namespace rang;
+    
+#ifndef NO_READLINE
+    // Initialize readline with emacs mode (normal mode)
+    rl_editing_mode = 1;  // 1 = emacs mode (default), 0 = vi mode
+    
+    // Bind Ctrl+L to clear screen
+    rl_bind_key('\014', clear_screen_handler);  // \014 is Ctrl+L
+    
+    // Initialize history
+    using_history();
+    
+    // Load history from file
+    if (const char* home = std::getenv("HOME")) {
+        historyPath_ = fs::path(home) / ".v8console.history";
+        read_history(historyPath_.c_str());
+    }
+#endif
     
     // Reset terminal settings
     std::cout << "\033c\033[?1000l\033[?1002l\033[?1003l\033[?1049l";
