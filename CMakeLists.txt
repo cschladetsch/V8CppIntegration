@@ -450,13 +450,17 @@ endif()
 
 
 # Installation
-install(TARGETS SystemV8Example BidirectionalExample AdvancedExample MinimalExample WebServerExample
-    RUNTIME DESTINATION bin
-)
+if(ENABLE_EXAMPLES)
+    install(TARGETS SystemV8Example BidirectionalExample AdvancedExample MinimalExample WebServerExample
+        RUNTIME DESTINATION bin
+    )
+endif()
 
-install(TARGETS BasicTests AdvancedTests IntegrationTests InteroperabilityTests
-    RUNTIME DESTINATION bin/tests
-)
+if(ENABLE_TESTING)
+    install(TARGETS BasicTests AdvancedTests IntegrationTests InteroperabilityTests
+        RUNTIME DESTINATION bin/tests
+    )
+endif()
 
 if(TARGET v8_integration)
     install(TARGETS v8_integration

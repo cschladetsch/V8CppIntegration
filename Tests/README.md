@@ -22,6 +22,22 @@ Tests/
 └── TestUtils.h             # Common test utilities
 ```
 
+## Building Tests
+
+### Build With Tests (Default)
+```bash
+# Tests are built by default
+cmake -B build
+cmake --build build
+```
+
+### Build Without Tests (Faster)
+```bash
+# Skip building tests for faster compilation
+cmake -B build -DENABLE_TESTING=OFF
+cmake --build build
+```
+
 ## Running Tests
 
 ### Quick Start

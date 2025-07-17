@@ -2,6 +2,35 @@
 
 This directory contains the build automation scripts for the V8 C++ Integration project.
 
+## Quick Commands
+
+### Build Only v8console
+```bash
+# Using system V8 (fastest)
+cmake -B build -DUSE_SYSTEM_V8=ON
+cmake --build build --target v8console
+
+# Using local V8
+cmake -B build -DUSE_SYSTEM_V8=OFF
+cmake --build build --target v8console
+```
+
+### Build Without Tests/Examples
+```bash
+# Faster builds by disabling optional components
+cmake -B build -DENABLE_TESTING=OFF -DENABLE_EXAMPLES=OFF
+cmake --build build
+```
+
+### Build V8 from Source
+```bash
+# First install dependencies
+sudo apt-get install -y clang libc++-dev libc++abi-dev
+
+# Then build V8
+../../setup_and_build_v8.sh
+```
+
 ## Main Scripts
 
 ### Build.sh
