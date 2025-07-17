@@ -114,6 +114,13 @@ if(ENABLE_TESTING AND GTest_FOUND)
 endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Include/v8_integration)
 
+# Option for unity builds (compile multiple source files as one)
+option(CMAKE_UNITY_BUILD "Enable Unity builds for faster compilation" OFF)
+
+# Set C++20 standard for V8 compatibility
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # Compiler flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
@@ -121,6 +128,34 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         add_compile_options(-g -O0)
     else()
         add_compile_options(-O3 -DNDEBUG)
+        # Additional optimization flags for release builds
+        add_compile_options(-march=native -mtune=native)
+        # Enable link-time optimization (LTO) for release builds
+        if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.9")
+            include(CheckIPOSupported)
+            check_ipo_supported(RESULT ipo_supported OUTPUT ipo_output)
+            if(ipo_supported)
+                set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+                message(STATUS "Link-time optimization (LTO) enabled")
+            endif()
+        endif()
+    endif()
+    
+    # Use faster linker if available
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        # Try to use lld (LLVM linker) which is faster
+        find_program(LLD_LINKER "lld")
+        if(LLD_LINKER)
+            add_link_options(-fuse-ld=lld)
+            message(STATUS "Using LLD linker for faster linking")
+        endif()
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        # Try to use gold linker which is faster than ld
+        find_program(GOLD_LINKER "gold")
+        if(GOLD_LINKER)
+            add_link_options(-fuse-ld=gold)
+            message(STATUS "Using gold linker for faster linking")
+        endif()
     endif()
 endif()
 
@@ -193,6 +228,9 @@ else()
     include(CMake/BuildV8.cmake)
 endif()
 
+# Option to enable precompiled headers
+option(ENABLE_PCH "Enable precompiled headers to speed up compilation" OFF)
+
 # Function to configure V8 targets
 function(configure_v8_target target_name)
     target_link_libraries(${target_name} PRIVATE V8::V8)
@@ -200,6 +238,41 @@ function(configure_v8_target target_name)
         # When using Clang with built V8, use lld linker
         # Chrome's libc++ is handled by V8::V8 target properties
         target_link_options(${target_name} PRIVATE -fuse-ld=lld)
+    endif()
+    
+    # Add precompiled headers if enabled
+    if(ENABLE_PCH)
+        target_precompile_headers(${target_name} PRIVATE
+            # V8 headers (most expensive to compile)
+            <v8.h>
+            <libplatform/libplatform.h>
+            
+            # Commonly used STL headers
+            <iostream>
+            <string>
+            <memory>
+            <vector>
+            <chrono>
+            <thread>
+            <sstream>
+            <map>
+            <functional>
+            <algorithm>
+            <mutex>
+            <atomic>
+        )
+    endif()
+endfunction()
+
+# Function to configure test targets (includes gtest headers in PCH)
+function(configure_test_target target_name)
+    configure_v8_target(${target_name})
+    
+    # Add test-specific precompiled headers
+    if(ENABLE_PCH AND ENABLE_TESTING AND GTest_FOUND)
+        target_precompile_headers(${target_name} PRIVATE
+            <gtest/gtest.h>
+        )
     endif()
 endfunction()
 
@@ -227,7 +300,7 @@ configure_v8_target(WebServerExample)
 if(ENABLE_TESTING AND GTest_FOUND)
     # Unit Tests
     add_executable(BasicTests Tests/Unit/BasicTests.cpp)
-    configure_v8_target(BasicTests)
+    configure_test_target(BasicTests)
     target_link_libraries(BasicTests PRIVATE GTest::gtest GTest::gtest_main pthread)
     # Ensure proper build dependencies
     if(NOT USE_SYSTEM_V8)
@@ -237,7 +310,7 @@ if(ENABLE_TESTING AND GTest_FOUND)
 
     # Advanced test suite with GTest
     add_executable(AdvancedTests Tests/Unit/AdvancedTests.cpp)
-    configure_v8_target(AdvancedTests)
+    configure_test_target(AdvancedTests)
     target_link_libraries(AdvancedTests PRIVATE GTest::gtest GTest::gtest_main pthread)
     if(NOT USE_SYSTEM_V8)
         add_dependencies(AdvancedTests googletest)
@@ -251,7 +324,7 @@ if(ENABLE_TESTING AND GTest_FOUND)
                    Source/App/Console/V8ConsoleOutput.cpp
                    Source/App/Console/V8ConsoleHelp.cpp
                    Source/App/Console/DllLoader.cpp)
-    configure_v8_target(V8ConsoleTests)
+    configure_test_target(V8ConsoleTests)
     target_link_libraries(V8ConsoleTests PRIVATE GTest::gtest GTest::gtest_main pthread dl)
     if(USE_READLINE AND READLINE_LIB)
         target_link_libraries(V8ConsoleTests PRIVATE ${READLINE_LIB})
@@ -267,7 +340,7 @@ if(ENABLE_TESTING AND GTest_FOUND)
     # Integration test suite with GTest (third test suite)
     # Integration Tests
     add_executable(IntegrationTests Tests/Integration/IntegrationTests.cpp)
-    configure_v8_target(IntegrationTests)
+    configure_test_target(IntegrationTests)
     target_link_libraries(IntegrationTests PRIVATE GTest::gtest GTest::gtest_main pthread)
     if(NOT USE_SYSTEM_V8)
         add_dependencies(IntegrationTests googletest)
@@ -276,7 +349,7 @@ if(ENABLE_TESTING AND GTest_FOUND)
 
     # Interoperability test suite with GTest
     add_executable(InteroperabilityTests Tests/Integration/InteroperabilityTests.cpp)
-    configure_v8_target(InteroperabilityTests)
+    configure_test_target(InteroperabilityTests)
     target_link_libraries(InteroperabilityTests PRIVATE GTest::gtest GTest::gtest_main pthread)
     if(NOT USE_SYSTEM_V8)
         add_dependencies(InteroperabilityTests googletest)
@@ -286,7 +359,7 @@ if(ENABLE_TESTING AND GTest_FOUND)
     # DLL Tests (including Fibonacci)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Dlls/FibonacciTests.cpp")
         add_executable(FibonacciTests Tests/Dlls/FibonacciTests.cpp)
-        configure_v8_target(FibonacciTests)
+        configure_test_target(FibonacciTests)
         target_link_libraries(FibonacciTests PRIVATE GTest::gtest GTest::gtest_main pthread dl)
         if(NOT USE_SYSTEM_V8)
             add_dependencies(FibonacciTests googletest)
@@ -375,6 +448,29 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/ErrorHandler.cpp")
     # Add compile definitions for v8_integration
     if(USE_SYSTEM_V8)
         target_compile_definitions(v8_integration PUBLIC USE_SYSTEM_V8)
+    endif()
+    
+    # Add precompiled headers to v8_integration library
+    if(ENABLE_PCH)
+        target_precompile_headers(v8_integration PRIVATE
+            # V8 headers
+            <v8.h>
+            <libplatform/libplatform.h>
+            
+            # Commonly used STL headers
+            <iostream>
+            <string>
+            <memory>
+            <vector>
+            <chrono>
+            <thread>
+            <sstream>
+            <map>
+            <functional>
+            <algorithm>
+            <mutex>
+            <atomic>
+        )
     endif()
     
     # Link examples with the integration library
@@ -493,6 +589,8 @@ message(STATUS "V8 Examples Configuration:")
 message(STATUS "  CMake version: ${CMAKE_VERSION}")
 message(STATUS "  C++ compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "  Use system V8: ${USE_SYSTEM_V8}")
+message(STATUS "  Precompiled headers: ${ENABLE_PCH}")
+message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "")
 message(STATUS "Build with: cmake --build .")
 message(STATUS "Run with: cmake --build . --target run")

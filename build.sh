@@ -13,6 +13,9 @@
 #   --build-v8    Build V8 from source
 #   --system-v8   Use system-installed V8 libraries instead of building from source
 #   --no-readline Build without GNU Readline support
+#   --pch         Enable precompiled headers (disabled by default) 
+#   --unity       Enable unity builds for faster compilation
+#   -j<N>         Use N parallel jobs (default: all cores)
 #
 # For a complete V8 source build with dependency installation, use:
 #   ./setup_and_build_v8.sh

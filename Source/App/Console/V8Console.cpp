@@ -86,7 +86,7 @@ void V8Console::Shutdown() {
     isolate_->Dispose();
     isolate_ = nullptr;
     v8::V8::Dispose();
-    v8::V8::ShutdownPlatform();
+    // v8::V8::ShutdownPlatform(); // Not available in newer V8 versions
 }
 
 bool V8Console::LoadDll(const std::string& path) {
@@ -271,7 +271,7 @@ bool V8Console::CompileAndRun(const std::string& source, const std::string& name
     v8::Local<v8::String> sourceV8 = v8::String::NewFromUtf8(isolate_, source.c_str()).ToLocalChecked();
     v8::Local<v8::String> nameV8 = v8::String::NewFromUtf8(isolate_, name.c_str()).ToLocalChecked();
     
-    v8::ScriptOrigin origin(isolate_, nameV8);
+    v8::ScriptOrigin origin(nameV8);
     v8::Local<v8::Script> script;
     if (!v8::Script::Compile(context, sourceV8, &origin).ToLocal(&script)) {
         ReportException(&tryCatch);
