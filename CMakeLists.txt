@@ -274,7 +274,7 @@ if(ENABLE_TESTING AND GTest_FOUND)
     string(JOIN " && " ALL_TEST_COMMAND_STRING ${ALL_TEST_COMMANDS})
     
     add_custom_target(run_all_tests
-        COMMAND bash -c "${ALL_TEST_COMMAND_STRING}"
+        COMMAND ${ALL_TEST_COMMANDS}
         DEPENDS ${ALL_TEST_TARGETS}
         COMMENT "Running all test suites..."
     )
