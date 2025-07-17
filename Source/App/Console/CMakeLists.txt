@@ -122,7 +122,3 @@ target_include_directories(v8console PRIVATE
 install(TARGETS v8console
     RUNTIME DESTINATION bin
 )
-
-# Copy example scripts to Bin directory
-configure_file(${CMAKE_SOURCE_DIR}/demo.js ${CMAKE_SOURCE_DIR}/Bin/demo.js COPYONLY)
-configure_file(${CMAKE_SOURCE_DIR}/demo_minimal.js ${CMAKE_SOURCE_DIR}/Bin/demo_minimal.js COPYONLY)
