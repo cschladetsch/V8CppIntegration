@@ -43,7 +43,7 @@ check_sudo_available() {
         echo ""
         echo "Alternatively, you can install dependencies manually:"
         echo "  sudo apt-get update"
-        echo "  sudo apt-get install -y git curl python3 pkg-config lsb-release ninja-build build-essential clang libc++-dev libc++abi-dev"
+        echo "  sudo apt-get install -y git curl python3 pkg-config lsb-release ninja-build build-essential clang libc++-dev libc++abi-dev libreadline-dev"
         echo "Then run this script without sudo."
         exit 1
     fi
@@ -53,7 +53,7 @@ check_sudo_available() {
 echo "Checking system dependencies..."
 MISSING_DEPS=()
 # Updated dependencies to include clang and libc++ for V8 compatibility
-for pkg in git curl python3 pkg-config lsb-release ninja-build build-essential clang libc++-dev libc++abi-dev; do
+for pkg in git curl python3 pkg-config lsb-release ninja-build build-essential clang libc++-dev libc++abi-dev libreadline-dev; do
     # Check both with and without architecture suffix
     if ! dpkg -l | grep -E "^ii  ($pkg|$pkg:[a-zA-Z0-9]+) " > /dev/null 2>&1; then
         MISSING_DEPS+=($pkg)
