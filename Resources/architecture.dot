@@ -273,14 +273,14 @@ digraph V8CppIntegrationArchitecture {
         legend [label=<
             <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4">
             <TR><TD COLSPAN="3" BGCOLOR="lightgray"><B>Component Types</B></TD></TR>
-            <TR><TD BGCOLOR="#90ee90">Build Scripts</TD><TD>Shell scripts</TD><TD SHAPE="note">note</TD></TR>
-            <TR><TD BGCOLOR="#ff6347">CMake Config</TD><TD>Build configuration</TD><TD SHAPE="folder">folder</TD></TR>
-            <TR><TD BGCOLOR="#9370db">V8 Engine</TD><TD>V8 components</TD><TD SHAPE="cylinder">cylinder</TD></TR>
-            <TR><TD BGCOLOR="#ff69b4">Headers</TD><TD>Public API</TD><TD SHAPE="note">note</TD></TR>
-            <TR><TD BGCOLOR="#9932cc">Implementation</TD><TD>Source files</TD><TD SHAPE="box3d">box3d</TD></TR>
-            <TR><TD BGCOLOR="#87ceeb">Examples</TD><TD>Demo apps</TD><TD SHAPE="hexagon">hexagon</TD></TR>
-            <TR><TD BGCOLOR="#4682b4">Applications</TD><TD>Production tools</TD><TD SHAPE="doubleoctagon">doubleoctagon</TD></TR>
-            <TR><TD BGCOLOR="#ff69b4">Tests</TD><TD>Test suites</TD><TD SHAPE="diamond">diamond</TD></TR>
+            <TR><TD BGCOLOR="#90ee90">Build Scripts</TD><TD>Shell scripts</TD><TD>note</TD></TR>
+            <TR><TD BGCOLOR="#ff6347">CMake Config</TD><TD>Build configuration</TD><TD>folder</TD></TR>
+            <TR><TD BGCOLOR="#9370db">V8 Engine</TD><TD>V8 components</TD><TD>cylinder</TD></TR>
+            <TR><TD BGCOLOR="#ff69b4">Headers</TD><TD>Public API</TD><TD>note</TD></TR>
+            <TR><TD BGCOLOR="#9932cc">Implementation</TD><TD>Source files</TD><TD>box3d</TD></TR>
+            <TR><TD BGCOLOR="#87ceeb">Examples</TD><TD>Demo apps</TD><TD>hexagon</TD></TR>
+            <TR><TD BGCOLOR="#4682b4">Applications</TD><TD>Production tools</TD><TD>doubleoctagon</TD></TR>
+            <TR><TD BGCOLOR="#ff69b4">Tests</TD><TD>Test suites</TD><TD>diamond</TD></TR>
             <TR><TD COLSPAN="3" BGCOLOR="lightgray"><B>Edge Styles</B></TD></TR>
             <TR><TD>Solid Bold</TD><TD COLSPAN="2">Primary dependency/flow</TD></TR>
             <TR><TD>Dashed</TD><TD COLSPAN="2">Abstraction/indirect relationship</TD></TR>
@@ -294,13 +294,6 @@ digraph V8CppIntegrationArchitecture {
         >];
     }
     
-    // Invisible edges to control layout
-    edge [style=invis];
-    cluster_build -> cluster_v8;
-    cluster_v8 -> cluster_integration;
-    cluster_integration -> cluster_examples;
-    cluster_integration -> cluster_apps;
-    cluster_examples -> cluster_tests;
-    cluster_apps -> cluster_tests;
-    cluster_tests -> cluster_output;
+    // Layout hints - position legend at bottom
+    { rank=sink; cluster_legend; }
 }

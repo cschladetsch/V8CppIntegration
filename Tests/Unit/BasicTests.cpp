@@ -599,6 +599,236 @@ TEST_F(V8TestFixture, ObjectDestructuring) {
     EXPECT_EQ(result->NumberValue(env.context).ToChecked(), 200);
 }
 
+// Additional 20 unique tests for BasicTests
+
+TEST_F(V8TestFixture, SymbolCreation) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "typeof Symbol('test')").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "symbol");
+}
+
+TEST_F(V8TestFixture, BigIntOperations) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "BigInt(123) + BigInt(456) == 579n").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8TestFixture, WeakMapOperations) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "let wm = new WeakMap(); let obj = {}; wm.set(obj, 42); wm.get(obj)").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(env.context).ToChecked(), 42);
+}
+
+TEST_F(V8TestFixture, SetOperations) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "let s = new Set([1,2,3,2,1]); s.size").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(env.context).ToChecked(), 3);
+}
+
+TEST_F(V8TestFixture, MapIterator) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "let m = new Map([['a',1],['b',2]]); Array.from(m.keys()).join(',')").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "a,b");
+}
+
+TEST_F(V8TestFixture, ProxyHandler) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "let p = new Proxy({}, {get: () => 'intercepted'}); p.anything").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "intercepted");
+}
+
+TEST_F(V8TestFixture, GeneratorFunction) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "function* gen() { yield 1; yield 2; } let g = gen(); g.next().value + g.next().value").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(env.context).ToChecked(), 3);
+}
+
+TEST_F(V8TestFixture, AsyncFunctionSyntax) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "typeof (async function() {})").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "function");
+}
+
+TEST_F(V8TestFixture, ArrayIncludes) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "[1,2,3].includes(2)").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8TestFixture, ObjectEntries) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "Object.entries({a:1,b:2}).length").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(env.context).ToChecked(), 2);
+}
+
+TEST_F(V8TestFixture, StringPadding) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "'5'.padStart(3, '0')").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "005");
+}
+
+TEST_F(V8TestFixture, ArrayFlat) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "[1,[2,[3,4]]].flat(2).join(',')").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "1,2,3,4");
+}
+
+TEST_F(V8TestFixture, ObjectFreeze) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "let obj = Object.freeze({x:1}); Object.isFrozen(obj)").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8TestFixture, PromiseResolve) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "Promise.resolve(42) instanceof Promise").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8TestFixture, NumberIsNaN) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "Number.isNaN(NaN) && !Number.isNaN('NaN')").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
+TEST_F(V8TestFixture, ArrayFrom) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "Array.from('hello').join('-')").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "h-e-l-l-o");
+}
+
+TEST_F(V8TestFixture, RestParameters) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "function sum(...args) { return args.reduce((a,b)=>a+b,0); } sum(1,2,3,4)").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(env.context).ToChecked(), 10);
+}
+
+TEST_F(V8TestFixture, DefaultParameters) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "function greet(name='World') { return 'Hello ' + name; } greet()").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    String::Utf8Value str(isolate, result);
+    EXPECT_STREQ(*str, "Hello World");
+}
+
+TEST_F(V8TestFixture, ComputedPropertyNames) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "let prop = 'foo'; let obj = {[prop]: 42}; obj.foo").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    EXPECT_EQ(result->NumberValue(env.context).ToChecked(), 42);
+}
+
+TEST_F(V8TestFixture, ClassInheritance) {
+    v8_test::V8TestEnvironment env(isolate);
+    
+    Local<String> source = String::NewFromUtf8(isolate, 
+        "class Animal {} class Dog extends Animal {} new Dog() instanceof Animal").ToLocalChecked();
+    Local<Script> script = Script::Compile(env.context, source).ToLocalChecked();
+    Local<Value> result = script->Run(env.context).ToLocalChecked();
+    
+    EXPECT_TRUE(result->BooleanValue(isolate));
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

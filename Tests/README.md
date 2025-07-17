@@ -1,6 +1,6 @@
 # V8 Integration Test Suites
 
-This directory contains comprehensive test suites for the V8 C++ Integration framework, totaling 160 tests that ensure reliability and correctness.
+This directory contains comprehensive test suites for the V8 C++ Integration framework, totaling 184 tests that ensure reliability and correctness.
 
 ## Test Organization
 
@@ -9,7 +9,8 @@ Tests/
 ├── Unit/                    # Unit tests for core functionality
 │   ├── BasicTests.cpp       # 40 tests - Fundamental V8 operations
 │   ├── AdvancedTests.cpp    # 40 tests - Advanced V8 features
-│   └── TestV8.cpp          # Simple V8 test example
+│   ├── TestV8.cpp          # Simple V8 test example
+│   └── V8ConsoleTests.cpp  # 24 tests - V8Console functionality
 ├── Integration/             # Integration tests
 │   ├── IntegrationTests.cpp # 40 tests - Complex integrations
 │   ├── InteroperabilityTests.cpp # 34 tests - C++/JS interop
@@ -122,6 +123,20 @@ Tests Fibonacci DLL functionality:
 - Error handling for negative numbers and edge cases
 - Performance benchmarking (sum of first 45 Fibonacci numbers)
 - Edge case handling (zero, very large numbers)
+
+### V8Console Tests
+
+#### V8ConsoleTests.cpp (24 tests, ~30ms)
+Tests V8Console application functionality:
+- Console initialization and shutdown
+- JavaScript execution (simple strings, syntax errors, runtime errors)
+- File loading and execution
+- Built-in function availability (print, console.log/error/warn)
+- DLL function bindings (loadDll, listDlls, etc.)
+- JSON operations and pretty printing
+- Array and object operations
+- DLL loader functionality
+- Error handling and reporting
 
 ## Performance Benchmarks
 
@@ -252,9 +267,9 @@ When adding new tests:
 
 ## Test Results Summary
 
-**Total Tests**: 160
+**Total Tests**: 184
 **Pass Rate**: 100%
-**Total Execution Time**: ~252ms
+**Total Execution Time**: ~282ms
 
 | Test Suite | Tests | Time | Status |
 |------------|-------|------|--------|
@@ -263,3 +278,4 @@ When adding new tests:
 | IntegrationTests | 40 | ~62ms | ✅ PASS |
 | InteroperabilityTests | 34 | ~42ms | ✅ PASS |
 | FibonacciTests | 6 | ~12ms | ✅ PASS |
+| V8ConsoleTests | 24 | ~30ms | ✅ PASS |

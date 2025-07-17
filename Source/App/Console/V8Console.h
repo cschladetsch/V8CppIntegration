@@ -71,6 +71,11 @@ private:
     // Timing helpers
     std::string FormatDuration(const std::chrono::high_resolution_clock::duration& duration);
     
+    // Output helpers
+    void PrintResult(v8::Local<v8::Value> value);
+    void PrettyPrintJSON(const std::string& json, int indent = 0);
+    bool IsJSON(v8::Local<v8::Value> value);
+    
     // REPL state
     bool shouldQuit_ = false;
     std::string historyPath_;
