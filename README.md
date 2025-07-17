@@ -67,6 +67,16 @@ The build system automatically selects V8 in this order:
 
 ## Quick Start
 
+### Build Just v8console (Fastest)
+
+If you only need the v8console REPL:
+```bash
+# Using system V8
+cmake -B build -DUSE_SYSTEM_V8=ON
+cmake --build build --target v8console
+./Bin/v8console
+```
+
 ### Option 1: Using System V8 (Recommended for Quick Start)
 ```bash
 # 1. Install dependencies
@@ -91,6 +101,15 @@ sudo apt-get install libv8-dev libgtest-dev libreadline-dev
 ```
 
 ### Option 2: Build V8 from Source (Complete Setup)
+
+#### Prerequisites for Building V8
+```bash
+# Install V8 build dependencies
+sudo apt-get update
+sudo apt-get install -y clang libc++-dev libc++abi-dev
+```
+
+#### Full V8 Build
 ```bash
 # For a complete V8 build with automatic dependency installation:
 ./setup_and_build_v8.sh
@@ -106,6 +125,13 @@ sudo apt-get install libv8-dev libgtest-dev libreadline-dev
 # 3. Compile standalone example
 ./compile_standalone.sh
 ./standalone_example
+```
+
+#### Building Without Tests/Examples
+```bash
+# For faster builds, disable tests and examples
+cmake -B build -DUSE_SYSTEM_V8=OFF -DENABLE_TESTING=OFF -DENABLE_EXAMPLES=OFF
+cmake --build build
 ```
 
 ## Project Structure

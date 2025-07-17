@@ -17,12 +17,47 @@ A feature-rich console application that provides an interactive JavaScript envir
 
 ## Building
 
+### Quick Build (Just v8console)
+
+To build only the v8console application:
+```bash
+# Using system V8 (fastest)
+cmake -B build -DUSE_SYSTEM_V8=ON
+cmake --build build --target v8console
+
+# The binary will be located at: /Bin/v8console
+```
+
+### Building with Local V8
+
+To build v8console with a locally built V8:
+```bash
+# First, install V8 build dependencies
+sudo apt-get update
+sudo apt-get install -y clang libc++-dev libc++abi-dev
+
+# Build V8 from source (takes 30-45 minutes)
+./setup_and_build_v8.sh
+
+# Build v8console with local V8
+cmake -B build -DUSE_SYSTEM_V8=OFF
+cmake --build build --target v8console
+```
+
+### Building without Tests/Examples
+
+For faster builds, you can disable tests and examples:
+```bash
+cmake -B build -DUSE_SYSTEM_V8=ON -DENABLE_TESTING=OFF -DENABLE_EXAMPLES=OFF
+cmake --build build --target v8console
+```
+
+### Full Project Build
+
 Built automatically with the main project:
 ```bash
 ./build.sh
 ```
-
-The binary will be located at: `/Bin/v8console`
 
 ## Usage
 

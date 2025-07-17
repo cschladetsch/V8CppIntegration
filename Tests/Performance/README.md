@@ -8,24 +8,48 @@ Performance tests measure execution speed, memory usage, and scalability of vari
 
 ## Test Files
 
-### PerformanceTests.cpp
-- Benchmarks for V8 engine operations
+### BenchmarkTests.cpp
+- Google Benchmark-based performance tests
 - JavaScript execution speed tests
 - C++ to JavaScript call overhead measurements
 - Memory allocation and garbage collection tests
-- DLL loading and execution performance
+- String, array, and object operation benchmarks
+- Promise and async operation performance
+- Regular expression performance tests
 
-## Running Tests
+## Building Benchmarks
+
+### Prerequisites
+```bash
+# Install Google Benchmark
+sudo apt-get install -y libbenchmark-dev
+
+# Or build from source (see main README)
+```
+
+### Build Commands
+```bash
+# Benchmarks are disabled by default, enable with:
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_BENCHMARKS=ON
+cmake --build build --target BenchmarkTests
+
+# Note: Benchmarks can only be enabled in Release mode
+```
+
+## Running Benchmarks
 
 ```bash
-# Run all tests including performance
-./Scripts/run_tests.sh
+# Run all benchmarks
+./Bin/BenchmarkTests
 
-# Run only performance tests
-./Bin/PerformanceTests
+# Run specific benchmark
+./Bin/BenchmarkTests --benchmark_filter=SimpleExecution
 
-# Run with detailed timing
-./Bin/PerformanceTests --gtest_print_time=1
+# Run with custom iterations
+./Bin/BenchmarkTests --benchmark_min_time=10s
+
+# Output results in JSON format
+./Bin/BenchmarkTests --benchmark_out=results.json --benchmark_out_format=json
 ```
 
 ## Benchmarks

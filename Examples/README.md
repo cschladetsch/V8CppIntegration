@@ -2,6 +2,28 @@
 
 This directory contains example applications demonstrating various aspects of V8 C++ integration, from basic usage to advanced patterns.
 
+## Building Examples
+
+### Build All Examples
+```bash
+# Default build includes all examples
+cmake -B build
+cmake --build build
+```
+
+### Build Without Examples (Faster)
+```bash
+# Skip building examples for faster compilation
+cmake -B build -DENABLE_EXAMPLES=OFF
+cmake --build build
+```
+
+### Build Specific Example
+```bash
+# Build only a specific example
+cmake --build build --target BidirectionalExample
+```
+
 ## Example Applications
 
 ### 1. MinimalExample.cpp
