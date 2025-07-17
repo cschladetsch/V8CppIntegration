@@ -630,6 +630,19 @@ void V8Console::DisplayHelp() {
     std::cout << "  " << style::reset << "listDlls();" << std::endl;
     std::cout << std::endl;
     
+    std::cout << style::bold << fg::yellow << "Keyboard Shortcuts:" << style::reset << std::endl;
+#ifndef NO_READLINE
+    std::cout << "  " << fg::cyan << "ESC" << style::reset << "         - Enter vim mode for line editing" << std::endl;
+    std::cout << "  " << fg::cyan << "Ctrl+L" << style::reset << "      - Clear the screen" << std::endl;
+    std::cout << "  " << fg::cyan << "Ctrl+D" << style::reset << "      - Exit the console" << std::endl;
+    std::cout << "  " << fg::cyan << "Up/Down" << style::reset << "     - Navigate command history" << std::endl;
+    std::cout << "  " << fg::cyan << "Ctrl+R" << style::reset << "      - Reverse search through history" << std::endl;
+#else
+    std::cout << "  " << fg::cyan << "Ctrl+D" << style::reset << "      - Exit the console" << std::endl;
+    std::cout << "  " << fg::gray << "(Install libreadline-dev for more shortcuts)" << style::reset << std::endl;
+#endif
+    std::cout << std::endl;
+    
     std::cout << style::bold << fg::yellow << "Color Scheme:" << style::reset << std::endl;
     std::cout << "  " << fg::cyan << "Cyan" << style::reset << "     - Titles and section headers" << std::endl;
     std::cout << "  " << fg::yellow << "Yellow" << style::reset << "   - Command descriptions" << std::endl;
