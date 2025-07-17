@@ -120,7 +120,7 @@ v8_enable_i18n_support = false
 **Purpose**: Comprehensive test runner for all test suites.
 
 **Features**:
-- Runs all 154 tests
+- Runs all tests
 - Colored output
 - Timing information
 - Summary statistics
