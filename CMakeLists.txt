@@ -96,8 +96,16 @@ if(ENABLE_TESTING)
         # Use system GTest
         find_package(GTest QUIET)
         if(NOT GTest_FOUND)
-            message(WARNING "GTest not found, disabling tests")
-            set(ENABLE_TESTING OFF)
+            message(STATUS "GTest not found on system, will build from source")
+            include(FetchContent)
+            FetchContent_Declare(
+                googletest
+                GIT_REPOSITORY https://github.com/google/googletest.git
+                GIT_TAG        v1.14.0
+            )
+            set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+            FetchContent_MakeAvailable(googletest)
+            set(GTest_FOUND TRUE)
         endif()
     endif()
 endif()
@@ -552,10 +560,20 @@ if(ENABLE_EXAMPLES)
     )
 endif()
 
-if(ENABLE_TESTING)
-    install(TARGETS BasicTests AdvancedTests IntegrationTests InteroperabilityTests
-        RUNTIME DESTINATION bin/tests
-    )
+if(ENABLE_TESTING AND GTest_FOUND)
+    # Only install test targets if they were built
+    set(TEST_INSTALL_TARGETS)
+    foreach(test_target BasicTests AdvancedTests IntegrationTests InteroperabilityTests V8ConsoleTests)
+        if(TARGET ${test_target})
+            list(APPEND TEST_INSTALL_TARGETS ${test_target})
+        endif()
+    endforeach()
+    
+    if(TEST_INSTALL_TARGETS)
+        install(TARGETS ${TEST_INSTALL_TARGETS}
+            RUNTIME DESTINATION bin/tests
+        )
+    endif()
 endif()
 
 if(TARGET v8_integration)

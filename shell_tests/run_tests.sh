@@ -5,8 +5,25 @@
 
 set -e
 
+# Get the script directory and project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 echo "=== V8 C++ Integration Test Runner ==="
 echo ""
+
+# Check for required dependencies
+if ! command -v cmake &> /dev/null; then
+    echo "Error: cmake is not installed"
+    echo "Please install cmake to run these tests"
+    exit 1
+fi
+
+if ! command -v make &> /dev/null; then
+    echo "Error: make is not installed"
+    echo "Please install make to run these tests"
+    exit 1
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -28,19 +45,19 @@ print_error() {
 }
 
 # Check if build directory exists
-if [ ! -d "build" ]; then
+if [ ! -d "$PROJECT_ROOT/build" ]; then
     print_status "Creating build directory..."
-    mkdir build
+    mkdir -p "$PROJECT_ROOT/build"
 fi
 
 # Build the project
 print_status "Building V8 examples and tests..."
-cd build
+cd "$PROJECT_ROOT/build"
 
 # Configure with CMake
 if [ ! -f "CMakeCache.txt" ]; then
     print_status "Configuring with CMake..."
-    cmake .. -DUSE_SYSTEM_V8=ON
+    cmake "$PROJECT_ROOT" -DUSE_SYSTEM_V8=ON
 fi
 
 # Build all targets
@@ -48,17 +65,17 @@ print_status "Compiling..."
 make -j$(nproc)
 
 # Check if test suites exist
-if [ ! -f "../Bin/BasicTests" ]; then
+if [ ! -f "$PROJECT_ROOT/Bin/BasicTests" ]; then
     print_error "BasicTests executable not found. Build may have failed."
     exit 1
 fi
 
-if [ ! -f "../Bin/AdvancedTests" ]; then
+if [ ! -f "$PROJECT_ROOT/Bin/AdvancedTests" ]; then
     print_error "AdvancedTests executable not found. Build may have failed."
     exit 1
 fi
 
-if [ ! -f "../Bin/IntegrationTests" ]; then
+if [ ! -f "$PROJECT_ROOT/Bin/IntegrationTests" ]; then
     print_error "IntegrationTests executable not found. Build may have failed."
     exit 1
 fi
@@ -68,36 +85,36 @@ echo "=== Running Basic Test Suite (20 tests) ==="
 echo ""
 
 # Run the basic test suite
-../Bin/BasicTests
+"$PROJECT_ROOT/Bin/BasicTests"
 
 echo ""
 echo "=== Running Advanced Test Suite (20 tests) ==="
 echo ""
 
 # Run the advanced test suite
-../Bin/AdvancedTests
+"$PROJECT_ROOT/Bin/AdvancedTests"
 
 echo ""
 echo "=== Running Integration Test Suite (20 tests) ==="
 echo ""
 
 # Run the integration test suite
-../Bin/IntegrationTests
+"$PROJECT_ROOT/Bin/IntegrationTests"
 
 echo ""
 echo "=== Running Example Tests ==="
 echo ""
 
 # Test each example
-if [ -f "../Bin/SystemV8Example" ]; then
+if [ -f "$PROJECT_ROOT/Bin/SystemV8Example" ]; then
     print_status "Testing SystemV8Example..."
-    timeout 5s ../Bin/SystemV8Example || print_warning "SystemV8Example timed out or failed"
+    timeout 5s "$PROJECT_ROOT/Bin/SystemV8Example" || print_warning "SystemV8Example timed out or failed"
     echo ""
 fi
 
-if [ -f "../Bin/BidirectionalExample" ]; then
+if [ -f "$PROJECT_ROOT/Bin/BidirectionalExample" ]; then
     print_status "Testing BidirectionalExample..."
-    timeout 5s ../Bin/BidirectionalExample || print_warning "BidirectionalExample timed out or failed"
+    timeout 5s "$PROJECT_ROOT/Bin/BidirectionalExample" || print_warning "BidirectionalExample timed out or failed"
     echo ""
 fi
 

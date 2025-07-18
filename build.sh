@@ -23,4 +23,4 @@
 # For quick builds using system V8:
 #   ./build.sh --system-v8
 
-exec ./Scripts/Build/Build.sh "$@"
+exec ./Scripts/Build/build.sh "$@"

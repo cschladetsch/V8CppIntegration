@@ -20,6 +20,7 @@ DO_CMAKE_BUILD=1
 CMAKE_EXTRA_ARGS=""
 ENABLE_PCH=OFF
 ENABLE_UNITY=OFF
+V8_SETUP_FLAGS=""
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -37,6 +38,11 @@ while [[ $# -gt 0 ]]; do
         --setup-v8)
             SETUP_V8=1
             shift
+            # Check if next argument is --force or --skip-update
+            if [[ $# -gt 0 ]] && [[ "$1" == "--force" || "$1" == "--skip-update" ]]; then
+                V8_SETUP_FLAGS="$1"
+                shift
+            fi
             ;;
         --build-v8)
             BUILD_V8=1
@@ -72,7 +78,9 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  --debug       Build in debug mode"
             echo "  --clean       Clean build directory before building"
-            echo "  --setup-v8    Download V8 source code"
+            echo "  --setup-v8    Download V8 source code (with optional flags):"
+            echo "                  --force: Force update even if recently updated"
+            echo "                  --skip-update: Skip update if V8 already exists"
             echo "  --build-v8    Build V8 from source"
             echo "  --system-v8   Use system-installed V8 libraries"
             echo "  --no-readline Build without GNU Readline support"
@@ -97,10 +105,10 @@ fi
 if [ "${SETUP_V8}" = "1" ]; then
     echo "Setting up V8..."
     cd "$PROJECT_ROOT"
-    if [ -x "$SCRIPT_DIR/SetupV8.sh" ]; then
-        "$SCRIPT_DIR/SetupV8.sh"
+    if [ -x "$SCRIPT_DIR/setup_v8.sh" ]; then
+        "$SCRIPT_DIR/setup_v8.sh" $V8_SETUP_FLAGS
     else
-        echo "Error: SetupV8.sh not found in $SCRIPT_DIR"
+        echo "Error: setup_v8.sh not found in $SCRIPT_DIR"
         exit 1
     fi
 fi
@@ -109,10 +117,10 @@ fi
 if [ "${BUILD_V8}" = "1" ]; then
     echo "Building V8..."
     cd "$PROJECT_ROOT"
-    if [ -x "$SCRIPT_DIR/BuildV8.sh" ]; then
-        "$SCRIPT_DIR/BuildV8.sh"
+    if [ -x "$SCRIPT_DIR/build_v8.sh" ]; then
+        "$SCRIPT_DIR/build_v8.sh"
     else
-        echo "Error: BuildV8.sh not found in $SCRIPT_DIR"
+        echo "Error: build_v8.sh not found in $SCRIPT_DIR"
         exit 1
     fi
 fi

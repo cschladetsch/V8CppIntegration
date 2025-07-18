@@ -2,12 +2,18 @@
 # Quick test script to compile and link without rebuilding V8
 # This mimics the exact CMake build configuration
 
+set -e
+
+# Get the script directory and project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 echo "Testing V8 linking without rebuild..."
 
-# Create test program if it doesn't exist
-if [ ! -f Tests/Unit/TestV8.cpp ]; then
-    echo "Creating test program..."
-    cat > Tests/Unit/TestV8.cpp << 'EOF'
+# Create temporary test file
+TEST_FILE="$SCRIPT_DIR/test_v8_temp.cpp"
+echo "Creating test program..."
+cat > "$TEST_FILE" << 'EOF'
 #include <iostream>
 #include <v8.h>
 #include <libplatform/libplatform.h>
@@ -51,15 +57,25 @@ int main() {
     return 0;
 }
 EOF
-fi
 
 # Use the same configuration as CMake
-V8_DIR="/home/christian/local/repos/V8CppIntegration/v8"
+V8_DIR="$PROJECT_ROOT/v8"
+
+# Check if V8 is built
+if [ ! -d "$V8_DIR" ] || [ ! -f "$V8_DIR/out/x64.release/obj/libv8_monolith.a" ]; then
+    echo "Warning: V8 not found or not built at $V8_DIR"
+    echo "This test requires V8 to be built first."
+    echo "To build V8, run: ./setup_and_build_v8.sh"
+    echo "Skipping test..."
+    # Clean up temp file
+    rm -f "$TEST_FILE"
+    exit 0  # Exit successfully since this is expected when V8 isn't built
+fi
 
 echo "Compiling with system libc++..."
 clang++ -std=c++20 -O3 -DNDEBUG -stdlib=libc++ \
     -I"$V8_DIR/include" \
-    -c test_v8.cpp -o test_v8.o
+    -c "$TEST_FILE" -o "$SCRIPT_DIR/test_v8.o"
 
 if [ $? -ne 0 ]; then
     echo "Compilation failed!"
@@ -67,7 +83,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Linking with V8 libraries..."
-clang++ -O3 -DNDEBUG -stdlib=libc++ -fuse-ld=lld test_v8.o -o test_v8 \
+clang++ -O3 -DNDEBUG -stdlib=libc++ -fuse-ld=lld "$SCRIPT_DIR/test_v8.o" -o "$SCRIPT_DIR/test_v8" \
     "$V8_DIR/out/x64.release/obj/libv8_monolith.a" \
     "$V8_DIR/out/x64.release/obj/libv8_libbase.a" \
     "$V8_DIR/out/x64.release/obj/libv8_libplatform.a" \
@@ -77,12 +93,20 @@ clang++ -O3 -DNDEBUG -stdlib=libc++ -fuse-ld=lld test_v8.o -o test_v8 \
 
 if [ $? -eq 0 ]; then
     echo "Build successful! Running test..."
-    ./test_v8
+    "$SCRIPT_DIR/test_v8"
+    
+    # Cleanup
+    rm -f "$TEST_FILE" "$SCRIPT_DIR/test_v8.o" "$SCRIPT_DIR/test_v8"
+    echo "Test completed successfully!"
 else
     echo "Linking failed. This usually means:"
     echo "1. V8 was built with a different compiler/configuration"
     echo "2. System libc++ version mismatch"
     echo ""
     echo "To fix: rebuild V8 with current Clang:"
-    echo "  ./build.sh --build-v8"
+    echo "  cd $PROJECT_ROOT && ./build.sh --build-v8"
+    
+    # Cleanup on failure
+    rm -f "$TEST_FILE" "$SCRIPT_DIR/test_v8.o"
+    exit 1
 fi

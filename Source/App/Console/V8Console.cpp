@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <libplatform/libplatform.h>
 #include <rang/rang.hpp>
+#include <v8_compat.h>
 
 #ifndef NO_READLINE
 #include <readline/readline.h>
@@ -271,7 +272,7 @@ bool V8Console::CompileAndRun(const std::string& source, const std::string& name
     v8::Local<v8::String> sourceV8 = v8::String::NewFromUtf8(isolate_, source.c_str()).ToLocalChecked();
     v8::Local<v8::String> nameV8 = v8::String::NewFromUtf8(isolate_, name.c_str()).ToLocalChecked();
     
-    v8::ScriptOrigin origin(nameV8);
+    v8::ScriptOrigin origin = v8_compat::CreateScriptOrigin(isolate_, nameV8);
     v8::Local<v8::Script> script;
     if (!v8::Script::Compile(context, sourceV8, &origin).ToLocal(&script)) {
         ReportException(&tryCatch);
