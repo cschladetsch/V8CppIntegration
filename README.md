@@ -6,6 +6,8 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 
 ## Architecture
 
+![demo](Resources/demo.gif)
+
 ![V8 C++ Integration Architecture](Resources/architecture.png)
 
 ## Features
