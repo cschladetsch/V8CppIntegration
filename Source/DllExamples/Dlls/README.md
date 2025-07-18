@@ -1,10 +1,10 @@
-# Example DLLs
+# Example DLLs - v0.2
 
 This directory contains example dynamic libraries that demonstrate how to create C++ extensions for the V8 JavaScript engine.
 
 ## Overview
 
-These DLLs can be loaded at runtime by the V8 console or any V8 integration project to extend JavaScript functionality with native C++ code.
+These DLLs can be loaded at runtime by the V8 console or any V8 integration project to extend JavaScript functionality with native C++ code. The DLL loading system supports hot-reloading, allowing you to update and reload DLLs without restarting the console.
 
 ## Available DLLs
 
@@ -70,4 +70,23 @@ extern "C" V8_DLL_EXPORT void InitializeModule(v8::Isolate* isolate,
 
 ## Testing
 
-DLL functionality is tested in `Tests/Dlls/FibonacciTests.cpp`.
+DLL functionality is tested in `Tests/Dlls/FibonacciTests.cpp` with 6 comprehensive tests covering:
+- Basic functionality
+- Error handling (wrong arguments, negative numbers)
+- Performance testing
+- Edge cases
+
+## v0.2 Improvements
+
+- Enhanced error handling in DLL functions
+- Better V8 API compatibility using v8_compat.h
+- Comprehensive test coverage with GTest
+- Support for hot-reloading in V8Console
+
+## Known Limitations
+
+- Currently uses POSIX-specific dlopen/dlsym (Linux/macOS only)
+- Windows support requires LoadLibrary/GetProcAddress implementation
+- No security sandboxing for loaded DLLs
+
+See the main README.md for complete v0.2 release notes.

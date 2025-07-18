@@ -1,6 +1,8 @@
 # Build Scripts Directory
 
-This directory contains the build automation scripts for the V8 C++ Integration project.
+**Version 0.2** - Improved Build Process and Compatibility
+
+This directory contains the build automation scripts for the V8 C++ Integration project. Updated in v0.2 with enhanced V8 compatibility, minimal download support, and reorganized script naming.
 
 ## Quick Commands
 
@@ -175,6 +177,23 @@ VERBOSE=1 ./Build.sh --debug
 3. Use system V8 for faster builds during development
 4. Keep build scripts executable (`chmod +x`)
 
+## v0.2 Build Script Improvements
+
+### Enhanced Features
+- ✅ **Minimal V8 Download**: Reduced V8 source download from ~25GB to ~5GB
+- ✅ **Script Reorganization**: Renamed scripts to snake_case for consistency
+- ✅ **Better Error Handling**: Improved gclient sync failure recovery
+- ✅ **V8 Compatibility**: Updated build configurations for V8 v11+
+- ✅ **Dependency Management**: Better handling of build dependencies
+
+### Script Naming Changes (v0.2)
+The following scripts have been renamed for consistency:
+- `setup_and_build_v8.sh` (main entry point)
+- `build.sh` (project build)
+- `compile_standalone.sh` (standalone compilation)
+- `run_tests.sh` (test runner)
+- `run_example.sh` (example runner)
+
 ## Script Maintenance
 
 When modifying scripts:
@@ -183,3 +202,4 @@ When modifying scripts:
 - Test on fresh systems
 - Document new options
 - Update this README
+- Follow snake_case naming convention

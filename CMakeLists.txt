@@ -217,16 +217,10 @@ if(USE_SYSTEM_V8)
         )
         
         if(NODE_INCLUDE_DIR)
-            message(STATUS "Found Node.js V8 headers at ${NODE_INCLUDE_DIR}")
-            
-            # For Node.js V8, we'll create a different example
-            set(USE_NODE_V8 TRUE)
-            
-            add_library(V8::V8 INTERFACE IMPORTED)
-            set_target_properties(V8::V8 PROPERTIES
-                INTERFACE_INCLUDE_DIRECTORIES "${NODE_INCLUDE_DIR}"
-                INTERFACE_LINK_LIBRARIES "node;pthread;dl"
-            )
+            message(WARNING "Only Node.js V8 headers found. This may cause compatibility issues.")
+            message(FATAL_ERROR "Standalone V8 not found. Please install libv8-dev package:\n"
+                                "  sudo apt-get install libv8-dev\n"
+                                "Or build V8 from source with USE_SYSTEM_V8=OFF")
         else()
             message(FATAL_ERROR "V8 not found. Install libv8-dev or set USE_SYSTEM_V8=OFF to build from source")
         endif()

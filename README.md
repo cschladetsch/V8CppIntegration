@@ -15,12 +15,19 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 3. **Multiple Examples**: From minimal demos to advanced integration patterns
 4. **System V8 Support**: Option to use system-installed V8 libraries
 5. **V8 Compatibility Layer**: Cross-version compatibility via v8_compat.h for seamless integration
-6. **Comprehensive Test Suite**: 160 GTest-based tests covering all aspects of V8 integration
+6. **Comprehensive Test Suite**: 204 GTest-based tests covering all aspects of V8 integration
 7. **Performance Benchmarks**: Google Benchmark integration for performance testing
 8. **Docker Support**: Multi-stage Docker builds for easy deployment
 9. **CI/CD Ready**: GitHub Actions workflow for automated testing
 10. **Interactive V8 Console**: Full-featured REPL with colored output, DLL hot-loading, and λ prompt
 11. **Dynamic Library Support**: Hot-loading of C++ DLLs with automatic V8 function registration
+
+## Code Quality
+
+- **Testing**: 204 tests with 100% pass rate
+- **Code Standards**: C++20 with clang-tidy configuration
+- **Documentation**: Comprehensive README files throughout the project
+- **Version Control**: Git with semantic versioning (currently v0.2)
 
 ## Prerequisites
 

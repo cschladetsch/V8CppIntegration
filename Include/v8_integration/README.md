@@ -1,6 +1,8 @@
 # V8 Integration Headers
 
-This directory contains the framework headers that extend V8's functionality for production use.
+**Version 0.2** - Framework Foundation with Enhanced Compatibility
+
+This directory contains the framework headers that extend V8's functionality for production use. These headers provide a foundation for building robust V8-based applications with proper error handling, monitoring, security, and advanced features.
 
 ## Header Files
 
@@ -137,3 +139,37 @@ To add new functionality:
 - Use `v8::Locker` for multi-threaded access
 - Consider worker threads for parallel execution
 - Document thread safety guarantees in your APIs
+
+## v0.2 Notes and Future Direction
+
+### Current Status
+These headers represent the framework foundation and demonstrate best practices for extending V8. They are provided as:
+- Reference implementations for common patterns
+- Starting points for custom implementations
+- Examples of production-ready V8 integration patterns
+
+### Implementation Status
+- ✅ Header files define clean APIs
+- ✅ Compatible with v8_compat.h for version independence
+- ⚠️ Some implementations are partial (see Source/ directory)
+- 📝 Full implementations planned for future releases
+
+### Known Considerations (v0.2)
+- Error handler should use `ToLocal()` instead of `ToLocalChecked()` in production
+- Security features need platform-specific implementations
+- Monitoring integration points are framework-dependent
+- Advanced features require careful memory management
+
+### Using These Headers
+1. Include the relevant header in your project
+2. Implement or extend the provided interfaces
+3. Follow the patterns for your specific use case
+4. Refer to the Examples/ directory for usage patterns
+
+### Contributing
+When extending these headers:
+- Maintain V8 version compatibility via v8_compat.h
+- Follow RAII principles
+- Document thread safety requirements
+- Provide comprehensive examples
+- Consider cross-platform compatibility
