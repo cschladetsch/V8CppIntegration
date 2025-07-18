@@ -1,5 +1,7 @@
 # Examples Directory
 
+**Version 0.1**
+
 This directory contains example applications demonstrating various aspects of V8 C++ integration, from basic usage to advanced patterns.
 
 ## Building Examples
