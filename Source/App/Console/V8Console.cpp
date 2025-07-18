@@ -205,12 +205,19 @@ void V8Console::RunRepl() {
                 filename.erase(0, filename.find_first_not_of(" \t"));
                 filename.erase(filename.find_last_not_of(" \t") + 1);
                 
-                std::cout << fg::cyan << "Loading: " << style::reset << filename;
+                // Remove quotes if present
+                if (!filename.empty() && filename.front() == '"' && filename.back() == '"') {
+                    filename = filename.substr(1, filename.length() - 2);
+                }
+                
+                std::cout << fg::cyan << "Loading: " << style::reset << "\"" << filename << "\"";
                 auto start = std::chrono::high_resolution_clock::now();
-                ExecuteFile(filename);
+                bool success = ExecuteFile(filename);
                 auto end = std::chrono::high_resolution_clock::now();
                 auto duration = end - start;
-                std::cout << fg::gray << " ⏱ " << FormatDuration(duration) << style::reset << std::endl;
+                if (success) {
+                    std::cout << fg::gray << " ⏱ " << FormatDuration(duration) << style::reset << std::endl;
+                }
             } else if (line.starts_with(".dll ")) {
                 std::string path = line.substr(5);
                 // Trim whitespace
@@ -245,8 +252,8 @@ void V8Console::RunRepl() {
 bool V8Console::ExecuteFile(const std::string& path) {
     std::string source = ReadFile(path);
     if (source.empty()) {
-        std::cerr << rang::fg::red << "Error: " << rang::style::reset 
-                  << "Could not read file: " << path << std::endl;
+        std::cerr << std::endl << rang::fg::red << "Error: " << rang::style::reset 
+                  << "Could not read file: \"" << path << "\"" << std::endl;
         return false;
     }
     
