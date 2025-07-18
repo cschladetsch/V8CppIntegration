@@ -62,6 +62,9 @@ bool V8Console::Initialize() {
         v8::Local<v8::Context> context = v8::Context::New(isolate_);
         context_.Reset(isolate_, context);
         
+        // Enter context scope before registering builtins
+        v8::Context::Scope context_scope(context);
+        
         // Register built-in functions
         RegisterBuiltins(context);
         
