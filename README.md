@@ -1,5 +1,7 @@
 # V8 C++ Integration <img src="Resources/Logo.png" alt="V8 C++ Integration Logo" width="58" style="vertical-align: middle"> 
 
+**Version 0.2** - Improved Compatibility and Code Quality
+
 This repository demonstrates how to build V8 and create bidirectional communication between C++ and JavaScript, with comprehensive examples and testing.
 
 ## Architecture
@@ -253,13 +255,13 @@ V8CppIntegration/
 
 ## Test Suite
 
-### ✅ Comprehensive Testing (160 Tests Total) - 100% Pass Rate
+### ✅ Comprehensive Testing (204 Tests Total) - 100% Pass Rate
 
 **Latest Test Results (All Tests Passing):**
-- 🚀 **Build Status**: SUCCESS - All examples and tests compiled with system V8
-- ⚡ **Performance**: Total execution time under 250ms
-- 🔧 **Compatibility**: Full V8 version compatibility via v8_compat layer
-- 🎯 **New Features**: Fibonacci DLL tests (6 tests) added to comprehensive test suite
+- 🚀 **Build Status**: SUCCESS - All examples and tests compiled with both system and local V8
+- ⚡ **Performance**: Total execution time under 300ms
+- 🔧 **Compatibility**: Enhanced V8 version compatibility (v11+ and older versions)
+- 🎯 **New Features**: V8Console tests (44 tests) and expanded test coverage
 
 #### ✅ Basic Test Suite (`Tests/Unit/BasicTests.cpp` - 40/40 tests passed)
 **Execution Time: 75ms**
@@ -387,11 +389,26 @@ V8CppIntegration/
 - Performance benchmarking (sum of first 45 Fibonacci numbers)
 - Edge case handling (very large numbers)
 
+#### ✅ V8Console Test Suite (`Tests/Unit/V8ConsoleTests.cpp` - 44/44 tests passed)
+**Execution Time: 65ms**
+
+**Coverage:**
+- V8 console initialization and shutdown
+- Command parsing and execution
+- JavaScript script evaluation
+- Built-in function registration (print, load, quit, etc.)
+- DLL loading and management functions
+- Error handling and exception reporting
+- Interactive mode vs script mode
+- History management and readline integration
+- Help system and command documentation
+- Variable listing and inspection
+
 ### Running Tests
 ```bash
-# Run all tests (160 tests total)
+# Run all tests (204 tests total)
 ./run_tests.sh
-# Expected output: [  PASSED  ] 160 tests
+# Expected output: [  PASSED  ] 204 tests
 
 # Run individual test suites
 ./build/BasicTests      # 40 tests, ~75ms
@@ -399,6 +416,7 @@ V8CppIntegration/
 ./build/IntegrationTests # 40 tests, ~62ms
 ./build/InteroperabilityTests # 34 tests, ~42ms
 ./build/FibonacciTests  # 6 tests, ~12ms
+./build/V8ConsoleTests  # 44 tests, ~65ms
 
 # Use CMake targets
 cmake --build build --target run_tests
@@ -410,6 +428,7 @@ cmake --build build --target run_all_tests
 ./build/IntegrationTests --gtest_output=xml:integration_tests.xml
 ./build/InteroperabilityTests --gtest_output=xml:interoperability_tests.xml
 ./build/FibonacciTests --gtest_output=xml:fibonacci_tests.xml
+./build/V8ConsoleTests --gtest_output=xml:v8console_tests.xml
 ```
 
 ### Test Environment
@@ -641,6 +660,61 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) provides:
 2. **V8 not found**: Install libv8-dev or build from source
 3. **Test failures**: Check V8 version compatibility
 4. **Memory issues**: V8 build requires 4-8GB RAM
+
+## Known Issues (v0.2)
+
+### Code Quality Review Findings
+Based on comprehensive code review, the following issues have been identified for future improvements:
+
+1. **Memory Management**: 
+   - V8Console allocator cleanup needs improvement
+   - Some examples still have minor memory leaks in native object creation
+
+2. **Error Handling**:
+   - Several `ToLocalChecked()` calls should use `ToLocal()` with proper error handling
+   - Missing null checks in some string dereferencing operations
+   - `.Check()` calls that could crash on failure
+
+3. **Const Correctness**:
+   - String parameters in v8_compat.h should be passed by const reference
+   - Performance impact from unnecessary string copies
+
+4. **Platform Support**: 
+   - DLL loading uses POSIX-specific functions (dlopen/dlsym)
+   - Currently Linux-focused, Windows support needs improvement
+
+5. **Security**:
+   - No sandboxing for loaded DLLs
+   - Limited validation of DLL functions before registration
+
+6. **Resource Management**:
+   - Static V8 platform in tests is never cleaned up
+   - Some worker threads need proper termination mechanisms
+
+These issues are documented for transparency and will be addressed in subsequent releases.
+
+## Release History
+
+### Version 0.2 (2025-07-18)
+- ✅ 204 tests passing (100% pass rate)
+- ✅ Enhanced V8 compatibility (v11+ and older versions)
+- ✅ Fixed ScriptOrigin API compatibility issues
+- ✅ Improved build scripts with minimal V8 download support
+- ✅ Reorganized shell scripts to snake_case naming
+- ✅ Added V8Console test suite (44 tests)
+- ✅ Cleaned up redundant files and code
+- ✅ Added .clang-tidy configuration
+- ✅ Comprehensive code quality review completed
+- ✅ Updated documentation with known issues
+
+### Version 0.1 (Initial Release)
+- ✅ Complete V8 integration framework
+- ✅ Interactive V8 console with DLL hot-loading
+- ✅ Comprehensive test suite with GTest
+- ✅ Multiple example applications
+- ✅ CMake build system with V8 detection
+- ✅ Docker support
+- ✅ CI/CD pipeline ready
 
 ## License
 
