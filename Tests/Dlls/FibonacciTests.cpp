@@ -35,8 +35,20 @@ protected:
         isolate = Isolate::New(create_params);
         
         // Load the Fibonacci DLL
-        dll_handle = dlopen("./Bin/Fib.so", RTLD_LAZY);
-        ASSERT_NE(dll_handle, nullptr) << "Failed to load Fib.so: " << dlerror();
+        // Try multiple paths to find the library
+        const char* paths[] = {
+            "../Bin/Fib.so",           // From build directory
+            "./Bin/Fib.so",            // From project root
+            "Bin/Fib.so",              // Relative
+            nullptr
+        };
+        
+        for (const char** path = paths; *path != nullptr; ++path) {
+            dll_handle = dlopen(*path, RTLD_LAZY);
+            if (dll_handle) break;
+        }
+        
+        ASSERT_NE(dll_handle, nullptr) << "Failed to load Fib.so from any path. Last error: " << dlerror();
     }
     
     void TearDown() override {

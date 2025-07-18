@@ -122,11 +122,47 @@ echo "=========================="
 echo "Note: This will preserve existing build state and skip steps that are already complete."
 echo ""
 
+# Parse command line arguments
+FORCE_UPDATE=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --force)
+            FORCE_UPDATE="--force"
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: $0 [options]"
+            echo ""
+            echo "Options:"
+            echo "  --force    Force update V8 even if already present"
+            echo "  --help     Show this help message"
+            echo ""
+            echo "By default, this script will:"
+            echo "  - Skip V8 updates if V8 was updated within the last 7 days"
+            echo "  - Skip V8 build if already built"
+            echo ""
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
 # Run the build script with V8 setup and build options
+# Use --skip-update by default unless --force is specified
+if [ -n "$FORCE_UPDATE" ]; then
+    SETUP_FLAGS="--setup-v8 $FORCE_UPDATE"
+else
+    SETUP_FLAGS="--setup-v8"
+fi
+
 if [ -x "./build.sh" ]; then
-    ./build.sh --setup-v8 --build-v8
-elif [ -x "$SCRIPT_DIR/Scripts/Build/Build.sh" ]; then
-    "$SCRIPT_DIR/Scripts/Build/Build.sh" --setup-v8 --build-v8
+    ./build.sh $SETUP_FLAGS --build-v8
+elif [ -x "$SCRIPT_DIR/Scripts/Build/build.sh" ]; then
+    "$SCRIPT_DIR/Scripts/Build/build.sh" $SETUP_FLAGS --build-v8
 else
     echo "ERROR: Could not find build.sh script"
     exit 1

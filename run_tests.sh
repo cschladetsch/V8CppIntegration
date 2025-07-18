@@ -3,4 +3,4 @@
 # Top-level test runner that calls the main test script in Shell/
 # This provides a convenient way to run tests from the project root
 
-exec ./Scripts/Testing/RunTests.sh "$@"
+exec ./shell_tests/run_tests.sh "$@"
