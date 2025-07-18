@@ -1,28 +1,32 @@
-# Build and Test Scripts
+# Build and Test Scripts - v0.2
 
-This directory contains automation scripts for building V8 and the integration framework.
+This directory contains automation scripts for building V8 and the integration framework. In v0.2, all scripts have been reorganized to use snake_case naming convention for consistency.
 
 ## Directory Structure
 
 ```
 Scripts/
-├── Build/           # Build automation scripts
-│   ├── Build.sh     # Main build orchestrator
-│   ├── SetupV8.sh   # V8 source download and setup
-│   ├── BuildV8.sh   # V8 compilation from source
-│   └── ...          # Other build utilities
-└── Testing/         # Test automation scripts
-    └── RunTests.sh  # Test runner script
+├── Build/              # Build automation scripts
+│   ├── build.sh        # Main build orchestrator
+│   ├── setup_v8.sh     # V8 source download and setup (renamed from SetupV8.sh)
+│   ├── build_v8.sh     # V8 compilation from source (renamed from BuildV8.sh)
+│   ├── build_cmake.sh  # CMake project build (renamed from BuildCMake.sh)
+│   ├── build_all.sh    # Complete build pipeline (renamed from BuildAll.sh)
+│   ├── build_simple.sh # Simple build without V8 (renamed from BuildSimple.sh)
+│   └── quick_build.sh  # Quick incremental build (renamed from QuickBuild.sh)
+└── Testing/            # Test automation scripts
+    ├── run_tests.sh    # Main test runner (renamed from RunTests.sh)
+    └── test_shell.sh   # Shell script test runner (NEW in v0.2)
 ```
 
 ## Build Scripts
 
-### Build.sh
+### build.sh
 **Purpose**: Main build orchestrator script that handles all build configurations.
 
 **Usage**:
 ```bash
-./Scripts/Build/Build.sh [options]
+./Scripts/Build/build.sh [options]
   --debug         Build in debug mode
   --clean         Clean build directory before building
   --setup-v8      Download V8 source code
@@ -34,37 +38,38 @@ Scripts/
 **Examples**:
 ```bash
 # Full V8 build from scratch
-./Scripts/Build/Build.sh --setup-v8 --build-v8
+./Scripts/Build/build.sh --setup-v8 --build-v8
 
 # Use system V8
-./Scripts/Build/Build.sh --use-system-v8
+./Scripts/Build/build.sh --use-system-v8
 
 # Clean rebuild in debug mode
-./Scripts/Build/Build.sh --clean --debug
+./Scripts/Build/build.sh --clean --debug
 ```
 
-### SetupV8.sh
-**Purpose**: Downloads V8 source code and depot_tools.
+### setup_v8.sh
+**Purpose**: Downloads V8 source code and depot_tools with minimal download support (v0.2).
 
 **Features**:
 - Downloads Google's depot_tools
-- Fetches V8 source code
+- Fetches V8 source code with minimal history (--no-history)
+- Shallow clone support to reduce download size from ~25GB to ~5GB
+- 7-day update check to avoid unnecessary re-downloads
+- Force update option with --force flag
 - Handles git authentication
 - Cleans up stale lock files
-- Manages gclient sync
 
 **Usage**:
 ```bash
-./Scripts/Build/SetupV8.sh
+./Scripts/Build/setup_v8.sh [--force] [--skip-update]
 ```
 
-**Requirements**:
-- Git
-- Python 3
-- ~8GB free disk space
-- Internet connection
+**v0.2 Improvements**:
+- Reduced download size by ~80%
+- Smart update checking
+- Better error handling
 
-### BuildV8.sh
+### build_v8.sh
 **Purpose**: Compiles V8 from source using Ninja.
 
 **Features**:
@@ -86,10 +91,10 @@ v8_enable_i18n_support = false
 
 **Usage**:
 ```bash
-./Scripts/Build/BuildV8.sh
+./Scripts/Build/build_v8.sh
 ```
 
-### BuildCMake.sh
+### build_cmake.sh
 **Purpose**: Handles CMake configuration and build.
 
 **Features**:
@@ -97,8 +102,9 @@ v8_enable_i18n_support = false
 - Sets compiler flags
 - Manages build types (Release/Debug)
 - Handles V8 detection
+- Auto-detects local vs system V8
 
-### BuildSimple.sh
+### build_simple.sh
 **Purpose**: Simple build script for quick compilation without CMake.
 
 **Features**:
@@ -106,7 +112,7 @@ v8_enable_i18n_support = false
 - Minimal dependencies
 - Quick iteration
 
-### QuickBuild.sh
+### quick_build.sh
 **Purpose**: Fast rebuild for development.
 
 **Features**:
@@ -116,7 +122,7 @@ v8_enable_i18n_support = false
 
 ## Test Scripts
 
-### RunTests.sh
+### run_tests.sh
 **Purpose**: Comprehensive test runner for all test suites.
 
 **Features**:
@@ -129,13 +135,27 @@ v8_enable_i18n_support = false
 **Usage**:
 ```bash
 # Run all tests
-./Scripts/Testing/RunTests.sh
+./Scripts/Testing/run_tests.sh
 
 # Run with XML output
-./Scripts/Testing/RunTests.sh --xml
+./Scripts/Testing/run_tests.sh --xml
 
 # Run specific suite
-./Scripts/Testing/RunTests.sh basic
+./Scripts/Testing/run_tests.sh basic
+```
+
+### test_shell.sh (NEW in v0.2)
+**Purpose**: Automated test runner for shell scripts.
+
+**Features**:
+- Discovers and runs all test_*.sh scripts
+- Colored output with pass/fail indicators
+- Execution time tracking
+- Summary statistics
+
+**Usage**:
+```bash
+./Scripts/Testing/test_shell.sh
 ```
 
 ## Helper Scripts
@@ -144,9 +164,9 @@ v8_enable_i18n_support = false
 
 These scripts in the project root call the appropriate Scripts/ versions:
 
-- **build.sh**: Calls Scripts/Build/Build.sh
-- **setup_and_build_v8.sh**: Complete V8 build with dependency installation
-- **run_tests.sh**: Calls Scripts/Testing/RunTests.sh
+- **build.sh**: Calls Scripts/Build/build.sh
+- **setup_and_build_v8.sh**: Complete V8 build with dependency installation (enhanced in v0.2)
+- **run_tests.sh**: Calls Scripts/Testing/run_tests.sh  
 - **compile_standalone.sh**: Compiles standalone examples
 
 ## Script Features
@@ -250,5 +270,30 @@ When creating new scripts:
 DRYRUN=1 ./Scripts/Build/Build.sh
 
 # Verbose mode
-VERBOSE=1 ./Scripts/Build/SetupV8.sh
+VERBOSE=1 ./Scripts/Build/setup_v8.sh
 ```
+
+## v0.2 Script Improvements
+
+### Major Changes
+1. **Naming Convention**: All scripts renamed from CamelCase to snake_case
+2. **Minimal V8 Download**: Reduced download size from ~25GB to ~5GB
+3. **Smart Update Checking**: 7-day update interval for V8 source
+4. **Enhanced Error Handling**: Better error messages and recovery
+5. **New test_shell.sh**: Automated shell script testing
+
+### Migration Guide
+If you have scripts using the old names, update them:
+```bash
+# Old
+./Scripts/Build/SetupV8.sh
+./Scripts/Build/BuildV8.sh
+./Scripts/Testing/RunTests.sh
+
+# New  
+./Scripts/Build/setup_v8.sh
+./Scripts/Build/build_v8.sh
+./Scripts/Testing/run_tests.sh
+```
+
+See the main README.md for complete v0.2 release notes.

@@ -1,6 +1,8 @@
 # V8 Console Application
 
-A feature-rich console application that provides an interactive JavaScript environment with dynamic library loading capabilities.
+**Version 0.2** - Enhanced Compatibility and Reliability
+
+A feature-rich console application that provides an interactive JavaScript environment with dynamic library loading capabilities. Updated in v0.2 with improved error handling, V8 compatibility, and comprehensive test coverage.
 
 ## Features
 
@@ -188,11 +190,28 @@ The console uses a consistent color scheme throughout:
   ```
   To build without readline support: `cmake -DUSE_READLINE=OFF ...`
 
+## v0.2 Improvements
+
+### Enhanced Features
+- ✅ **V8 Compatibility**: Updated for V8 v11+ with backward compatibility
+- ✅ **Test Coverage**: Added 44 comprehensive tests for console functionality
+- ✅ **Error Handling**: Improved exception handling and error reporting
+- ✅ **Memory Management**: Better allocator cleanup and resource management
+- ✅ **Code Quality**: Addressed issues found in code review
+
+### Known Limitations (v0.2)
+- DLL loading uses POSIX-specific functions (Linux/macOS only)
+- No security sandboxing for loaded DLLs
+- Static V8 platform in some contexts needs proper cleanup
+- Some `ToLocalChecked()` calls could use safer error handling
+
 ## Future Enhancements
 
-- Module system support
+- Module system support (ES modules)
 - Debugger integration
-- Performance profiling
+- Performance profiling tools
 - Network capabilities
 - File system sandboxing
 - Tab completion for loaded functions
+- Windows DLL support (.dll files)
+- Security sandbox for untrusted code

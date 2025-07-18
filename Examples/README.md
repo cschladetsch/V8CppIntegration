@@ -1,8 +1,8 @@
 # Examples Directory
 
-**Version 0.1**
+**Version 0.2** - Enhanced Compatibility and Code Quality
 
-This directory contains example applications demonstrating various aspects of V8 C++ integration, from basic usage to advanced patterns.
+This directory contains example applications demonstrating various aspects of V8 C++ integration, from basic usage to advanced patterns. All examples have been updated for v0.2 with improved V8 compatibility and better error handling.
 
 ## Building Examples
 
@@ -317,9 +317,23 @@ Minimal JavaScript examples:
 2. Use LLVM's lld linker (-fuse-ld=lld)
 3. Link against V8's bundled libc++ and libc++abi
 
+## Known Issues and Improvements (v0.2)
+
+As of version 0.2, the following improvements have been made:
+- ✅ Fixed ScriptOrigin API compatibility for V8 v11+
+- ✅ Enhanced error handling with proper `ToLocal()` checks
+- ✅ Improved memory management patterns
+- ✅ Better const correctness in API usage
+
+### Remaining Considerations
+- Some examples still use `ToLocalChecked()` where `ToLocal()` with error handling would be safer
+- Platform-specific code (DLL loading) is currently Linux/POSIX focused
+- Consider adding Windows-specific examples in future releases
+
 ## Additional Resources
 
 - [V8 Embedder's Guide](https://v8.dev/docs/embed)
 - [V8 API Documentation](https://v8.github.io/api/head/)
-- Main project README for build instructions
-- Tests directory for more usage examples
+- Main project README for overall project context and v0.2 release notes
+- Tests directory for comprehensive usage examples
+- Include/v8_compat.h for V8 version compatibility helpers
