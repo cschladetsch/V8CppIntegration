@@ -23,6 +23,7 @@ void V8Console::DisplayHelp() {
     printCommand(".clear", "Clear the screen");
     printCommand(".help", "Show this help message");
     printCommand(".quit", "Exit the console");
+    printCommand("!<command>", "Execute a shell command");
     
     std::cout << "\n" << style::bold << fg::yellow << "JavaScript Functions:" << style::reset << "\n";
     

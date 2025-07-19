@@ -76,6 +76,9 @@ private:
     void PrettyPrintJSON(const std::string& json, int indent = 0);
     bool IsJSON(v8::Local<v8::Value> value);
     
+    // Execute shell command
+    bool ExecuteShellCommand(const std::string& command);
+    
     // REPL state
     bool shouldQuit_ = false;
     std::string historyPath_;

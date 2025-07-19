@@ -189,8 +189,17 @@ void V8Console::RunRepl() {
         
         if (line.empty()) continue;
         
+        // Handle shell commands
+        if (line[0] == '!') {
+            std::string command = line.substr(1);
+            // Trim leading whitespace
+            command.erase(0, command.find_first_not_of(" \t"));
+            if (!command.empty()) {
+                ExecuteShellCommand(command);
+            }
+        }
         // Handle commands
-        if (line[0] == '.' || line == "?") {
+        else if (line[0] == '.' || line == "?") {
             if (line == ".quit" || line == ".exit") {
                 break;
             } else if (line == ".help" || line == "?") {
@@ -310,4 +319,21 @@ std::string V8Console::ReadFile(const std::string& path) {
                           std::istreambuf_iterator<char>{}};
     }
     return "";
+}
+
+bool V8Console::ExecuteShellCommand(const std::string& command) {
+    namespace fg = rang::fg;
+    namespace style = rang::style;
+    
+    std::cout << fg::cyan << "Shell: " << style::reset << command << std::endl;
+    
+    int result = std::system(command.c_str());
+    
+    if (result != 0) {
+        std::cerr << fg::red << "Command failed with exit code: " << style::reset 
+                  << WEXITSTATUS(result) << std::endl;
+        return false;
+    }
+    
+    return true;
 }
