@@ -152,7 +152,6 @@ V8CppIntegration/
 ├── .github/workflows/      # CI/CD pipeline configuration
 ├── Bin/                    # Compiled binaries and runtime files
 │   ├── v8console           # Interactive V8 REPL console
-│   ├── demo.js             # Comprehensive demo script
 │   ├── demo_minimal.js     # Minimal demo for embedded V8
 │   └── Fib.so             # Example DLL
 ├── CMake/                  # CMake modules
@@ -177,6 +176,15 @@ V8CppIntegration/
 │   └── v8_integration/     # Framework headers
 ├── Monitoring/             # Monitoring configuration
 ├── Scripts/                # Build and test scripts
+│   ├── Build/              # Build scripts
+│   ├── JavaScript/         # JavaScript test and demo files
+│   │   ├── demo.js
+│   │   ├── screentogif_demo.js
+│   │   ├── screentogif_slow_demo.js
+│   │   ├── test_console.js
+│   │   ├── test_fib.js
+│   │   ├── test_minimal.js
+│   │   └── v8console_test.js
 │   ├── Build/              # Build scripts
 │   │   ├── Build.sh
 │   │   ├── BuildAll.sh
@@ -203,7 +211,7 @@ V8CppIntegration/
 │   ├── Integration/        # Integration tests
 │   │   ├── IntegrationTests.cpp
 │   │   ├── InteroperabilityTests.cpp
-│   │   └── test_console.js
+│   │   └── IntegrationTests.js
 │   ├── Performance/        # Performance benchmarks
 │   │   └── BenchmarkTests.cpp
 │   └── Unit/               # Unit tests

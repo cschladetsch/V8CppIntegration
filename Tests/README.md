@@ -16,7 +16,7 @@ Tests/
 ├── Integration/             # Integration tests
 │   ├── IntegrationTests.cpp # 40 tests - Complex integrations
 │   ├── InteroperabilityTests.cpp # 34 tests - C++/JS interop
-│   └── test_console.js      # Console application tests
+│   └── (JavaScript tests moved to Scripts/JavaScript/)
 ├── Dlls/                    # DLL-specific tests
 │   └── FibonacciTests.cpp   # 6 tests - Fibonacci DLL functionality
 ├── Performance/             # Performance benchmarks
