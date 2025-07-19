@@ -39,7 +39,7 @@ sudo apt-get update
 sudo apt-get install -y clang libc++-dev libc++abi-dev
 
 # Build V8 from source (takes 30-45 minutes)
-./setup_and_build_v8.sh
+./ShellScripts/setup_and_build_v8.sh
 
 # Build v8console with local V8
 cmake -B build -DUSE_SYSTEM_V8=OFF
@@ -58,7 +58,7 @@ cmake --build build --target v8console
 
 Built automatically with the main project:
 ```bash
-./build.sh
+./ShellScripts/build.sh
 ```
 
 ## Usage

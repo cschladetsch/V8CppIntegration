@@ -15,10 +15,10 @@ Precompiled headers are enabled by default and significantly reduce compilation 
 ### Usage:
 ```bash
 # Build with PCH (default)
-./build.sh
+./ShellScripts/build.sh
 
 # Disable PCH
-./build.sh --no-pch
+./ShellScripts/build.sh --no-pch
 ```
 
 ### CMake Option:
@@ -33,7 +33,7 @@ Unity builds compile multiple source files as one translation unit, reducing red
 ### Usage:
 ```bash
 # Enable unity builds
-./build.sh --unity
+./ShellScripts/build.sh --unity
 ```
 
 ### CMake Option:
@@ -63,10 +63,10 @@ By default, the build uses all available CPU cores.
 ### Usage:
 ```bash
 # Use all cores (default)
-./build.sh
+./ShellScripts/build.sh
 
 # Use specific number of jobs
-./build.sh -j4
+./ShellScripts/build.sh -j4
 ```
 
 ## Compiler Optimizations
@@ -94,25 +94,25 @@ Typical build time improvements with optimizations enabled:
 
 1. **For development**: Use PCH with default settings
    ```bash
-   ./build.sh
+   ./ShellScripts/build.sh
    ```
 
 2. **For CI/CD**: Enable all optimizations
    ```bash
-   ./build.sh --unity
+   ./ShellScripts/build.sh --unity
    ```
 
 3. **For debugging build issues**: Disable optimizations
    ```bash
-   ./build.sh --no-pch --debug
+   ./ShellScripts/build.sh --no-pch --debug
    ```
 
 ## Troubleshooting
 
 ### PCH Issues
 If you encounter issues with precompiled headers:
-1. Clean build: `./build.sh --clean`
-2. Disable PCH: `./build.sh --no-pch`
+1. Clean build: `./ShellScripts/build.sh --clean`
+2. Disable PCH: `./ShellScripts/build.sh --no-pch`
 
 ### Unity Build Issues
 Unity builds may cause issues with:

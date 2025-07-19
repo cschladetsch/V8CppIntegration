@@ -60,7 +60,7 @@ DLLs are built automatically with the main project:
 
 ```bash
 # Build all DLLs
-./build.sh --system-v8
+./ShellScripts/build.sh --system-v8
 
 # DLLs will be placed in the Bin directory
 ls -la Bin/*.so
@@ -127,7 +127,7 @@ configure_v8_target(MyDll)
 
 ```bash
 # Build the project
-./build.sh --system-v8
+./ShellScripts/build.sh --system-v8
 
 # Test in console
 ./Bin/v8console -i ./Bin/MyDll.so

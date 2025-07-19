@@ -128,10 +128,10 @@ cmake --build build --target BidirectionalExample
 
 ```bash
 # Build with V8 from source
-./setup_and_build_v8.sh
+./ShellScripts/setup_and_build_v8.sh
 
 # Or build with existing V8
-./build.sh
+./ShellScripts/build.sh
 
 # Build and run standalone example
 ./compile_standalone.sh

@@ -17,7 +17,7 @@ These DLLs can be loaded at runtime by the V8 console or any V8 integration proj
 
 The DLLs are built automatically as part of the main project build:
 ```bash
-./build.sh
+./ShellScripts/build.sh
 ```
 
 ## Usage

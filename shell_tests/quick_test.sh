@@ -65,7 +65,7 @@ V8_DIR="$PROJECT_ROOT/v8"
 if [ ! -d "$V8_DIR" ] || [ ! -f "$V8_DIR/out/x64.release/obj/libv8_monolith.a" ]; then
     echo "Warning: V8 not found or not built at $V8_DIR"
     echo "This test requires V8 to be built first."
-    echo "To build V8, run: ./setup_and_build_v8.sh"
+    echo "To build V8, run: ./ShellScripts/setup_and_build_v8.sh"
     echo "Skipping test..."
     # Clean up temp file
     rm -f "$TEST_FILE"
@@ -104,7 +104,7 @@ else
     echo "2. System libc++ version mismatch"
     echo ""
     echo "To fix: rebuild V8 with current Clang:"
-    echo "  cd $PROJECT_ROOT && ./build.sh --build-v8"
+    echo "  cd $PROJECT_ROOT && ./ShellScripts/build.sh --build-v8"
     
     # Cleanup on failure
     rm -f "$TEST_FILE" "$SCRIPT_DIR/test_v8.o"
