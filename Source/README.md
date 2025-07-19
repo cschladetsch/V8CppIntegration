@@ -41,7 +41,7 @@ The console application (`v8console`) provides:
 
 The console app is built as part of the main project:
 ```bash
-./build.sh
+./ShellScripts/build.sh
 # Binary will be in /Bin/v8console
 ```
 

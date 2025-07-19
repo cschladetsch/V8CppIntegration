@@ -45,7 +45,7 @@ cmake --build build
 ### Quick Start
 ```bash
 # Run all tests (204 tests)
-./run_tests.sh
+./ShellScripts/run_tests.sh
 
 # Run individual test suites
 ./build/BasicTests

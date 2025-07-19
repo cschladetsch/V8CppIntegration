@@ -30,7 +30,7 @@ cmake --build build
 sudo apt-get install -y clang libc++-dev libc++abi-dev
 
 # Then build V8
-../../setup_and_build_v8.sh
+../../ShellScripts/setup_and_build_v8.sh
 ```
 
 ## Main Scripts

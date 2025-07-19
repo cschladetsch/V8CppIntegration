@@ -53,7 +53,7 @@ services:
       - ./coverage:/app/coverage
     command: >
       sh -c "
-        ./run_tests.sh &&
+        ./ShellScripts/run_tests.sh &&
         lcov --capture --directory . --output-file coverage/coverage.info &&
         genhtml coverage/coverage.info --output-directory coverage/html
       "

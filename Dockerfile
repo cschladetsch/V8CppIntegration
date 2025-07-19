@@ -48,14 +48,14 @@ COPY --from=builder /app/build/v8_example /app/
 COPY --from=builder /app/build/advanced_example /app/
 COPY --from=builder /app/build/test_suite /app/
 COPY --from=builder /app/build/advanced_test_suite /app/
-COPY --from=builder /app/run_tests.sh /app/
+COPY --from=builder /app/ShellScripts/run_tests.sh /app/
 
 # Copy configuration files
 COPY --from=builder /app/config/ /app/config/
 COPY --from=builder /app/docs/ /app/docs/
 
 # Set permissions
-RUN chmod +x /app/run_tests.sh && \
+RUN chmod +x /app/ShellScripts/run_tests.sh && \
     chmod +x /app/*_example && \
     chmod +x /app/test_suite && \
     chmod +x /app/advanced_test_suite && \
@@ -69,7 +69,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD /app/system_v8_example || exit 1
 
 # Default command
-CMD ["./run_tests.sh"]
+CMD ["./ShellScripts/run_tests.sh"]
 
 # Development stage
 FROM builder AS development

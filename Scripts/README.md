@@ -234,16 +234,16 @@ export PATH="$PWD/depot_tools:$PATH"
 ### Initial Setup
 ```bash
 # First time setup
-./setup_and_build_v8.sh
+./ShellScripts/setup_and_build_v8.sh
 ```
 
 ### Daily Development
 ```bash
 # Quick rebuild
-./build.sh
+./ShellScripts/build.sh
 
 # Run tests
-./run_tests.sh
+./ShellScripts/run_tests.sh
 ```
 
 ### Adding New Scripts
