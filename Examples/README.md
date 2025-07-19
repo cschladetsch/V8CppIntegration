@@ -290,10 +290,10 @@ Features demonstrated:
 - Performance testing
 - Interactive output
 
-### Bin/demo.js
+### Scripts/JavaScript/demo.js
 Comprehensive JavaScript feature showcase:
 ```bash
-./Bin/v8console Bin/demo.js
+./Bin/v8console Scripts/JavaScript/demo.js
 ```
 
 Features demonstrated:

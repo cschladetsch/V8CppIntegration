@@ -35,7 +35,7 @@ sleep 1
 
 # Run the slow demo
 ./Bin/v8console -i ./Bin/Fib.so << 'EOF'
-.load screentogif_slow_demo.js
+.load Scripts/JavaScript/screentogif_slow_demo.js
 .quit
 EOF
 

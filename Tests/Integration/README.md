@@ -14,7 +14,7 @@ Integration tests ensure that different parts of the system work together proper
 - Tests interoperability between JavaScript and C++ objects
 - Validates error handling across language boundaries
 
-### v8console_test.js
+### Scripts/JavaScript/v8console_test.js
 - Comprehensive test suite for V8Console functionality
 - Tests all built-in functions and commands
 - Verifies JavaScript language features
@@ -31,7 +31,7 @@ Integration tests ensure that different parts of the system work together proper
 ./Bin/IntegrationTests
 
 # Run JavaScript console tests
-./Bin/v8console ./Tests/Integration/v8console_test.js
+./Bin/v8console ./Scripts/JavaScript/v8console_test.js
 ```
 
 ## Test Coverage
@@ -55,7 +55,7 @@ The integration tests verify:
 4. Ensure proper cleanup in teardown
 
 ### JavaScript Integration Tests
-1. Create new .js test files or extend v8console_test.js
+1. Create new .js test files in Scripts/JavaScript/ or extend v8console_test.js
 2. Use the assert() function for test assertions
 3. Test console-specific features
 4. Include error handling tests

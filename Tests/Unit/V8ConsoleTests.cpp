@@ -28,6 +28,6 @@ TEST(DllLoaderTest, ReloadNonExistent) {
 // comprehensive V8Console testing is done through:
 // 1. The v8console executable for interactive testing
 // 2. Integration tests in the main test suites
-// 3. The demo.js script that exercises all functionality
+// 3. The Scripts/JavaScript/demo.js script that exercises all functionality
 //
 // This ensures proper testing while avoiding V8 initialization conflicts

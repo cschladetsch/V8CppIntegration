@@ -13,8 +13,8 @@ echo
 
 echo "Choose a demo to run:"
 echo "  1) Interactive V8 Console with Fibonacci DLL"
-echo "  2) JavaScript Feature Showcase (screentogif_demo.js)"
-echo "  3) Full Demo Suite (demo.js)"
+echo "  2) JavaScript Feature Showcase (Scripts/JavaScript/screentogif_demo.js)"
+echo "  3) Full Demo Suite (Scripts/JavaScript/demo.js)"
 echo "  4) Bidirectional C++ ↔ JS Communication"
 echo "  5) Advanced Features Demo"
 echo "  6) Run All Tests (204 tests)"
@@ -32,12 +32,12 @@ case $choice in
     2)
         echo -e "\n🎬 Running Screen Recording Demo...\n"
         sleep 1
-        ./Bin/v8console < screentogif_demo.js
+        ./Bin/v8console < Scripts/JavaScript/screentogif_demo.js
         ;;
     3)
         echo -e "\n📋 Running Full Demo Suite...\n"
         sleep 1
-        cd Bin && ./v8console -i ./Fib.so -f demo.js
+        cd Bin && ./v8console -i ./Fib.so -f ../Scripts/JavaScript/demo.js
         ;;
     4)
         echo -e "\n🔄 Running Bidirectional Example...\n"
@@ -59,7 +59,7 @@ case $choice in
         echo "Tip: Try these commands:"
         echo "  - loadDll('./Bin/Fib.so')"
         echo "  - fib(10)"
-        echo "  - .load demo.js"
+        echo "  - .load Scripts/JavaScript/demo.js"
         echo "  - .help"
         echo
         sleep 2
