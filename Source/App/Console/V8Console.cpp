@@ -361,7 +361,7 @@ std::string V8Console::ReadFile(const std::string& path) {
 bool V8Console::ExecuteShellCommand(const std::string& command) {
     using namespace rang;
     
-    std::cout << fg::cyan << "Shell: " << style::reset << command << std::endl;
+    std::cout << command << std::endl;
     
     int result = std::system(command.c_str());
     
