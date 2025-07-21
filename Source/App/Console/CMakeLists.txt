@@ -13,13 +13,12 @@ configure_file(
 )
 
 # Find Boost.ProgramOptions
-find_package(Boost QUIET COMPONENTS program_options)
+find_package(Boost REQUIRED COMPONENTS program_options)
 if(NOT Boost_FOUND)
-    message(STATUS "Boost.ProgramOptions not found on system.")
-    message(FATAL_ERROR "Please install Boost.ProgramOptions:\n"
+    message(FATAL_ERROR "Boost.ProgramOptions is required. Please install:\n"
                         "  Ubuntu/Debian: sudo apt-get install libboost-program-options-dev\n"
                         "  macOS: brew install boost\n"
-                        "  Or disable v8console target")
+                        "  Windows: vcpkg install boost-program-options")
 endif()
 
 # V8 Console Application
@@ -52,7 +51,7 @@ endif()
 
 # Option to disable readline (enabled by default)
 option(USE_READLINE "Use GNU Readline for enhanced console features" ON)
-option(AUTO_INSTALL_READLINE "Automatically install readline if missing (requires sudo)" ON)
+option(AUTO_INSTALL_READLINE "Automatically install readline if missing (requires sudo)" OFF)
 
 # Find readline if enabled
 if(USE_READLINE)

@@ -70,7 +70,7 @@ else()
     message(STATUS "No local V8 found, will try system V8 by default")
 endif()
 
-option(USE_SYSTEM_V8 "Use system-installed V8 instead of building from source" ${DEFAULT_USE_SYSTEM_V8})
+option(USE_SYSTEM_V8 "Use system-installed V8 instead of building from source" ON)
 option(ENABLE_TESTING "Enable testing" ON)
 option(ENABLE_BENCHMARKS "Enable benchmarks" OFF)
 option(ENABLE_COVERAGE "Enable code coverage" OFF)

@@ -6,6 +6,9 @@
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
+#include <regex>
+#include <algorithm>
+#include <unistd.h>
 #include <libplatform/libplatform.h>
 #include <rang/rang.hpp>
 #include <v8_compat.h>
@@ -125,12 +128,17 @@ void V8Console::RunRepl(bool quiet) {
     // Initialize history
     using_history();
     
-    // Load history from file
+    // Load history and config from home directory
     if (const char* home = std::getenv("HOME")) {
         historyPath_ = fs::path(home) / ".v8console.history";
+        configPath_ = fs::path(home) / ".v8shellrc";
         read_history(historyPath_.c_str());
     }
 #endif
+    
+    // Load shell configuration (aliases, environment, etc.)
+    LoadConfig();
+    LoadPromptConfig();
     
     // Store quiet mode
     quietMode_ = quiet;
@@ -139,7 +147,7 @@ void V8Console::RunRepl(bool quiet) {
         // Reset terminal settings
         std::cout << "\033c\033[?1000l\033[?1002l\033[?1003l\033[?1049l";
         
-        std::cout << style::bold << fg::cyan << "V8 Console - Interactive Mode" << style::reset << std::endl;
+        std::cout << style::bold << fg::cyan << "V8 Shell - Interactive Mode" << style::reset << std::endl;
         std::cout << fg::gray << "Built on " << BUILD_DATE << " at " << BUILD_TIME << style::reset << std::endl;
         std::cout << fg::yellow << "Commands: " << style::reset 
                   << fg::magenta << ".load <file>" << style::reset << ", "
@@ -150,10 +158,10 @@ void V8Console::RunRepl(bool quiet) {
                   << fg::magenta << ".clear" << style::reset << ", "
                   << fg::magenta << ".help" << style::reset << ", "
                   << fg::magenta << ".quit" << style::reset << std::endl;
-        std::cout << fg::yellow << "Shell: " << style::reset 
-                  << "Use " << fg::magenta << "!command" << style::reset 
-                  << " to execute shell commands" << std::endl;
-        std::cout << "Type JavaScript code or commands:" << std::endl;
+        std::cout << fg::yellow << "Mode: " << style::reset 
+                  << "Shell commands by default, use " << fg::magenta << "&" << style::reset 
+                  << " prefix for JavaScript" << std::endl;
+        std::cout << "Type shell commands or " << fg::magenta << "&<javascript>" << style::reset << ":" << std::endl;
         std::cout << std::endl;
     }
     
@@ -165,10 +173,25 @@ void V8Console::RunRepl(bool quiet) {
     std::string line;
     while (!shouldQuit_) {
 #ifndef NO_READLINE
-        // Use readline for input
-        // For readline, we need to mark non-printing characters with \001 and \002
-        std::string prompt = "\001\033[34m\002λ \001\033[0m\002";
-        char* line_cstr = readline(prompt.c_str());
+        // Build PowerLevel10k-style prompt
+        std::string promptStr = BuildPrompt();
+        
+        // Convert ANSI codes to readline format (wrap non-printing chars)
+        std::string readlinePrompt;
+        bool inEscape = false;
+        for (char c : promptStr) {
+            if (c == '\033') {
+                readlinePrompt += "\001\033";
+                inEscape = true;
+            } else if (inEscape && c == 'm') {
+                readlinePrompt += "m\002";
+                inEscape = false;
+            } else {
+                readlinePrompt += c;
+            }
+        }
+        
+        char* line_cstr = readline(readlinePrompt.c_str());
         
         if (!line_cstr) {
             // EOF (Ctrl+D)
@@ -189,7 +212,7 @@ void V8Console::RunRepl(bool quiet) {
         
         free(line_cstr);
 #else
-        std::cout << fg::blue << "λ " << style::reset;
+        std::cout << BuildPrompt();
         if (!std::getline(std::cin, line)) {
             // EOF (Ctrl+D)
             std::cout << std::endl;
@@ -199,16 +222,24 @@ void V8Console::RunRepl(bool quiet) {
         
         if (line.empty()) continue;
         
-        // Handle shell commands
-        if (line[0] == '!') {
-            std::string command = line.substr(1);
+        // Expand history references
+        line = ExpandHistory(line);
+        
+        // Handle JavaScript execution (preceded by &)
+        if (line[0] == '&') {
+            std::string jsCode = line.substr(1);
             // Trim leading whitespace
-            command.erase(0, command.find_first_not_of(" \t"));
-            if (!command.empty()) {
-                ExecuteShellCommand(command);
+            jsCode.erase(0, jsCode.find_first_not_of(" \t"));
+            if (!jsCode.empty()) {
+                // Execute JavaScript
+                auto start = std::chrono::high_resolution_clock::now();
+                ExecuteString(jsCode, "<repl>");
+                auto end = std::chrono::high_resolution_clock::now();
+                auto duration = end - start;
+                std::cout << fg::gray << " ⏱ " << FormatDuration(duration) << style::reset << std::endl;
             }
         }
-        // Handle commands
+        // Handle console commands
         else if (line[0] == '.' || line == "?") {
             if (line == ".quit" || line == ".exit") {
                 break;
@@ -295,12 +326,16 @@ void V8Console::RunRepl(bool quiet) {
                 std::cerr << rang::fg::red << "Unknown command: " << rang::style::reset << line << std::endl;
             }
         } else {
-            // Execute JavaScript
-            auto start = std::chrono::high_resolution_clock::now();
-            ExecuteString(line, "<repl>");
-            auto end = std::chrono::high_resolution_clock::now();
-            auto duration = end - start;
-            std::cout << fg::gray << " ⏱ " << FormatDuration(duration) << style::reset << std::endl;
+            // Default: Execute as shell command
+            // First check for aliases
+            std::string expandedCommand = line;
+            HandleAlias(expandedCommand);
+            
+            // Check for built-in commands
+            if (!HandleBuiltinCommand(expandedCommand)) {
+                // Execute as external shell command
+                ExecuteShellCommand(expandedCommand);
+            }
         }
     }
 }
@@ -319,12 +354,19 @@ bool V8Console::ExecuteFile(const std::string& path) {
 bool V8Console::ExecuteString(const std::string& source, const std::string& name) {
     if (!isolate_) return false;
     
+    // Store JS commands for history (prefixed with &)
+    if (name == "<repl>") {
+        lastCommand_ = "&" + source;
+    }
+    
     v8::Isolate::Scope isolate_scope(isolate_);
     v8::HandleScope handle_scope(isolate_);
     v8::Local<v8::Context> context = context_.Get(isolate_);
     v8::Context::Scope context_scope(context);
     
-    return CompileAndRun(source, name);
+    bool success = CompileAndRun(source, name);
+    lastExitCode_ = success ? 0 : 1;
+    return success;
 }
 
 bool V8Console::CompileAndRun(const std::string& source, const std::string& name) {
@@ -373,13 +415,1029 @@ bool V8Console::ExecuteShellCommand(const std::string& command) {
     
     std::cout << command << std::endl;
     
+    // Store the command for history expansion (before execution)
+    lastCommand_ = command;
+    
     int result = std::system(command.c_str());
+    lastExitCode_ = WEXITSTATUS(result);
     
     if (result != 0) {
         std::cerr << fg::red << "Command failed with exit code: " << style::reset 
-                  << WEXITSTATUS(result) << std::endl;
+                  << lastExitCode_ << std::endl;
         return false;
     }
     
     return true;
+}
+
+std::vector<std::string> V8Console::SplitCommand(const std::string& command) {
+    std::vector<std::string> words;
+    std::string current;
+    bool inQuotes = false;
+    char quoteChar = '\0';
+    
+    for (size_t i = 0; i < command.length(); ++i) {
+        char c = command[i];
+        
+        if ((c == '"' || c == '\'') && !inQuotes) {
+            inQuotes = true;
+            quoteChar = c;
+        } else if (c == quoteChar && inQuotes) {
+            inQuotes = false;
+            quoteChar = '\0';
+        } else if (std::isspace(c) && !inQuotes) {
+            if (!current.empty()) {
+                words.push_back(current);
+                current.clear();
+            }
+        } else {
+            current += c;
+        }
+    }
+    
+    if (!current.empty()) {
+        words.push_back(current);
+    }
+    
+    return words;
+}
+
+std::string V8Console::ExpandHistory(const std::string& line) {
+    if (lastCommand_.empty()) {
+        return line;
+    }
+    
+    std::string expanded = line;
+    
+    // Handle !! (entire last command)
+    size_t pos = expanded.find("!!");
+    while (pos != std::string::npos) {
+        expanded.replace(pos, 2, lastCommand_);
+        pos = expanded.find("!!", pos + lastCommand_.length());
+    }
+    
+    // Split last command into words for word-based expansions
+    auto lastWords = SplitCommand(lastCommand_);
+    
+    // Handle !:$ (last word)
+    pos = expanded.find("!:$");
+    while (pos != std::string::npos && !lastWords.empty()) {
+        expanded.replace(pos, 3, lastWords.back());
+        pos = expanded.find("!:$", pos + lastWords.back().length());
+    }
+    
+    // Handle !:^ (first argument, i.e., second word)
+    pos = expanded.find("!:^");
+    while (pos != std::string::npos && lastWords.size() > 1) {
+        expanded.replace(pos, 3, lastWords[1]);
+        pos = expanded.find("!:^", pos + lastWords[1].length());
+    }
+    
+    // Handle !:* (all arguments)
+    pos = expanded.find("!:*");
+    while (pos != std::string::npos && lastWords.size() > 1) {
+        std::string args;
+        for (size_t i = 1; i < lastWords.size(); ++i) {
+            if (i > 1) args += " ";
+            args += lastWords[i];
+        }
+        expanded.replace(pos, 3, args);
+        pos = expanded.find("!:*", pos + args.length());
+    }
+    
+    // Handle !:n (nth word) and !:n-m (range)
+    std::regex wordRef(R"(\!:(\d+)(?:-(\d+))?)");
+    std::smatch match;
+    std::string temp = expanded;
+    
+    while (std::regex_search(temp, match, wordRef)) {
+        size_t startIdx = std::stoull(match[1].str());
+        size_t endIdx = startIdx;
+        
+        if (match[2].matched) {
+            endIdx = std::stoull(match[2].str());
+        }
+        
+        std::string replacement;
+        if (startIdx < lastWords.size()) {
+            for (size_t i = startIdx; i <= endIdx && i < lastWords.size(); ++i) {
+                if (!replacement.empty()) replacement += " ";
+                replacement += lastWords[i];
+            }
+        }
+        
+        expanded.replace(match.position(), match.length(), replacement);
+        temp = expanded.substr(match.position() + replacement.length());
+    }
+    
+    return expanded;
+}
+
+bool V8Console::IsGitRepo() {
+    return fs::exists(".git") || fs::exists("../.git") || fs::exists("../../.git");
+}
+
+std::string V8Console::GetGitBranch() {
+    if (!IsGitRepo()) return "";
+    
+    FILE* pipe = popen("git rev-parse --abbrev-ref HEAD 2>/dev/null", "r");
+    if (!pipe) return "";
+    
+    char buffer[128];
+    std::string result;
+    while (fgets(buffer, sizeof(buffer), pipe)) {
+        result += buffer;
+    }
+    pclose(pipe);
+    
+    // Remove trailing newline
+    if (!result.empty() && result.back() == '\n') {
+        result.pop_back();
+    }
+    
+    return result;
+}
+
+std::string V8Console::GetGitStatus() {
+    if (!IsGitRepo()) return "";
+    
+    FILE* pipe = popen("git status --porcelain 2>/dev/null", "r");
+    if (!pipe) return "";
+    
+    char buffer[256];
+    bool hasModified = false;
+    bool hasUntracked = false;
+    bool hasStaged = false;
+    
+    while (fgets(buffer, sizeof(buffer), pipe)) {
+        if (buffer[0] == 'M' || buffer[1] == 'M') hasModified = true;
+        if (buffer[0] == '?' && buffer[1] == '?') hasUntracked = true;
+        if (buffer[0] != ' ' && buffer[0] != '?') hasStaged = true;
+    }
+    pclose(pipe);
+    
+    std::string status;
+    if (hasStaged) status += "●";     // Staged changes
+    if (hasModified) status += "✚";   // Modified files
+    if (hasUntracked) status += "…";  // Untracked files
+    
+    return status;
+}
+
+std::string V8Console::TruncatePath(const std::string& path, size_t maxLen) {
+    if (path.length() <= maxLen) return path;
+    
+    // Replace home directory with ~
+    std::string result = path;
+    const char* home = std::getenv("HOME");
+    if (home && result.find(home) == 0) {
+        result = "~" + result.substr(strlen(home));
+    }
+    
+    if (result.length() <= maxLen) return result;
+    
+    // Truncate from the beginning, keeping the most relevant part
+    size_t pos = result.length() - maxLen + 3; // 3 for "..."
+    size_t slashPos = result.find('/', pos);
+    if (slashPos != std::string::npos) {
+        return "..." + result.substr(slashPos);
+    }
+    
+    return "..." + result.substr(result.length() - maxLen + 3);
+}
+
+std::string V8Console::BuildPrompt() {
+    // Use config-based prompt if segments are defined
+    if (!promptConfig_.segments.empty()) {
+        return BuildPromptFromConfig();
+    }
+    
+    // Otherwise use default prompt
+    using namespace rang;
+    std::ostringstream prompt;
+    
+    // Exit code indicator (red ✗ if last command failed)
+    if (lastExitCode_ != 0) {
+        prompt << fg::red << "✗ " << style::reset;
+    }
+    
+    // Current directory (truncated)
+    try {
+        std::string cwd = fs::current_path().string();
+        prompt << fg::blue << TruncatePath(cwd) << style::reset;
+    } catch (...) {
+        prompt << fg::blue << "?" << style::reset;
+    }
+    
+    // Git information
+    std::string branch = GetGitBranch();
+    if (!branch.empty()) {
+        prompt << " " << fg::magenta << " " << branch << style::reset;
+        
+        std::string status = GetGitStatus();
+        if (!status.empty()) {
+            prompt << fg::yellow << " " << status << style::reset;
+        }
+    }
+    
+    // V8/JS indicator when in JavaScript mode
+    if (!lastCommand_.empty() && lastCommand_[0] == '&') {
+        prompt << " " << fg::green << "JS" << style::reset;
+    }
+    
+    // Prompt character (λ for shell, » for JS context)
+    prompt << "\n" << fg::blue << "λ " << style::reset;
+    
+    return prompt.str();
+}
+
+bool V8Console::HandleAlias(std::string& command) {
+    // Split command to get the first word
+    auto words = SplitCommand(command);
+    if (words.empty()) return false;
+    
+    // Check if first word is an alias
+    auto it = aliases_.find(words[0]);
+    if (it != aliases_.end()) {
+        // Replace the first word with the alias expansion
+        std::string expanded = it->second;
+        for (size_t i = 1; i < words.size(); ++i) {
+            expanded += " " + words[i];
+        }
+        command = expanded;
+        return true;
+    }
+    
+    return false;
+}
+
+bool V8Console::HandleBuiltinCommand(const std::string& command) {
+    using namespace rang;
+    
+    auto words = SplitCommand(command);
+    if (words.empty()) return false;
+    
+    const std::string& cmd = words[0];
+    
+    // cd - change directory
+    if (cmd == "cd") {
+        std::string path;
+        if (words.size() > 1) {
+            path = words[1];
+        } else {
+            // cd with no args goes to home
+            const char* home = std::getenv("HOME");
+            if (home) path = home;
+        }
+        
+        // Expand tilde
+        if (!path.empty() && path[0] == '~') {
+            const char* home = std::getenv("HOME");
+            if (home) {
+                path = std::string(home) + path.substr(1);
+            }
+        }
+        
+        try {
+            fs::current_path(path);
+            lastExitCode_ = 0;
+        } catch (const std::exception& e) {
+            std::cerr << fg::red << "cd: " << style::reset << e.what() << std::endl;
+            lastExitCode_ = 1;
+        }
+        return true;
+    }
+    
+    // alias - set or show aliases
+    if (cmd == "alias") {
+        if (words.size() == 1) {
+            // Show all aliases
+            for (const auto& [name, value] : aliases_) {
+                std::cout << "alias " << name << "='" << value << "'" << std::endl;
+            }
+        } else {
+            // Parse alias definition (alias name='value' or alias name=value)
+            std::string arg = command.substr(6); // Skip "alias "
+            size_t eq = arg.find('=');
+            if (eq != std::string::npos) {
+                std::string name = arg.substr(0, eq);
+                std::string value = arg.substr(eq + 1);
+                
+                // Remove quotes if present
+                if (value.length() >= 2 && 
+                    ((value.front() == '\'' && value.back() == '\'') ||
+                     (value.front() == '"' && value.back() == '"'))) {
+                    value = value.substr(1, value.length() - 2);
+                }
+                
+                aliases_[name] = value;
+                SaveConfig();  // Save aliases to config
+            }
+        }
+        lastExitCode_ = 0;
+        return true;
+    }
+    
+    // unalias - remove alias
+    if (cmd == "unalias") {
+        if (words.size() > 1) {
+            aliases_.erase(words[1]);
+            SaveConfig();
+        }
+        lastExitCode_ = 0;
+        return true;
+    }
+    
+    // export - set environment variable
+    if (cmd == "export") {
+        if (words.size() == 1) {
+            // Show all exports
+            for (const auto& [name, value] : envVars_) {
+                std::cout << "export " << name << "=\"" << value << "\"" << std::endl;
+            }
+        } else {
+            // Parse export VAR=value
+            for (size_t i = 1; i < words.size(); ++i) {
+                const std::string& arg = words[i];
+                size_t eq = arg.find('=');
+                if (eq != std::string::npos) {
+                    std::string name = arg.substr(0, eq);
+                    std::string value = arg.substr(eq + 1);
+                    
+                    // Remove quotes if present
+                    if (value.length() >= 2 && 
+                        ((value.front() == '\'' && value.back() == '\'') ||
+                         (value.front() == '"' && value.back() == '"'))) {
+                        value = value.substr(1, value.length() - 2);
+                    }
+                    
+                    envVars_[name] = value;
+                    setenv(name.c_str(), value.c_str(), 1);
+                }
+            }
+            SaveConfig();
+        }
+        lastExitCode_ = 0;
+        return true;
+    }
+    
+    // pwd - print working directory
+    if (cmd == "pwd") {
+        try {
+            std::cout << fs::current_path().string() << std::endl;
+            lastExitCode_ = 0;
+        } catch (const std::exception& e) {
+            std::cerr << fg::red << "pwd: " << style::reset << e.what() << std::endl;
+            lastExitCode_ = 1;
+        }
+        return true;
+    }
+    
+    // exit - exit shell
+    if (cmd == "exit" || cmd == "logout") {
+        shouldQuit_ = true;
+        return true;
+    }
+    
+    // source - execute commands from file
+    if (cmd == "source" || cmd == ".") {
+        if (words.size() > 1) {
+            std::ifstream file(words[1]);
+            if (file) {
+                std::string fileLine;
+                while (std::getline(file, fileLine)) {
+                    if (!fileLine.empty() && fileLine[0] != '#') {
+                        // Recursively process each line
+                        std::string expanded = ExpandHistory(fileLine);
+                        
+                        if (expanded[0] == '&') {
+                            std::string jsCode = expanded.substr(1);
+                            jsCode.erase(0, jsCode.find_first_not_of(" \t"));
+                            if (!jsCode.empty()) {
+                                ExecuteString(jsCode, words[1]);
+                            }
+                        } else if (expanded[0] == '.') {
+                            // Handle dot commands in sourced files
+                            // This is a simplified version - you might want to refactor
+                            // command handling to avoid duplication
+                        } else {
+                            HandleAlias(expanded);
+                            if (!HandleBuiltinCommand(expanded)) {
+                                ExecuteShellCommand(expanded);
+                            }
+                        }
+                    }
+                }
+                lastExitCode_ = 0;
+            } else {
+                std::cerr << fg::red << "source: " << style::reset 
+                          << "cannot read file: " << words[1] << std::endl;
+                lastExitCode_ = 1;
+            }
+        }
+        return true;
+    }
+    
+    // which - show command location
+    if (cmd == "which") {
+        if (words.size() > 1) {
+            // Check aliases first
+            if (aliases_.find(words[1]) != aliases_.end()) {
+                std::cout << words[1] << ": aliased to " << aliases_[words[1]] << std::endl;
+            } else {
+                // Use system which command
+                std::string whichCmd = "which " + words[1];
+                ExecuteShellCommand(whichCmd);
+            }
+        }
+        return true;
+    }
+    
+    // v8config - run configuration wizard
+    if (cmd == "v8config" || cmd == "prompt-wizard") {
+        RunPromptWizard();
+        lastExitCode_ = 0;
+        return true;
+    }
+    
+    return false;
+}
+
+void V8Console::LoadConfig() {
+    if (configPath_.empty()) return;
+    
+    std::ifstream config(configPath_);
+    if (!config) return;
+    
+    std::string line;
+    while (std::getline(config, line)) {
+        // Skip empty lines and comments
+        if (line.empty() || line[0] == '#') continue;
+        
+        // Simple parsing for alias and export commands
+        if (line.starts_with("alias ")) {
+            HandleBuiltinCommand(line);
+        } else if (line.starts_with("export ")) {
+            HandleBuiltinCommand(line);
+        }
+    }
+}
+
+void V8Console::SaveConfig() {
+    if (configPath_.empty()) return;
+    
+    std::ofstream config(configPath_);
+    if (!config) return;
+    
+    config << "# V8 Shell configuration file\n";
+    config << "# Generated by v8console\n\n";
+    
+    // Save aliases
+    if (!aliases_.empty()) {
+        config << "# Aliases\n";
+        for (const auto& [name, value] : aliases_) {
+            config << "alias " << name << "='" << value << "'\n";
+        }
+        config << "\n";
+    }
+    
+    // Save environment variables
+    if (!envVars_.empty()) {
+        config << "# Environment variables\n";
+        for (const auto& [name, value] : envVars_) {
+            config << "export " << name << "=\"" << value << "\"\n";
+        }
+        config << "\n";
+    }
+}
+
+std::string V8Console::GetUsername() {
+    const char* user = std::getenv("USER");
+    if (!user) {
+        user = std::getenv("USERNAME");
+    }
+    return user ? user : "user";
+}
+
+std::string V8Console::GetHostname() {
+    constexpr size_t kMaxHostnameLength = 256;
+    char hostname[kMaxHostnameLength];
+    if (gethostname(hostname, sizeof(hostname)) == 0) {
+        return std::string(hostname);
+    }
+    return "localhost";
+}
+
+std::string V8Console::GetTime(const std::string& format) {
+    const auto now = std::chrono::system_clock::now();
+    const auto time_t = std::chrono::system_clock::to_time_t(now);
+    constexpr size_t kBufferSize = 100;
+    char buffer[kBufferSize];
+    std::strftime(buffer, sizeof(buffer), format.c_str(), std::localtime(&time_t));
+    return std::string(buffer);
+}
+
+rang::fg V8Console::GetColorFromString(const std::string& color) {
+    static const std::map<std::string, rang::fg> color_map = {
+        {"black", rang::fg::black},
+        {"red", rang::fg::red},
+        {"green", rang::fg::green},
+        {"yellow", rang::fg::yellow},
+        {"blue", rang::fg::blue},
+        {"magenta", rang::fg::magenta},
+        {"cyan", rang::fg::cyan},
+        {"gray", rang::fg::gray}
+    };
+    
+    const auto it = color_map.find(color);
+    return (it != color_map.end()) ? it->second : rang::fg::reset;
+}
+
+rang::bg V8Console::GetBgColorFromString(const std::string& color) {
+    static const std::map<std::string, rang::bg> bg_color_map = {
+        {"black", rang::bg::black},
+        {"red", rang::bg::red},
+        {"green", rang::bg::green},
+        {"yellow", rang::bg::yellow},
+        {"blue", rang::bg::blue},
+        {"magenta", rang::bg::magenta},
+        {"cyan", rang::bg::cyan},
+        {"gray", rang::bg::gray}
+    };
+    
+    const auto it = bg_color_map.find(color);
+    return (it != bg_color_map.end()) ? it->second : rang::bg::reset;
+}
+
+std::string V8Console::BuildPromptFromConfig() {
+    using namespace rang;
+    std::ostringstream prompt;
+    
+    for (const auto& segment : promptConfig_.segments) {
+        // Apply colors and styles
+        if (!segment.fg.empty()) {
+            prompt << GetColorFromString(segment.fg);
+        }
+        if (!segment.bg.empty()) {
+            prompt << GetBgColorFromString(segment.bg);
+        }
+        if (segment.bold) {
+            prompt << style::bold;
+        }
+        
+        // Add prefix
+        if (!segment.prefix.empty()) {
+            prompt << segment.prefix;
+        }
+        
+        // Add segment content based on type
+        if (segment.type == "text") {
+            prompt << segment.content;
+        } else if (segment.type == "cwd") {
+            try {
+                std::string cwd = fs::current_path().string();
+                prompt << TruncatePath(cwd);
+            } catch (...) {
+                prompt << "?";
+            }
+        } else if (segment.type == "git") {
+            std::string branch = GetGitBranch();
+            if (!branch.empty()) {
+                prompt << branch;
+                std::string status = GetGitStatus();
+                if (!status.empty()) {
+                    prompt << " " << status;
+                }
+            }
+        } else if (segment.type == "exit_code") {
+            if (lastExitCode_ != 0) {
+                prompt << (segment.content.empty() ? "✗" : segment.content);
+            }
+        } else if (segment.type == "time") {
+            prompt << GetTime(segment.format.empty() ? "%H:%M:%S" : segment.format);
+        } else if (segment.type == "user") {
+            prompt << GetUsername();
+        } else if (segment.type == "host") {
+            prompt << GetHostname();
+        } else if (segment.type == "js_indicator") {
+            if (!lastCommand_.empty() && lastCommand_[0] == '&') {
+                prompt << (segment.content.empty() ? "JS" : segment.content);
+            }
+        }
+        
+        // Add suffix
+        if (!segment.suffix.empty()) {
+            prompt << segment.suffix;
+        }
+        
+        // Reset styles
+        prompt << style::reset;
+    }
+    
+    // Add newline and prompt character
+    prompt << promptConfig_.newline;
+    if (!promptConfig_.prompt_color.empty()) {
+        prompt << GetColorFromString(promptConfig_.prompt_color);
+    }
+    prompt << promptConfig_.prompt_char << " " << style::reset;
+    
+    return prompt.str();
+}
+
+void V8Console::LoadPromptConfig() {
+    if (configPath_.empty()) return;
+    
+    // Look for .v8prompt.json in home directory
+    fs::path promptConfigPath = fs::path(configPath_).parent_path() / ".v8prompt.json";
+    
+    std::ifstream file(promptConfigPath);
+    if (!file) {
+        // Create default prompt config if it doesn't exist
+        SavePromptConfig();
+        return;
+    }
+    
+    // Parse JSON manually (simple parser for our needs)
+    std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    
+    // This is a simplified JSON parser - in production you'd use a proper JSON library
+    // For now, we'll create a default configuration
+    promptConfig_.segments.clear();
+    
+    // Default PowerLevel10k-style configuration
+    PromptConfig::Segment exitCode;
+    exitCode.type = "exit_code";
+    exitCode.fg = "red";
+    exitCode.suffix = " ";
+    promptConfig_.segments.push_back(exitCode);
+    
+    PromptConfig::Segment cwd;
+    cwd.type = "cwd";
+    cwd.fg = "blue";
+    promptConfig_.segments.push_back(cwd);
+    
+    PromptConfig::Segment git;
+    git.type = "git";
+    git.fg = "magenta";
+    git.prefix = "  ";
+    promptConfig_.segments.push_back(git);
+    
+    PromptConfig::Segment js;
+    js.type = "js_indicator";
+    js.fg = "green";
+    js.prefix = " ";
+    promptConfig_.segments.push_back(js);
+}
+
+void V8Console::SavePromptConfig() {
+    if (configPath_.empty()) return;
+    
+    fs::path promptConfigPath = fs::path(configPath_).parent_path() / ".v8prompt.json";
+    std::ofstream file(promptConfigPath);
+    if (!file) return;
+    
+    // Write example JSON configuration
+    file << R"({
+  "segments": [
+    {
+      "type": "exit_code",
+      "fg": "red",
+      "content": "✗",
+      "suffix": " "
+    },
+    {
+      "type": "time",
+      "fg": "gray",
+      "format": "%H:%M:%S",
+      "suffix": " "
+    },
+    {
+      "type": "user",
+      "fg": "yellow"
+    },
+    {
+      "type": "text",
+      "content": "@",
+      "fg": "gray"
+    },
+    {
+      "type": "host",
+      "fg": "yellow",
+      "suffix": " "
+    },
+    {
+      "type": "cwd",
+      "fg": "blue",
+      "bold": true
+    },
+    {
+      "type": "git",
+      "fg": "magenta",
+      "prefix": "  "
+    },
+    {
+      "type": "js_indicator",
+      "fg": "green",
+      "prefix": " ",
+      "content": "[JS]"
+    }
+  ],
+  "newline": "\n",
+  "prompt_char": "λ",
+  "prompt_color": "blue"
+}
+)";
+}
+
+void V8Console::RunPromptWizard() {
+    using namespace rang;
+    
+    std::cout << "\033[H\033[2J"; // Clear screen
+    std::cout << style::bold << fg::cyan << "╔════════════════════════════════════════════════════════════════╗\n";
+    std::cout << "║            V8 Shell Prompt Configuration Wizard                ║\n";
+    std::cout << "║                  Inspired by PowerLevel10k                     ║\n";
+    std::cout << "╚════════════════════════════════════════════════════════════════╝" << style::reset << "\n\n";
+    
+    std::cout << "This wizard will help you configure your prompt step by step.\n";
+    std::cout << "Press " << fg::green << "Enter" << style::reset << " to accept the default, or type your choice.\n\n";
+    
+    PromptConfig newConfig;
+    
+    // Question 1: Prompt Style
+    std::cout << style::bold << fg::yellow << "1. Choose your prompt style:" << style::reset << "\n\n";
+    
+    // Show examples
+    std::cout << "  (1) " << fg::blue << "~/projects/v8shell" << fg::magenta << "  main" 
+              << fg::yellow << " ✚" << style::reset << "\n";
+    std::cout << "      " << fg::blue << "λ " << style::reset << "(Minimal)\n\n";
+    
+    std::cout << "  (2) " << fg::red << "✗ " << fg::gray << "14:32:05 " << fg::yellow << "user" 
+              << fg::gray << "@" << fg::yellow << "hostname " << fg::blue << "~/projects/v8shell" 
+              << fg::magenta << "  main" << fg::yellow << " ✚" << style::reset << "\n";
+    std::cout << "      " << fg::blue << "λ " << style::reset << "(Full)\n\n";
+    
+    std::cout << "  (3) " << fg::yellow << "[user@host]" << fg::gray << " " << fg::blue 
+              << "~/projects/v8shell" << style::reset << "\n";
+    std::cout << "      " << fg::green << "$ " << style::reset << "(Classic)\n\n";
+    
+    std::cout << "Choice [1-3] (default: 1): ";
+    std::string choice;
+    std::getline(std::cin, choice);
+    
+    int styleChoice = 1;
+    if (!choice.empty() && choice[0] >= '1' && choice[0] <= '3') {
+        styleChoice = choice[0] - '0';
+    }
+    
+    // Build config based on style choice
+    if (styleChoice == 1) {
+        // Minimal style
+        PromptConfig::Segment exitCode;
+        exitCode.type = "exit_code";
+        exitCode.fg = "red";
+        exitCode.suffix = " ";
+        newConfig.segments.push_back(exitCode);
+        
+        PromptConfig::Segment cwd;
+        cwd.type = "cwd";
+        cwd.fg = "blue";
+        newConfig.segments.push_back(cwd);
+        
+        PromptConfig::Segment git;
+        git.type = "git";
+        git.fg = "magenta";
+        git.prefix = "  ";
+        newConfig.segments.push_back(git);
+    } else if (styleChoice == 2) {
+        // Full style
+        PromptConfig::Segment exitCode;
+        exitCode.type = "exit_code";
+        exitCode.fg = "red";
+        exitCode.suffix = " ";
+        newConfig.segments.push_back(exitCode);
+        
+        PromptConfig::Segment time;
+        time.type = "time";
+        time.fg = "gray";
+        time.format = "%H:%M:%S";
+        time.suffix = " ";
+        newConfig.segments.push_back(time);
+        
+        PromptConfig::Segment user;
+        user.type = "user";
+        user.fg = "yellow";
+        newConfig.segments.push_back(user);
+        
+        PromptConfig::Segment at;
+        at.type = "text";
+        at.content = "@";
+        at.fg = "gray";
+        newConfig.segments.push_back(at);
+        
+        PromptConfig::Segment host;
+        host.type = "host";
+        host.fg = "yellow";
+        host.suffix = " ";
+        newConfig.segments.push_back(host);
+        
+        PromptConfig::Segment cwd;
+        cwd.type = "cwd";
+        cwd.fg = "blue";
+        newConfig.segments.push_back(cwd);
+        
+        PromptConfig::Segment git;
+        git.type = "git";
+        git.fg = "magenta";
+        git.prefix = "  ";
+        newConfig.segments.push_back(git);
+    } else {
+        // Classic style
+        PromptConfig::Segment bracket1;
+        bracket1.type = "text";
+        bracket1.content = "[";
+        bracket1.fg = "yellow";
+        newConfig.segments.push_back(bracket1);
+        
+        PromptConfig::Segment user;
+        user.type = "user";
+        user.fg = "yellow";
+        newConfig.segments.push_back(user);
+        
+        PromptConfig::Segment at;
+        at.type = "text";
+        at.content = "@";
+        at.fg = "yellow";
+        newConfig.segments.push_back(at);
+        
+        PromptConfig::Segment host;
+        host.type = "host";
+        host.fg = "yellow";
+        newConfig.segments.push_back(host);
+        
+        PromptConfig::Segment bracket2;
+        bracket2.type = "text";
+        bracket2.content = "] ";
+        bracket2.fg = "yellow";
+        newConfig.segments.push_back(bracket2);
+        
+        PromptConfig::Segment cwd;
+        cwd.type = "cwd";
+        cwd.fg = "blue";
+        newConfig.segments.push_back(cwd);
+        
+        newConfig.prompt_char = "$";
+        newConfig.prompt_color = "green";
+    }
+    
+    // Question 2: Prompt Character
+    std::cout << "\n" << style::bold << fg::yellow << "2. Choose your prompt character:" << style::reset << "\n\n";
+    std::cout << "  (1) λ  (Lambda)\n";
+    std::cout << "  (2) ❯  (Arrow)\n";
+    std::cout << "  (3) $  (Dollar)\n";
+    std::cout << "  (4) >  (Greater than)\n";
+    std::cout << "  (5) ➜  (Right arrow)\n";
+    std::cout << "  (6) Custom\n\n";
+    
+    std::cout << "Choice [1-6] (default: 1): ";
+    std::getline(std::cin, choice);
+    
+    if (!choice.empty()) {
+        switch (choice[0]) {
+            case '1': newConfig.prompt_char = "λ"; break;
+            case '2': newConfig.prompt_char = "❯"; break;
+            case '3': newConfig.prompt_char = "$"; break;
+            case '4': newConfig.prompt_char = ">"; break;
+            case '5': newConfig.prompt_char = "➜"; break;
+            case '6':
+                std::cout << "Enter custom prompt character: ";
+                std::getline(std::cin, newConfig.prompt_char);
+                break;
+        }
+    }
+    
+    // Question 3: Show git info?
+    std::cout << "\n" << style::bold << fg::yellow << "3. Show git information?" << style::reset << " [Y/n]: ";
+    std::getline(std::cin, choice);
+    
+    if (!choice.empty() && (choice[0] == 'n' || choice[0] == 'N')) {
+        // Remove git segments
+        newConfig.segments.erase(
+            std::remove_if(newConfig.segments.begin(), newConfig.segments.end(),
+                [](const PromptConfig::Segment& s) { return s.type == "git"; }),
+            newConfig.segments.end()
+        );
+    }
+    
+    // Question 4: Show time?
+    if (styleChoice != 2) { // Only ask if not already in full style
+        std::cout << "\n" << style::bold << fg::yellow << "4. Show current time?" << style::reset << " [y/N]: ";
+        std::getline(std::cin, choice);
+        
+        if (!choice.empty() && (choice[0] == 'y' || choice[0] == 'Y')) {
+            PromptConfig::Segment time;
+            time.type = "time";
+            time.fg = "gray";
+            time.format = "%H:%M:%S";
+            time.suffix = " ";
+            // Insert at beginning after exit_code
+            auto it = newConfig.segments.begin();
+            if (!newConfig.segments.empty() && newConfig.segments[0].type == "exit_code") {
+                ++it;
+            }
+            newConfig.segments.insert(it, time);
+        }
+    }
+    
+    // Question 5: Show JavaScript indicator?
+    std::cout << "\n" << style::bold << fg::yellow << "5. Show indicator when in JavaScript mode?" << style::reset << " [Y/n]: ";
+    std::getline(std::cin, choice);
+    
+    if (choice.empty() || (choice[0] != 'n' && choice[0] != 'N')) {
+        PromptConfig::Segment js;
+        js.type = "js_indicator";
+        js.fg = "green";
+        js.prefix = " ";
+        js.content = "[JS]";
+        newConfig.segments.push_back(js);
+    }
+    
+    // Question 6: Two-line prompt?
+    std::cout << "\n" << style::bold << fg::yellow << "6. Use two-line prompt?" << style::reset << " [Y/n]: ";
+    std::getline(std::cin, choice);
+    
+    if (!choice.empty() && (choice[0] == 'n' || choice[0] == 'N')) {
+        newConfig.newline = " ";
+    }
+    
+    // Show preview
+    std::cout << "\n" << style::bold << fg::cyan << "Preview of your new prompt:" << style::reset << "\n\n";
+    
+    // Save current config and apply new one temporarily
+    auto oldConfig = promptConfig_;
+    promptConfig_ = newConfig;
+    std::cout << BuildPrompt();
+    
+    std::cout << "\n" << style::bold << fg::yellow << "Save this configuration?" << style::reset << " [Y/n]: ";
+    std::getline(std::cin, choice);
+    
+    if (choice.empty() || (choice[0] != 'n' && choice[0] != 'N')) {
+        // Save to JSON file
+        SavePromptConfigJSON(newConfig);
+        std::cout << fg::green << "✓ Configuration saved!" << style::reset << "\n";
+    } else {
+        // Restore old config
+        promptConfig_ = oldConfig;
+        std::cout << fg::yellow << "Configuration cancelled." << style::reset << "\n";
+    }
+}
+
+void V8Console::SavePromptConfigJSON(const PromptConfig& config) {
+    if (configPath_.empty()) return;
+    
+    fs::path promptConfigPath = fs::path(configPath_).parent_path() / ".v8prompt.json";
+    std::ofstream file(promptConfigPath);
+    if (!file) return;
+    
+    file << "{\n";
+    file << "  \"segments\": [\n";
+    
+    for (size_t i = 0; i < config.segments.size(); ++i) {
+        const auto& seg = config.segments[i];
+        file << "    {\n";
+        file << "      \"type\": \"" << seg.type << "\"";
+        
+        if (!seg.content.empty()) {
+            file << ",\n      \"content\": \"" << seg.content << "\"";
+        }
+        if (!seg.fg.empty()) {
+            file << ",\n      \"fg\": \"" << seg.fg << "\"";
+        }
+        if (!seg.bg.empty()) {
+            file << ",\n      \"bg\": \"" << seg.bg << "\"";
+        }
+        if (!seg.format.empty()) {
+            file << ",\n      \"format\": \"" << seg.format << "\"";
+        }
+        if (seg.bold) {
+            file << ",\n      \"bold\": true";
+        }
+        if (!seg.prefix.empty()) {
+            file << ",\n      \"prefix\": \"" << seg.prefix << "\"";
+        }
+        if (!seg.suffix.empty()) {
+            file << ",\n      \"suffix\": \"" << seg.suffix << "\"";
+        }
+        
+        file << "\n    }";
+        if (i < config.segments.size() - 1) {
+            file << ",";
+        }
+        file << "\n";
+    }
+    
+    file << "  ],\n";
+    file << "  \"newline\": \"" << (config.newline == "\n" ? "\\n" : config.newline) << "\",\n";
+    file << "  \"prompt_char\": \"" << config.prompt_char << "\",\n";
+    file << "  \"prompt_color\": \"" << config.prompt_color << "\"\n";
+    file << "}\n";
 }

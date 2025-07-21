@@ -6,7 +6,11 @@
 void V8Console::DisplayHelp() {
     using namespace rang;
     
-    std::cout << "\n" << style::bold << fg::cyan << "===== V8 Console Help =====" << style::reset << "\n";
+    std::cout << "\n" << style::bold << fg::cyan << "===== V8 Shell Help =====" << style::reset << "\n";
+    std::cout << "\n" << style::bold << fg::yellow << "Shell Mode:" << style::reset 
+              << " All commands execute as shell by default\n";
+    std::cout << "  Use " << fg::magenta << "&" << style::reset 
+              << " prefix to execute JavaScript (e.g., " << fg::magenta << "&console.log('Hello')" << style::reset << ")\n";
     
     std::cout << "\n" << style::bold << fg::yellow << "Commands:" << style::reset << "\n";
     
@@ -25,7 +29,17 @@ void V8Console::DisplayHelp() {
     printCommand(".cwd <path>", "Change current working directory");
     printCommand(".help", "Show this help message");
     printCommand(".quit", "Exit the console");
-    printCommand("!<command>", "Execute a shell command");
+    
+    std::cout << "\n" << style::bold << fg::yellow << "Built-in Commands:" << style::reset << "\n";
+    
+    printCommand("cd <path>", "Change directory");
+    printCommand("pwd", "Print working directory");
+    printCommand("alias", "Show or set aliases");
+    printCommand("export", "Set environment variables");
+    printCommand("source <file>", "Execute commands from file");
+    printCommand("which <cmd>", "Show command location");
+    printCommand("v8config", "Run prompt configuration wizard");
+    printCommand("exit", "Exit the shell");
     
     std::cout << "\n" << style::bold << fg::yellow << "JavaScript Functions:" << style::reset << "\n";
     
@@ -50,21 +64,47 @@ void V8Console::DisplayHelp() {
     
     std::cout << "\n" << style::bold << fg::yellow << "Examples:" << style::reset << "\n";
     
-    std::cout << "  " << fg::green << "// Load and use Fibonacci DLL" << style::reset << "\n";
-    std::cout << "  loadDll(\"./Bin/Fib.so\");\n";
-    std::cout << "  fib(10);  // Returns: 88\n\n";
+    std::cout << "  " << fg::green << "# Shell commands (default mode)" << style::reset << "\n";
+    std::cout << "  ls -la\n";
+    std::cout << "  git status\n";
+    std::cout << "  cd /home\n";
+    std::cout << "  make test\n\n";
     
-    std::cout << "  " << fg::green << "// Load JavaScript file" << style::reset << "\n";
-    std::cout << "  load(\"script.js\");\n\n";
+    std::cout << "  " << fg::green << "# JavaScript execution (& prefix)" << style::reset << "\n";
+    std::cout << "  &console.log('Hello, V8!')\n";
+    std::cout << "  &const x = 42; x * 2\n";
+    std::cout << "  &loadDll(\"./Bin/Fib.so\")\n";
+    std::cout << "  &fib(10)  // Returns: 88\n\n";
     
-    std::cout << "  " << fg::green << "// List loaded DLLs" << style::reset << "\n";
-    std::cout << "  listDlls();\n\n";
+    std::cout << "  " << fg::green << "# Mixed usage" << style::reset << "\n";
+    std::cout << "  .load script.js        # Load JS file\n";
+    std::cout << "  &myFunction()          # Call JS function\n";
+    std::cout << "  pwd                    # Show current directory\n\n";
     
-    std::cout << "  " << fg::green << "// Execute shell commands" << style::reset << "\n";
-    std::cout << "  !ls -la\n";
-    std::cout << "  !git status\n\n";
+    std::cout << style::bold << fg::yellow << "History Expansion:" << style::reset << "\n";
     
-    std::cout << style::bold << fg::yellow << "Keyboard Shortcuts:" << style::reset << "\n";
+    const auto printHistory = [](std::string_view pattern, std::string_view desc) {
+        std::cout << "  " << fg::cyan << std::left << std::setw(12) << pattern 
+                  << style::reset << " - " << desc << "\n";
+    };
+    
+    printHistory("!!", "Repeat last command");
+    printHistory("!:$", "Last word of previous command");
+    printHistory("!:^", "First argument of previous command");
+    printHistory("!:*", "All arguments of previous command");
+    printHistory("!:n", "Nth word of previous command (0-indexed)");
+    printHistory("!:n-m", "Words n through m of previous command");
+    
+    std::cout << "\n" << style::bold << fg::yellow << "Prompt Indicators:" << style::reset << "\n";
+    
+    std::cout << "  " << fg::red << "✗" << style::reset << "       - Last command failed\n";
+    std::cout << "  " << fg::magenta << "" << style::reset << "       - Git branch\n";
+    std::cout << "  " << fg::yellow << "●" << style::reset << "       - Git staged changes\n";
+    std::cout << "  " << fg::yellow << "✚" << style::reset << "       - Git modified files\n";
+    std::cout << "  " << fg::yellow << "…" << style::reset << "       - Git untracked files\n";
+    std::cout << "  " << fg::green << "JS" << style::reset << "      - Last command was JavaScript\n";
+    
+    std::cout << "\n" << style::bold << fg::yellow << "Keyboard Shortcuts:" << style::reset << "\n";
     
 #ifndef NO_READLINE
     const auto printShortcut = [](std::string_view key, std::string_view desc) {
