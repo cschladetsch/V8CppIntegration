@@ -493,7 +493,14 @@ cmake --build build --target run_all_tests
 
 ## V8 Console Usage
 
-The project includes a full-featured interactive V8 console with colored output and DLL hot-loading:
+The project includes a full-featured interactive V8 console that operates as a **shell-first environment** with JavaScript capabilities:
+
+### Console Modes
+
+The V8 Console operates in **shell mode by default**, meaning:
+- **Shell commands** (ls, pwd, cd, etc.) - Execute directly without any prefix
+- **JavaScript code** - Requires `&` prefix (e.g., `&console.log("Hello")`)
+- **Console commands** - Use `.` prefix (e.g., `.help`, `.quit`)
 
 ### Starting the Console
 ```bash
@@ -518,6 +525,14 @@ The project includes a full-featured interactive V8 console with colored output 
 ./Bin/v8console -qi script.js  # Quiet interactive mode with script
 ```
 
+When started correctly, you should see:
+```
+V8 Shell - Interactive Mode
+Commands: .load <file>, .dll <path>, .dlls, .reload <path>, .vars, .clear, .help, .quit
+Mode: Shell commands by default, use & prefix for JavaScript
+Type shell commands or &<javascript>:
+```
+
 ### Console Commands
 ```bash
 # Help and information
@@ -536,19 +551,46 @@ The project includes a full-featured interactive V8 console with colored output 
 .cwd                       # Display current working directory
 .cwd /path/to/dir         # Change current working directory
 
-# Shell commands
-!ls -la                    # Execute shell command
-!git status               # Run git commands
-!make test                # Run build commands
-
 # Exit
 .quit                      # Exit console
 ```
 
-### JavaScript Functions
+### Shell Commands (Default Mode)
+```bash
+# Shell commands execute directly - no prefix needed!
+ls                        # List files
+pwd                       # Print working directory
+cd /path/to/dir          # Change directory
+git status               # Run git commands
+make test                # Run build commands
+./run_script.sh          # Execute scripts
+
+# Built-in shell features
+alias ll='ls -la'        # Create aliases
+export PATH=$PATH:/bin   # Set environment variables
+source ~/.bashrc         # Source shell scripts
+which python             # Find command locations
+```
+
+### JavaScript Execution
 ```javascript
+// JavaScript requires & prefix
+&console.log("Hello from JavaScript!")
+&const x = 10; x * 2
+&Math.sqrt(16)
+
+// Multi-line JavaScript
+&function factorial(n) {
+    return n <= 1 ? 1 : n * factorial(n - 1);
+}
+&factorial(5)  // Returns: 120
+
+// After loading a DLL
+&loadDll("./Bin/Fib.so")
+&fib(10)  // Returns: 88
+
 // Help and information
-help();                      // Show help message
+&help();                     // Show help message
 
 // DLL management from JavaScript
 loadDll("./Bin/Fib.so");     // Load DLL
