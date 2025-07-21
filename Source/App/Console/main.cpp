@@ -81,6 +81,7 @@ int main(int argc, char* argv[]) {
             ("help,h", "Show this help message")
             ("interactive,i", "Run in interactive mode (REPL)")
             ("quiet,q", "Skip startup messages in REPL")
+            ("configure", "Run the interactive prompt configuration wizard")
             ("script", po::value<std::string>(), "JavaScript file to execute")
             ("dlls", po::value<std::vector<std::string>>(), "DLL files to load");
         
@@ -108,6 +109,13 @@ int main(int argc, char* argv[]) {
         // Handle help
         if (vm.count("help")) {
             printUsage(argv[0], desc);
+            return 0;
+        }
+        
+        // Handle configure
+        if (vm.count("configure")) {
+            V8Console console;
+            console.RunPromptWizard();
             return 0;
         }
         

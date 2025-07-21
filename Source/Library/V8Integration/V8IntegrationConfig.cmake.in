@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/V8IntegrationTargets.cmake")
+
+check_required_components(V8Integration)

@@ -13,9 +13,13 @@
 #include <regex>
 #include <sstream>
 #include <unistd.h>
+#include <sys/ioctl.h>
+#include <format>
+#include <iomanip>
 
 #include <libplatform/libplatform.h>
 #include <rang/rang.hpp>
+#include <nlohmann/json.hpp>
 
 #ifndef NO_READLINE
 #include <readline/readline.h>
@@ -59,6 +63,9 @@ static int clear_screen_handler(int, int) {
     return 0;
 }
 #endif
+
+// Static member definition
+V8Console* V8Console::completionInstance_ = nullptr;
 
 V8Console::V8Console() noexcept
     : platform_(nullptr)
@@ -157,6 +164,10 @@ void V8Console::RunRepl(bool quiet) {
     
     // Bind Ctrl+L to clear screen
     rl_bind_key(K_CTRL_L, clear_screen_handler);
+    
+    // Set up tab completion
+    completionInstance_ = this;
+    rl_attempted_completion_function = CompletionGenerator;
     
     // Initialize history
     using_history();
@@ -403,7 +414,11 @@ bool V8Console::ExecuteString(const std::string& source, const std::string& name
     const v8::Local<v8::Context> context = context_.Get(isolate_);
     const v8::Context::Scope context_scope(context);
     
+    auto startTime = std::chrono::high_resolution_clock::now();
     bool success = CompileAndRun(source, name);
+    auto endTime = std::chrono::high_resolution_clock::now();
+    
+    lastExecutionTime_ = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
     lastExitCode_ = success ? K_SUCCESS_EXIT_CODE : K_FAILURE_EXIT_CODE;
     return success;
 }
@@ -481,7 +496,11 @@ bool V8Console::ExecuteShellCommand(const std::string& command) {
     // Store the command for history expansion (before execution)
     lastCommand_ = command;
     
+    auto startTime = std::chrono::high_resolution_clock::now();
     const int result = std::system(enhancedCommand.c_str());
+    auto endTime = std::chrono::high_resolution_clock::now();
+    
+    lastExecutionTime_ = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
     lastExitCode_ = WEXITSTATUS(result);
     
     if (result != K_SUCCESS_EXIT_CODE) {
@@ -625,6 +644,41 @@ std::string V8Console::GetGitBranch() {
     return result;
 }
 
+std::string V8Console::GetGitRemote() {
+    if (!IsGitRepo()) return "";
+    
+    // Get remote repository name
+    FILE* pipe = popen("git config --get remote.origin.url 2>/dev/null", "r");
+    if (!pipe) return "";
+    
+    char buffer[256];
+    std::string result;
+    while (fgets(buffer, sizeof(buffer), pipe)) {
+        result += buffer;
+    }
+    pclose(pipe);
+    
+    if (result.empty()) return "";
+    
+    // Extract repo name from URL
+    // Handle both https://github.com/user/repo.git and git@github.com:user/repo.git
+    size_t lastSlash = result.rfind('/');
+    size_t lastColon = result.rfind(':');
+    size_t start = std::max(lastSlash, lastColon);
+    
+    if (start != std::string::npos) {
+        result = result.substr(start + 1);
+        // Remove .git suffix if present
+        if (result.size() > 4 && result.substr(result.size() - 4) == ".git") {
+            result = result.substr(0, result.size() - 4);
+        }
+        // Remove newline
+        result.erase(result.find_last_not_of("\n\r") + 1);
+    }
+    
+    return result;
+}
+
 std::string V8Console::GetGitStatus() {
     if (!IsGitRepo()) return "";
     
@@ -680,7 +734,7 @@ std::string V8Console::TruncatePath(const std::string& path, size_t maxLen) {
 
 std::string V8Console::BuildPrompt() {
     // Use config-based prompt if segments are defined
-    if (!promptConfig_.segments.empty()) {
+    if (!promptConfig_.leftSegments.empty() || !promptConfig_.rightSegments.empty()) {
         return BuildPromptFromConfig();
     }
     
@@ -1000,6 +1054,53 @@ std::string V8Console::GetHostname() {
     return "localhost";
 }
 
+std::string V8Console::formatExecutionTime(const std::chrono::microseconds& us) {
+    double value = static_cast<double>(us.count());
+    
+    // Always show 3 significant digits with appropriate unit
+    if (value < 1.0) {
+        // Less than 1μs - show in nanoseconds
+        return std::format("{:.0f}ns", value * 1000.0);
+    } else if (value < 10.0) {
+        // 1-10μs - show as X.XXμs
+        return std::format("{:.2f}μs", value);
+    } else if (value < 100.0) {
+        // 10-100μs - show as XX.Xμs
+        return std::format("{:.1f}μs", value);
+    } else if (value < 1000.0) {
+        // 100-1000μs - show as XXXμs
+        return std::format("{:.0f}μs", value);
+    } else if (value < 10000.0) {
+        // 1-10ms - show as X.XXms
+        return std::format("{:.2f}ms", value / 1000.0);
+    } else if (value < 100000.0) {
+        // 10-100ms - show as XX.Xms
+        return std::format("{:.1f}ms", value / 1000.0);
+    } else if (value < 1000000.0) {
+        // 100-1000ms - show as XXXms
+        return std::format("{:.0f}ms", value / 1000.0);
+    } else if (value < 10000000.0) {
+        // 1-10s - show as X.XXs
+        return std::format("{:.2f}s", value / 1000000.0);
+    } else if (value < 100000000.0) {
+        // 10-100s - show as XX.Xs
+        return std::format("{:.1f}s", value / 1000000.0);
+    } else if (value < 1000000000.0) {
+        // 100-1000s - show as XXXs
+        return std::format("{:.0f}s", value / 1000000.0);
+    } else {
+        // Over 1000s - show in minutes
+        double minutes = value / 60000000.0;
+        if (minutes < 10.0) {
+            return std::format("{:.2f}m", minutes);
+        } else if (minutes < 100.0) {
+            return std::format("{:.1f}m", minutes);
+        } else {
+            return std::format("{:.0f}m", minutes);
+        }
+    }
+}
+
 std::string V8Console::GetTime(const std::string& format) {
     const auto now = std::chrono::system_clock::now();
     const auto time_t = std::chrono::system_clock::to_time_t(now);
@@ -1044,69 +1145,50 @@ std::string V8Console::BuildPromptFromConfig() {
     using namespace rang;
     std::ostringstream prompt;
     
-    for (const auto& segment : promptConfig_.segments) {
-        // Apply colors and styles
-        if (!segment.fg.empty()) {
-            prompt << GetColorFromString(segment.fg);
-        }
-        if (!segment.bg.empty()) {
-            prompt << GetBgColorFromString(segment.bg);
-        }
-        if (segment.bold) {
-            prompt << style::bold;
-        }
-        
-        // Add prefix
-        if (!segment.prefix.empty()) {
-            prompt << segment.prefix;
-        }
-        
-        // Add segment content based on type
-        if (segment.type == "text") {
-            prompt << segment.content;
-        } else if (segment.type == "cwd") {
-            try {
-                const std::string cwd = fs::current_path().string();
-                prompt << TruncatePath(cwd, K_MAX_PATH_LENGTH);
-            } catch (...) {
-                prompt << "?";
-            }
-        } else if (segment.type == "git") {
-            std::string branch = GetGitBranch();
-            if (!branch.empty()) {
-                prompt << branch;
-                std::string status = GetGitStatus();
-                if (!status.empty()) {
-                    prompt << " " << status;
-                }
-            }
-        } else if (segment.type == "exit_code") {
-            if (lastExitCode_ != 0) {
-                prompt << (segment.content.empty() ? "✗" : segment.content);
-            }
-        } else if (segment.type == "time") {
-            prompt << GetTime(segment.format.empty() ? "%H:%M:%S" : segment.format);
-        } else if (segment.type == "user") {
-            prompt << GetUsername();
-        } else if (segment.type == "host") {
-            prompt << GetHostname();
-        } else if (segment.type == "js_indicator") {
-            if (!lastCommand_.empty() && lastCommand_[0] == K_JAVA_SCRIPT_PREFIX[0]) {
-                prompt << (segment.content.empty() ? "JS" : segment.content);
+    // Build left side
+    std::string leftSide = BuildSegments(promptConfig_.leftSegments);
+    
+    // Build right side
+    std::string rightSide = BuildSegments(promptConfig_.rightSegments);
+    
+    // Calculate terminal width
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    int termWidth = w.ws_col;
+    
+    // Calculate the visible length (without ANSI codes)
+    auto stripAnsi = [](const std::string& str) {
+        std::string result;
+        bool inEscape = false;
+        for (char c : str) {
+            if (c == '\033') {
+                inEscape = true;
+            } else if (inEscape && c == 'm') {
+                inEscape = false;
+            } else if (!inEscape) {
+                result += c;
             }
         }
-        
-        // Add suffix
-        if (!segment.suffix.empty()) {
-            prompt << segment.suffix;
-        }
-        
-        // Reset styles
-        prompt << style::reset;
+        return result;
+    };
+    
+    int leftLen = stripAnsi(leftSide).length();
+    int rightLen = stripAnsi(rightSide).length();
+    int padding = termWidth - leftLen - rightLen;
+    
+    // Build the prompt
+    prompt << leftSide;
+    if (padding > 0 && !rightSide.empty()) {
+        prompt << std::string(padding, ' ');
+        prompt << rightSide;
     }
     
-    // Add newline and prompt character
-    prompt << promptConfig_.newline;
+    // Add newline if two-line prompt
+    if (promptConfig_.twoLine) {
+        prompt << promptConfig_.newline;
+    }
+    
+    // Add prompt character
     if (!promptConfig_.prompt_color.empty()) {
         prompt << GetColorFromString(promptConfig_.prompt_color);
     }
@@ -1115,49 +1197,152 @@ std::string V8Console::BuildPromptFromConfig() {
     return prompt.str();
 }
 
+std::string V8Console::BuildSegments(const std::vector<PromptConfig::Segment>& segments) {
+    using namespace rang;
+    std::ostringstream result;
+    
+    for (const auto& segment : segments) {
+        // Apply colors and styles
+        if (!segment.fg.empty()) {
+            result << GetColorFromString(segment.fg);
+        }
+        if (!segment.bg.empty()) {
+            result << GetBgColorFromString(segment.bg);
+        }
+        if (segment.bold) {
+            result << style::bold;
+        }
+        
+        // Add prefix
+        if (!segment.prefix.empty()) {
+            result << segment.prefix;
+        }
+        
+        // Add segment content based on type
+        if (segment.type == "text") {
+            result << segment.content;
+        } else if (segment.type == "cwd") {
+            try {
+                const std::string cwd = fs::current_path().string();
+                result << TruncatePath(cwd, K_MAX_PATH_LENGTH);
+            } catch (...) {
+                result << "?";
+            }
+        } else if (segment.type == "git") {
+            std::string branch = GetGitBranch();
+            if (!branch.empty()) {
+                // Get remote name
+                std::string remote = GetGitRemote();
+                if (!remote.empty()) {
+                    result << remote << ":";
+                }
+                result << branch;
+                std::string status = GetGitStatus();
+                if (!status.empty()) {
+                    result << " " << status;
+                }
+            }
+        } else if (segment.type == "exit_code") {
+            if (lastExitCode_ != 0) {
+                result << (segment.content.empty() ? "✗" : segment.content);
+            }
+        } else if (segment.type == "time") {
+            result << GetTime(segment.format.empty() ? "%H:%M:%S" : segment.format);
+        } else if (segment.type == "exec_time") {
+            if (lastExecutionTime_.count() > 0) {
+                result << formatExecutionTime(lastExecutionTime_);
+            }
+        } else if (segment.type == "user") {
+            result << GetUsername();
+        } else if (segment.type == "host") {
+            result << GetHostname();
+        } else if (segment.type == "js_indicator") {
+            if (jsMode_) {
+                result << (segment.content.empty() ? "[JS]" : segment.content);
+            }
+        } else if (segment.type == "mode") {
+            result << (jsMode_ ? "JS" : "SH");
+        }
+        
+        // Add suffix
+        if (!segment.suffix.empty()) {
+            result << segment.suffix;
+        }
+        
+        // Reset styles
+        result << style::reset;
+    }
+    
+    return result.str();
+}
+
 void V8Console::LoadPromptConfig() {
     if (configPath_.empty()) return;
     
-    // Look for .v8prompt.json in home directory
     fs::path promptConfigPath = fs::path(configPath_).parent_path() / ".v8prompt.json";
-    
-    std::ifstream file(promptConfigPath);
-    if (!file) {
-        // Create default prompt config if it doesn't exist
+    if (!fs::exists(promptConfigPath)) {
+        // Create default config
         SavePromptConfig();
         return;
     }
     
-    // Parse JSON manually (simple parser for our needs)
-    std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    
-    // This is a simplified JSON parser - in production you'd use a proper JSON library
-    // For now, we'll create a default configuration
-    promptConfig_.segments.clear();
-    
-    // Default PowerLevel10k-style configuration
-    PromptConfig::Segment exitCode;
-    exitCode.type = "exit_code";
-    exitCode.fg = "red";
-    exitCode.suffix = " ";
-    promptConfig_.segments.push_back(exitCode);
-    
-    PromptConfig::Segment cwd;
-    cwd.type = "cwd";
-    cwd.fg = "blue";
-    promptConfig_.segments.push_back(cwd);
-    
-    PromptConfig::Segment git;
-    git.type = "git";
-    git.fg = "magenta";
-    git.prefix = "  ";
-    promptConfig_.segments.push_back(git);
-    
-    PromptConfig::Segment js;
-    js.type = "js_indicator";
-    js.fg = "green";
-    js.prefix = " ";
-    promptConfig_.segments.push_back(js);
+    // Parse JSON file
+    try {
+        std::ifstream file(promptConfigPath);
+        if (!file) {
+            SavePromptConfig();
+            return;
+        }
+        
+        nlohmann::json j;
+        file >> j;
+        
+        // Clear existing segments
+        promptConfig_.leftSegments.clear();
+        promptConfig_.rightSegments.clear();
+        
+        // Load left segments
+        if (j.contains("leftSegments") && j["leftSegments"].is_array()) {
+            for (const auto& segJson : j["leftSegments"]) {
+                PromptConfig::Segment seg;
+                seg.type = segJson.value("type", "");
+                seg.content = segJson.value("content", "");
+                seg.fg = segJson.value("fg", "");
+                seg.bg = segJson.value("bg", "");
+                seg.format = segJson.value("format", "");
+                seg.bold = segJson.value("bold", false);
+                seg.prefix = segJson.value("prefix", "");
+                seg.suffix = segJson.value("suffix", "");
+                promptConfig_.leftSegments.push_back(seg);
+            }
+        }
+        
+        // Load right segments
+        if (j.contains("rightSegments") && j["rightSegments"].is_array()) {
+            for (const auto& segJson : j["rightSegments"]) {
+                PromptConfig::Segment seg;
+                seg.type = segJson.value("type", "");
+                seg.content = segJson.value("content", "");
+                seg.fg = segJson.value("fg", "");
+                seg.bg = segJson.value("bg", "");
+                seg.format = segJson.value("format", "");
+                seg.bold = segJson.value("bold", false);
+                seg.prefix = segJson.value("prefix", "");
+                seg.suffix = segJson.value("suffix", "");
+                promptConfig_.rightSegments.push_back(seg);
+            }
+        }
+        
+        // Load other config
+        promptConfig_.newline = j.value("newline", "\n");
+        promptConfig_.prompt_char = j.value("prompt_char", "❯");
+        promptConfig_.prompt_color = j.value("prompt_color", "cyan");
+        promptConfig_.twoLine = j.value("twoLine", false);
+        
+    } catch (const std::exception& e) {
+        // If loading fails, create default config
+        SavePromptConfig();
+    }
 }
 
 void V8Console::SavePromptConfig() {
@@ -1225,39 +1410,158 @@ void V8Console::RunPromptWizard() {
     
     std::cout << "\033[H\033[2J"; // Clear screen
     std::cout << style::bold << fg::cyan << "╔════════════════════════════════════════════════════════════════╗\n";
-    std::cout << "║            V8 Shell Prompt Configuration Wizard                ║\n";
-    std::cout << "║                  Inspired by PowerLevel10k                     ║\n";
+    std::cout << "║            V8 Console Prompt Configuration Wizard              ║\n";
+    std::cout << "║           PowerLevel10k-style with Enhanced Features           ║\n";
     std::cout << "╚════════════════════════════════════════════════════════════════╝" << style::reset << "\n\n";
     
-    std::cout << "This wizard will help you configure your prompt step by step.\n";
-    std::cout << "Press " << fg::green << "Enter" << style::reset << " to accept the default, or type your choice.\n\n";
+    std::cout << "This wizard will help you configure your prompt with interactive preview.\n";
+    std::cout << "Press " << fg::green << "Enter" << style::reset << " to accept the default, " 
+              << fg::yellow << "q" << style::reset << " to quit without saving.\n\n";
     
     PromptConfig newConfig;
     
     // Question 1: Prompt Style
     std::cout << style::bold << fg::yellow << "1. Choose your prompt style:" << style::reset << "\n\n";
     
-    // Show examples
+    // Show examples with live preview
+    auto showExample = [&](int num, const std::string& name, const std::string& line1, 
+                          const std::string& line2 = "", const std::string& promptChar = "λ",
+                          const std::string& promptColor = "blue") {
+        std::cout << "  (" << num << ") ";
+        if (!line1.empty()) std::cout << line1;
+        if (!line2.empty()) std::cout << "\n      " << line2;
+        std::cout << "\n      ";
+        if (promptColor == "blue") std::cout << fg::blue;
+        else if (promptColor == "green") std::cout << fg::green;
+        else if (promptColor == "magenta") std::cout << fg::magenta;
+        else if (promptColor == "cyan") std::cout << fg::cyan;
+        std::cout << promptChar << " " << style::reset << "(" << name << ")\n\n";
+    };
+    
+    // Minimal style
     std::cout << "  (1) " << fg::blue << "~/projects/v8shell" << fg::magenta << "  main" 
               << fg::yellow << " ✚" << style::reset << "\n";
-    std::cout << "      " << fg::blue << "λ " << style::reset << "(Minimal)\n\n";
+    std::cout << "      " << fg::blue << "λ" << style::reset << " \n\n";
     
-    std::cout << "  (2) " << fg::red << "✗ " << fg::gray << "14:32:05 " << fg::yellow << "user" 
-              << fg::gray << "@" << fg::yellow << "hostname " << fg::blue << "~/projects/v8shell" 
-              << fg::magenta << "  main" << fg::yellow << " ✚" << style::reset << "\n";
-    std::cout << "      " << fg::blue << "λ " << style::reset << "(Full)\n\n";
+    // Full style with powerline
+    std::cout << "  (2) " << fg::red << "✗ " << fg::gray << "[14:32:05] " 
+              << bg::blue << fg::black << " user@hostname " << style::reset
+              << fg::blue << "" << bg::gray << fg::reset << " ~/projects/v8shell "
+              << style::reset << fg::gray << "" << bg::magenta << fg::black
+              << "  main ✚ " << style::reset << fg::magenta << "" << "\n";
+    std::cout << "      " << fg::blue << "λ" << style::reset << " \n\n";
     
-    std::cout << "  (3) " << fg::yellow << "[user@host]" << fg::gray << " " << fg::blue 
-              << "~/projects/v8shell" << style::reset << "\n";
-    std::cout << "      " << fg::green << "$ " << style::reset << "(Classic)\n\n";
+    // Classic style
+    std::cout << "  (3) " << fg::yellow << "[user@host]" << fg::gray << " " 
+              << fg::blue << "~/projects/v8shell" << style::reset << "\n";
+    std::cout << "      " << fg::green << "$" << style::reset << " \n\n";
     
-    std::cout << "Choice [1-3] (default: 1): ";
+    // Two-line style
+    std::cout << "  (4) " << fg::cyan << "┌─[" << fg::yellow << "user@host"
+              << fg::cyan << "]─[" << fg::blue << "~/projects/v8shell"
+              << fg::cyan << "]─[" << fg::magenta << "main"
+              << fg::cyan << "]" << style::reset << "\n";
+    std::cout << "      " << fg::cyan << "└─▶ " << style::reset << "\n\n";
+    
+    // Nerd Font style
+    std::cout << "  (5) " << fg::cyan << " " << fg::yellow << " user "
+              << fg::blue << " " << fg::green << " ~/projects "
+              << fg::magenta << " " << fg::yellow << " main" << style::reset << "\n";
+    std::cout << "      " << fg::magenta << "❯" << style::reset << " \n\n";
+    
+    std::cout << "Choice [1-5] (default: 1): ";
     std::string choice;
     std::getline(std::cin, choice);
+    if (choice == "q") {
+        std::cout << "\nPrompt configuration cancelled.\n";
+        return;
+    }
     
     int styleChoice = 1;
-    if (!choice.empty() && choice[0] >= '1' && choice[0] <= '3') {
+    if (!choice.empty() && choice[0] >= '1' && choice[0] <= '5') {
         styleChoice = choice[0] - '0';
+    }
+    
+    // Check if Nerd Font style was selected
+    if (styleChoice == 5) {
+        std::cout << "\n" << style::bold << fg::yellow << "Font Check:" << style::reset << "\n";
+        std::cout << "The Nerd Font style requires a patched font with icons.\n";
+        std::cout << "Testing font support: " << fg::cyan << " " << fg::yellow << " " 
+                  << fg::blue << " " << fg::green << " " << fg::magenta << " " 
+                  << style::reset << "\n\n";
+        
+        std::cout << "Do you see icons above? [y/N]: ";
+        std::string fontCheck;
+        std::getline(std::cin, fontCheck);
+        
+        if (fontCheck.empty() || (fontCheck[0] != 'y' && fontCheck[0] != 'Y')) {
+            std::cout << "\n" << style::bold << "Would you like to install a Nerd Font? [Y/n]: " << style::reset;
+            std::string installFont;
+            std::getline(std::cin, installFont);
+            
+            if (installFont.empty() || installFont[0] == 'y' || installFont[0] == 'Y') {
+                std::cout << "\n" << style::bold << fg::cyan << "Available Nerd Fonts:" << style::reset << "\n";
+                std::cout << "  (1) FiraCode Nerd Font (recommended)\n";
+                std::cout << "  (2) Hack Nerd Font\n";
+                std::cout << "  (3) JetBrainsMono Nerd Font\n";
+                std::cout << "  (4) Meslo Nerd Font\n";
+                std::cout << "  (5) Skip font installation\n\n";
+                std::cout << "Choice [1-5] (default: 1): ";
+                
+                std::string fontChoice;
+                std::getline(std::cin, fontChoice);
+                
+                int fontNum = 1;
+                if (!fontChoice.empty() && fontChoice[0] >= '1' && fontChoice[0] <= '5') {
+                    fontNum = fontChoice[0] - '0';
+                }
+                
+                if (fontNum < 5) {
+                    const char* fontNames[] = {"FiraCode", "Hack", "JetBrainsMono", "Meslo"};
+                    const char* fontUrls[] = {
+                        "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraCode.zip",
+                        "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.zip",
+                        "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip",
+                        "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.zip"
+                    };
+                    
+                    std::cout << "\n" << style::bold << "Installing " << fontNames[fontNum-1] 
+                              << " Nerd Font..." << style::reset << "\n";
+                    
+                    // Create fonts directory
+                    std::string homeDir = std::getenv("HOME") ? std::getenv("HOME") : "";
+                    std::string fontDir = homeDir + "/.local/share/fonts";
+                    std::system(("mkdir -p " + fontDir).c_str());
+                    
+                    // Download font
+                    std::string downloadCmd = "cd /tmp && wget -q --show-progress -O nerd-font.zip " + 
+                                            std::string(fontUrls[fontNum-1]);
+                    int result = std::system(downloadCmd.c_str());
+                    
+                    if (result == 0) {
+                        // Extract font
+                        std::cout << "Extracting font files...\n";
+                        std::system(("cd /tmp && unzip -q -o nerd-font.zip -d " + fontDir).c_str());
+                        std::system("rm -f /tmp/nerd-font.zip");
+                        
+                        // Update font cache
+                        std::cout << "Updating font cache...\n";
+                        std::system("fc-cache -f");
+                        
+                        std::cout << fg::green << "\n✓ Font installed successfully!" << style::reset << "\n";
+                        std::cout << "\nPlease configure your terminal to use '" << fontNames[fontNum-1] 
+                                  << " Nerd Font' for the icons to display correctly.\n";
+                        std::cout << "\nPress Enter to continue...";
+                        std::cin.get();
+                    } else {
+                        std::cout << fg::red << "\n✗ Failed to download font." << style::reset << "\n";
+                        std::cout << "You can manually download it from: " << fontUrls[fontNum-1] << "\n";
+                        std::cout << "\nPress Enter to continue...";
+                        std::cin.get();
+                    }
+                }
+            }
+        }
     }
     
     // Build config based on style choice
@@ -1267,97 +1571,194 @@ void V8Console::RunPromptWizard() {
         exitCode.type = "exit_code";
         exitCode.fg = "red";
         exitCode.suffix = " ";
-        newConfig.segments.push_back(exitCode);
+        newConfig.leftSegments.push_back(exitCode);
         
         PromptConfig::Segment cwd;
         cwd.type = "cwd";
         cwd.fg = "blue";
-        newConfig.segments.push_back(cwd);
+        newConfig.leftSegments.push_back(cwd);
         
         PromptConfig::Segment git;
         git.type = "git";
         git.fg = "magenta";
         git.prefix = "  ";
-        newConfig.segments.push_back(git);
+        newConfig.leftSegments.push_back(git);
     } else if (styleChoice == 2) {
         // Full style
         PromptConfig::Segment exitCode;
         exitCode.type = "exit_code";
         exitCode.fg = "red";
         exitCode.suffix = " ";
-        newConfig.segments.push_back(exitCode);
+        newConfig.leftSegments.push_back(exitCode);
         
         PromptConfig::Segment time;
         time.type = "time";
         time.fg = "gray";
         time.format = "%H:%M:%S";
         time.suffix = " ";
-        newConfig.segments.push_back(time);
+        newConfig.leftSegments.push_back(time);
         
         PromptConfig::Segment user;
         user.type = "user";
         user.fg = "yellow";
-        newConfig.segments.push_back(user);
+        newConfig.leftSegments.push_back(user);
         
         PromptConfig::Segment at;
         at.type = "text";
         at.content = "@";
         at.fg = "gray";
-        newConfig.segments.push_back(at);
+        newConfig.leftSegments.push_back(at);
         
         PromptConfig::Segment host;
         host.type = "host";
         host.fg = "yellow";
         host.suffix = " ";
-        newConfig.segments.push_back(host);
+        newConfig.leftSegments.push_back(host);
         
         PromptConfig::Segment cwd;
         cwd.type = "cwd";
         cwd.fg = "blue";
-        newConfig.segments.push_back(cwd);
+        newConfig.leftSegments.push_back(cwd);
         
         PromptConfig::Segment git;
         git.type = "git";
         git.fg = "magenta";
         git.prefix = "  ";
-        newConfig.segments.push_back(git);
-    } else {
+        newConfig.leftSegments.push_back(git);
+    } else if (styleChoice == 3) {
         // Classic style
         PromptConfig::Segment bracket1;
         bracket1.type = "text";
         bracket1.content = "[";
         bracket1.fg = "yellow";
-        newConfig.segments.push_back(bracket1);
+        newConfig.leftSegments.push_back(bracket1);
         
         PromptConfig::Segment user;
         user.type = "user";
         user.fg = "yellow";
-        newConfig.segments.push_back(user);
+        newConfig.leftSegments.push_back(user);
         
         PromptConfig::Segment at;
         at.type = "text";
         at.content = "@";
         at.fg = "yellow";
-        newConfig.segments.push_back(at);
+        newConfig.leftSegments.push_back(at);
         
         PromptConfig::Segment host;
         host.type = "host";
         host.fg = "yellow";
-        newConfig.segments.push_back(host);
+        newConfig.leftSegments.push_back(host);
         
         PromptConfig::Segment bracket2;
         bracket2.type = "text";
         bracket2.content = "] ";
         bracket2.fg = "yellow";
-        newConfig.segments.push_back(bracket2);
+        newConfig.leftSegments.push_back(bracket2);
         
         PromptConfig::Segment cwd;
         cwd.type = "cwd";
         cwd.fg = "blue";
-        newConfig.segments.push_back(cwd);
+        newConfig.leftSegments.push_back(cwd);
         
         newConfig.prompt_char = "$";
         newConfig.prompt_color = "green";
+    } else if (styleChoice == 4) {
+        // Two-line style
+        PromptConfig::Segment topLeft;
+        topLeft.type = "text";
+        topLeft.content = "┌─[";
+        topLeft.fg = "cyan";
+        newConfig.leftSegments.push_back(topLeft);
+        
+        PromptConfig::Segment user;
+        user.type = "user";
+        user.fg = "yellow";
+        newConfig.leftSegments.push_back(user);
+        
+        PromptConfig::Segment at;
+        at.type = "text";
+        at.content = "@";
+        at.fg = "cyan";
+        newConfig.leftSegments.push_back(at);
+        
+        PromptConfig::Segment host;
+        host.type = "host";
+        host.fg = "yellow";
+        newConfig.leftSegments.push_back(host);
+        
+        PromptConfig::Segment bracket1;
+        bracket1.type = "text";
+        bracket1.content = "]─[";
+        bracket1.fg = "cyan";
+        newConfig.leftSegments.push_back(bracket1);
+        
+        PromptConfig::Segment cwd;
+        cwd.type = "cwd";
+        cwd.fg = "blue";
+        newConfig.leftSegments.push_back(cwd);
+        
+        PromptConfig::Segment bracket2;
+        bracket2.type = "text";
+        bracket2.content = "]";
+        bracket2.fg = "cyan";
+        newConfig.leftSegments.push_back(bracket2);
+        
+        PromptConfig::Segment git;
+        git.type = "git";
+        git.fg = "magenta";
+        git.prefix = "─[";
+        git.suffix = "]";
+        newConfig.leftSegments.push_back(git);
+        
+        newConfig.newline = "\n└─▶ ";
+        newConfig.prompt_char = "";
+        newConfig.prompt_color = "cyan";
+    } else if (styleChoice == 5) {
+        // Nerd Font style
+        PromptConfig::Segment icon1;
+        icon1.type = "text";
+        icon1.content = " ";
+        icon1.fg = "cyan";
+        newConfig.leftSegments.push_back(icon1);
+        
+        PromptConfig::Segment userIcon;
+        userIcon.type = "text";
+        userIcon.content = " ";
+        userIcon.fg = "yellow";
+        newConfig.leftSegments.push_back(userIcon);
+        
+        PromptConfig::Segment user;
+        user.type = "user";
+        user.fg = "yellow";
+        user.suffix = " ";
+        newConfig.leftSegments.push_back(user);
+        
+        PromptConfig::Segment folderIcon;
+        folderIcon.type = "text";
+        folderIcon.content = " ";
+        folderIcon.fg = "blue";
+        newConfig.leftSegments.push_back(folderIcon);
+        
+        PromptConfig::Segment cwd;
+        cwd.type = "cwd";
+        cwd.fg = "green";
+        cwd.suffix = " ";
+        newConfig.leftSegments.push_back(cwd);
+        
+        PromptConfig::Segment gitIcon;
+        gitIcon.type = "text";
+        gitIcon.content = "";
+        gitIcon.fg = "magenta";
+        gitIcon.suffix = " ";
+        newConfig.leftSegments.push_back(gitIcon);
+        
+        PromptConfig::Segment git;
+        git.type = "git";
+        git.fg = "yellow";
+        newConfig.leftSegments.push_back(git);
+        
+        newConfig.prompt_char = "❯";
+        newConfig.prompt_color = "magenta";
     }
     
     // Question 2: Prompt Character
@@ -1392,10 +1793,10 @@ void V8Console::RunPromptWizard() {
     
     if (!choice.empty() && (choice[0] == 'n' || choice[0] == 'N')) {
         // Remove git segments
-        newConfig.segments.erase(
-            std::remove_if(newConfig.segments.begin(), newConfig.segments.end(),
+        newConfig.leftSegments.erase(
+            std::remove_if(newConfig.leftSegments.begin(), newConfig.leftSegments.end(),
                 [](const PromptConfig::Segment& s) { return s.type == "git"; }),
-            newConfig.segments.end());
+            newConfig.leftSegments.end());
     }
     
     // Question 4: Show time?
@@ -1410,11 +1811,11 @@ void V8Console::RunPromptWizard() {
             time.format = "%H:%M:%S";
             time.suffix = " ";
             // Insert at beginning after exit_code
-            auto it = newConfig.segments.begin();
-            if (!newConfig.segments.empty() && newConfig.segments[0].type == "exit_code") {
+            auto it = newConfig.leftSegments.begin();
+            if (!newConfig.leftSegments.empty() && newConfig.leftSegments[0].type == "exit_code") {
                 ++it;
             }
-            newConfig.segments.insert(it, time);
+            newConfig.leftSegments.insert(it, time);
         }
     }
     
@@ -1428,7 +1829,7 @@ void V8Console::RunPromptWizard() {
         js.fg = "green";
         js.prefix = " ";
         js.content = "[JS]";
-        newConfig.segments.push_back(js);
+        newConfig.leftSegments.push_back(js);
     }
     
     // Question 6: Two-line prompt?
@@ -1464,53 +1865,50 @@ void V8Console::RunPromptWizard() {
 void V8Console::SavePromptConfigJSON(const PromptConfig& config) {
     if (configPath_.empty()) return;
     
-    fs::path promptConfigPath = fs::path(configPath_).parent_path() / ".v8prompt.json";
-    std::ofstream file(promptConfigPath);
-    if (!file) return;
+    nlohmann::json j;
     
-    file << "{\n";
-    file << "  \"segments\": [\n";
-    
-    // Write segments
-    for (size_t i = 0; i < config.segments.size(); ++i) {
-        const auto& seg = config.segments[i];
-        file << "    {\n";
-        file << "      \"type\": \"" << seg.type << "\"";
-        
-        if (!seg.content.empty()) {
-            file << ",\n      \"content\": \"" << seg.content << "\"";
-        }
-        if (!seg.fg.empty()) {
-            file << ",\n      \"fg\": \"" << seg.fg << "\"";
-        }
-        if (!seg.bg.empty()) {
-            file << ",\n      \"bg\": \"" << seg.bg << "\"";
-        }
-        if (!seg.format.empty()) {
-            file << ",\n      \"format\": \"" << seg.format << "\"";
-        }
-        if (seg.bold) {
-            file << ",\n      \"bold\": true";
-        }
-        if (!seg.prefix.empty()) {
-            file << ",\n      \"prefix\": \"" << seg.prefix << "\"";
-        }
-        if (!seg.suffix.empty()) {
-            file << ",\n      \"suffix\": \"" << seg.suffix << "\"";
-        }
-        
-        file << "\n    }";
-        if (i < config.segments.size() - 1) {
-            file << ",";
-        }
-        file << "\n";
+    // Convert left segments
+    j["leftSegments"] = nlohmann::json::array();
+    for (const auto& seg : config.leftSegments) {
+        nlohmann::json segJson;
+        segJson["type"] = seg.type;
+        if (!seg.content.empty()) segJson["content"] = seg.content;
+        if (!seg.fg.empty()) segJson["fg"] = seg.fg;
+        if (!seg.bg.empty()) segJson["bg"] = seg.bg;
+        if (!seg.format.empty()) segJson["format"] = seg.format;
+        if (seg.bold) segJson["bold"] = seg.bold;
+        if (!seg.prefix.empty()) segJson["prefix"] = seg.prefix;
+        if (!seg.suffix.empty()) segJson["suffix"] = seg.suffix;
+        j["leftSegments"].push_back(segJson);
     }
     
-    file << "  ],\n";
-    file << "  \"newline\": \"" << (config.newline == "\n" ? "\\n" : config.newline) << "\",\n";
-    file << "  \"prompt_char\": \"" << config.prompt_char << "\",\n";
-    file << "  \"prompt_color\": \"" << config.prompt_color << "\"\n";
-    file << "}\n";
+    // Convert right segments
+    j["rightSegments"] = nlohmann::json::array();
+    for (const auto& seg : config.rightSegments) {
+        nlohmann::json segJson;
+        segJson["type"] = seg.type;
+        if (!seg.content.empty()) segJson["content"] = seg.content;
+        if (!seg.fg.empty()) segJson["fg"] = seg.fg;
+        if (!seg.bg.empty()) segJson["bg"] = seg.bg;
+        if (!seg.format.empty()) segJson["format"] = seg.format;
+        if (seg.bold) segJson["bold"] = seg.bold;
+        if (!seg.prefix.empty()) segJson["prefix"] = seg.prefix;
+        if (!seg.suffix.empty()) segJson["suffix"] = seg.suffix;
+        j["rightSegments"].push_back(segJson);
+    }
+    
+    // Other config
+    j["newline"] = config.newline;
+    j["prompt_char"] = config.prompt_char;
+    j["prompt_color"] = config.prompt_color;
+    j["twoLine"] = config.twoLine;
+    
+    // Write to file
+    fs::path promptConfigPath = fs::path(configPath_).parent_path() / ".v8prompt.json";
+    std::ofstream file(promptConfigPath);
+    if (file) {
+        file << j.dump(2); // Pretty print with 2 space indent
+    }
 }
 
 void V8Console::LoadV8CRC() {
@@ -1585,3 +1983,173 @@ void V8Console::LoadV8CRC() {
         std::cout << fg::green << "~/.config/v8rc loaded successfully" << style::reset << std::endl;
     }
 }
+
+#ifndef NO_READLINE
+char** V8Console::CompletionGenerator(const char* text, int start, int end) {
+    if (!completionInstance_) return nullptr;
+    
+    // Get the current line buffer
+    std::string line(rl_line_buffer);
+    
+    // Check if we're in JavaScript mode (starts with &)
+    if (!line.empty() && line[0] == '&') {
+        // Remove the & prefix for JavaScript completion
+        std::string jsLine = line.substr(1);
+        int jsStart = start > 0 ? start - 1 : 0;
+        int jsEnd = end > 0 ? end - 1 : 0;
+        
+        auto completions = completionInstance_->GetCompletions(text, jsStart, jsEnd);
+        if (completions.empty()) return nullptr;
+        
+        // Convert to readline format
+        char** matches = (char**)malloc((completions.size() + 2) * sizeof(char*));
+        matches[0] = strdup(text);
+        
+        for (size_t i = 0; i < completions.size(); ++i) {
+            matches[i + 1] = strdup(completions[i].c_str());
+        }
+        matches[completions.size() + 1] = nullptr;
+        
+        return matches;
+    }
+    
+    // For shell commands, use default filename completion
+    return nullptr;
+}
+
+std::vector<std::string> V8Console::GetCompletions(const std::string& text, int start, int end) {
+    std::vector<std::string> completions;
+    
+    if (!isolate_) return completions;
+    
+    // Get the current line up to the cursor
+    std::string line = rl_line_buffer;
+    if (line.length() > 0 && line[0] == '&') {
+        line = line.substr(1, start);
+    } else {
+        line = line.substr(0, start);
+    }
+    
+    // Find the object path (e.g., "console." or "myObj.nested.")
+    size_t lastDot = line.rfind('.');
+    std::string objectPath;
+    std::string prefix;
+    
+    if (lastDot != std::string::npos) {
+        objectPath = line.substr(0, lastDot);
+        prefix = line.substr(lastDot + 1);
+    } else {
+        // Global completions
+        objectPath = "";
+        prefix = text;
+    }
+    
+    // Get properties from the object
+    auto properties = GetObjectProperties(objectPath);
+    
+    // Filter by prefix
+    for (const auto& prop : properties) {
+        if (prop.find(prefix) == 0) {
+            completions.push_back(prop);
+        }
+    }
+    
+    return completions;
+}
+
+std::vector<std::string> V8Console::GetObjectProperties(const std::string& objectPath) {
+    std::vector<std::string> properties;
+    
+    if (!isolate_) return properties;
+    
+    v8::Isolate::Scope isolate_scope(isolate_);
+    v8::HandleScope handle_scope(isolate_);
+    v8::Local<v8::Context> context = context_.Get(isolate_);
+    v8::Context::Scope context_scope(context);
+    
+    v8::TryCatch try_catch(isolate_);
+    
+    // Start with the global object
+    v8::Local<v8::Object> obj = context->Global();
+    
+    // If there's an object path, traverse it
+    if (!objectPath.empty()) {
+        // Split the path by dots
+        std::vector<std::string> parts;
+        std::stringstream ss(objectPath);
+        std::string part;
+        while (std::getline(ss, part, '.')) {
+            if (!part.empty()) {
+                parts.push_back(part);
+            }
+        }
+        
+        // Traverse the object hierarchy
+        for (const auto& part : parts) {
+            v8::Local<v8::String> key = v8::String::NewFromUtf8(isolate_, part.c_str()).ToLocalChecked();
+            v8::Local<v8::Value> value;
+            
+            if (!obj->Get(context, key).ToLocal(&value) || !value->IsObject()) {
+                return properties; // Object not found or not an object
+            }
+            
+            obj = value.As<v8::Object>();
+        }
+    }
+    
+    // Get own property names
+    v8::Local<v8::Array> propertyNames;
+    if (!obj->GetOwnPropertyNames(context).ToLocal(&propertyNames)) {
+        return properties;
+    }
+    
+    // Also get properties from prototype chain for built-in objects
+    v8::Local<v8::Array> prototypeNames;
+    if (obj->GetPropertyNames(context).ToLocal(&prototypeNames)) {
+        // Merge prototype properties
+        for (uint32_t i = 0; i < prototypeNames->Length(); ++i) {
+            v8::Local<v8::Value> name;
+            if (prototypeNames->Get(context, i).ToLocal(&name) && name->IsString()) {
+                v8::String::Utf8Value utf8Name(isolate_, name);
+                std::string propName(*utf8Name);
+                
+                // Check if this is a function/method
+                v8::Local<v8::Value> propValue;
+                if (obj->Get(context, name).ToLocal(&propValue)) {
+                    if (propValue->IsFunction()) {
+                        propName += "(";  // Add parenthesis hint for functions
+                    }
+                    properties.push_back(propName);
+                }
+            }
+        }
+    } else {
+        // Fallback to just own properties
+        for (uint32_t i = 0; i < propertyNames->Length(); ++i) {
+            v8::Local<v8::Value> name;
+            if (propertyNames->Get(context, i).ToLocal(&name) && name->IsString()) {
+                v8::String::Utf8Value utf8Name(isolate_, name);
+                std::string propName(*utf8Name);
+                
+                // Check if this is a function
+                v8::Local<v8::Value> propValue;
+                if (obj->Get(context, name).ToLocal(&propValue) && propValue->IsFunction()) {
+                    propName += "(";  // Add parenthesis hint for functions
+                }
+                properties.push_back(propName);
+            }
+        }
+    }
+    
+    // Remove duplicates and sort
+    std::sort(properties.begin(), properties.end());
+    properties.erase(std::unique(properties.begin(), properties.end()), properties.end());
+    
+    return properties;
+}
+#else
+// Stub implementations when readline is not available
+char** V8Console::CompletionGenerator(const char*, int, int) { return nullptr; }
+std::vector<std::string> V8Console::GetCompletions(const std::string&, int, int) { return {}; }
+std::vector<std::string> V8Console::GetObjectProperties(const std::string&) { return {}; }
+#endif

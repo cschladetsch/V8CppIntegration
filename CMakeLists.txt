@@ -325,25 +325,36 @@ if(ENABLE_TESTING AND GTest_FOUND)
     endif()
     add_test(NAME AdvancedTests COMMAND AdvancedTests)
     
-    # V8Console test suite with GTest
+    # V8Console test suite with GTest - Only test DllLoader directly
     add_executable(V8ConsoleTests Tests/Unit/V8ConsoleTests.cpp 
-                   Source/App/Console/V8Console.cpp
-                   Source/App/Console/V8ConsoleBuiltins.cpp
-                   Source/App/Console/V8ConsoleOutput.cpp
-                   Source/App/Console/V8ConsoleHelp.cpp
                    Source/App/Console/DllLoader.cpp)
     configure_test_target(V8ConsoleTests)
     target_link_libraries(V8ConsoleTests PRIVATE GTest::gtest GTest::gtest_main pthread dl)
-    if(USE_READLINE AND READLINE_LIB)
-        target_link_libraries(V8ConsoleTests PRIVATE ${READLINE_LIB})
-    endif()
     target_include_directories(V8ConsoleTests PRIVATE 
                               ${CMAKE_SOURCE_DIR}/Include
-                              ${CMAKE_SOURCE_DIR}/Include/third_party)
+                              ${CMAKE_SOURCE_DIR}/Include/third_party
+                              ${CMAKE_SOURCE_DIR}/Source/App/Console)
     if(NOT USE_SYSTEM_V8)
         add_dependencies(V8ConsoleTests googletest)
     endif()
     add_test(NAME V8ConsoleTests COMMAND V8ConsoleTests)
+    
+    # V8ConsoleCore test suite with GTest
+    add_executable(V8ConsoleCoreTests Tests/Unit/V8ConsoleCoreTests.cpp)
+    configure_test_target(V8ConsoleCoreTests)
+    target_link_libraries(V8ConsoleCoreTests PRIVATE 
+                         V8ConsoleCore 
+                         V8Integration 
+                         GTest::gtest 
+                         GTest::gtest_main 
+                         pthread)
+    target_include_directories(V8ConsoleCoreTests PRIVATE 
+                              ${CMAKE_SOURCE_DIR}/Source/Library/V8ConsoleCore/include
+                              ${CMAKE_SOURCE_DIR}/Source/Library/V8Integration/include)
+    if(NOT USE_SYSTEM_V8)
+        add_dependencies(V8ConsoleCoreTests googletest)
+    endif()
+    add_test(NAME V8ConsoleCoreTests COMMAND V8ConsoleCoreTests)
     
     # Command Line Arguments test suite with GTest
     add_executable(CommandLineTests Tests/Unit/CommandLineTests.cpp)
@@ -431,11 +442,12 @@ if(ENABLE_TESTING AND GTest_FOUND)
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/BasicTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AdvancedTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/V8ConsoleTests
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/V8ConsoleCoreTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CommandLineTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/IntegrationTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/InteroperabilityTests
     )
-    set(ALL_TEST_TARGETS BasicTests AdvancedTests V8ConsoleTests CommandLineTests IntegrationTests InteroperabilityTests)
+    set(ALL_TEST_TARGETS BasicTests AdvancedTests V8ConsoleTests V8ConsoleCoreTests CommandLineTests IntegrationTests InteroperabilityTests)
     
     if(TARGET FibonacciTests)
         list(APPEND ALL_TEST_COMMANDS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/FibonacciTests)
@@ -600,9 +612,24 @@ if(TARGET BenchmarkTests)
     )
 endif()
 
-# V8 Console Application
+# V8 Integration Library
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/Library/V8Integration/CMakeLists.txt")
+    add_subdirectory(Source/Library/V8Integration)
+endif()
+
+# V8 Console Core Library
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/Library/V8ConsoleCore/CMakeLists.txt")
+    add_subdirectory(Source/Library/V8ConsoleCore)
+endif()
+
+# V8 Console Application (v8c)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/App/Console/CMakeLists.txt")
     add_subdirectory(Source/App/Console)
+endif()
+
+# V8 GUI Application (v8gui)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/App/ConsoleGUI/CMakeLists.txt")
+    add_subdirectory(Source/App/ConsoleGUI)
 endif()
 
 # Example DLLs
