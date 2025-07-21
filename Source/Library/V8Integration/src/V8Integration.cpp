@@ -188,8 +188,13 @@ public:
                 v8::Local<v8::String> key = ToV8String(isolate_, part);
                 v8::Local<v8::Value> value;
                 
-                if (!obj->Get(context, key).ToLocal(&value) || !value->IsObject()) {
+                if (!obj->Get(context, key).ToLocal(&value)) {
                     return properties; // Path not found
+                }
+                
+                // Arrays are objects too in JavaScript
+                if (!value->IsObject() && !value->IsArray()) {
+                    return properties; // Not an object or array
                 }
                 
                 obj = value.As<v8::Object>();
