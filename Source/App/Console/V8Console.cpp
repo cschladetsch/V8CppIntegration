@@ -112,7 +112,7 @@ bool V8Console::LoadDll(const std::string& path) {
     }
 }
 
-void V8Console::RunRepl() {
+void V8Console::RunRepl(bool quiet) {
     using namespace rang;
     
 #ifndef NO_READLINE
@@ -132,22 +132,30 @@ void V8Console::RunRepl() {
     }
 #endif
     
-    // Reset terminal settings
-    std::cout << "\033c\033[?1000l\033[?1002l\033[?1003l\033[?1049l";
+    // Store quiet mode
+    quietMode_ = quiet;
     
-    std::cout << style::bold << fg::cyan << "V8 Console - Interactive Mode" << style::reset << std::endl;
-    std::cout << fg::gray << "Built on " << BUILD_DATE << " at " << BUILD_TIME << style::reset << std::endl;
-    std::cout << fg::yellow << "Commands: " << style::reset 
-              << fg::magenta << ".load <file>" << style::reset << ", "
-              << fg::magenta << ".dll <path>" << style::reset << ", "
-              << fg::magenta << ".dlls" << style::reset << ", "
-              << fg::magenta << ".reload <path>" << style::reset << ", "
-              << fg::magenta << ".vars" << style::reset << ", "
-              << fg::magenta << ".clear" << style::reset << ", "
-              << fg::magenta << ".help" << style::reset << ", "
-              << fg::magenta << ".quit" << style::reset << std::endl;
-    std::cout << "Type JavaScript code or commands:" << std::endl;
-    std::cout << std::endl;
+    if (!quiet) {
+        // Reset terminal settings
+        std::cout << "\033c\033[?1000l\033[?1002l\033[?1003l\033[?1049l";
+        
+        std::cout << style::bold << fg::cyan << "V8 Console - Interactive Mode" << style::reset << std::endl;
+        std::cout << fg::gray << "Built on " << BUILD_DATE << " at " << BUILD_TIME << style::reset << std::endl;
+        std::cout << fg::yellow << "Commands: " << style::reset 
+                  << fg::magenta << ".load <file>" << style::reset << ", "
+                  << fg::magenta << ".dll <path>" << style::reset << ", "
+                  << fg::magenta << ".dlls" << style::reset << ", "
+                  << fg::magenta << ".reload <path>" << style::reset << ", "
+                  << fg::magenta << ".vars" << style::reset << ", "
+                  << fg::magenta << ".clear" << style::reset << ", "
+                  << fg::magenta << ".help" << style::reset << ", "
+                  << fg::magenta << ".quit" << style::reset << std::endl;
+        std::cout << fg::yellow << "Shell: " << style::reset 
+                  << "Use " << fg::magenta << "!command" << style::reset 
+                  << " to execute shell commands" << std::endl;
+        std::cout << "Type JavaScript code or commands:" << std::endl;
+        std::cout << std::endl;
+    }
     
     v8::Isolate::Scope isolate_scope(isolate_);
     v8::HandleScope handle_scope(isolate_);

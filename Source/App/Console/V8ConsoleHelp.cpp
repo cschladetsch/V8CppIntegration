@@ -60,6 +60,10 @@ void V8Console::DisplayHelp() {
     std::cout << "  " << fg::green << "// List loaded DLLs" << style::reset << "\n";
     std::cout << "  listDlls();\n\n";
     
+    std::cout << "  " << fg::green << "// Execute shell commands" << style::reset << "\n";
+    std::cout << "  !ls -la\n";
+    std::cout << "  !git status\n\n";
+    
     std::cout << style::bold << fg::yellow << "Keyboard Shortcuts:" << style::reset << "\n";
     
 #ifndef NO_READLINE

@@ -27,7 +27,7 @@ public:
     bool ExecuteString(const std::string& source, const std::string& name = "<eval>");
     
     // Interactive REPL mode
-    void RunRepl();
+    void RunRepl(bool quiet = false);
     
     // Get DLL loader
     DllLoader& GetDllLoader() { return dllLoader_; }
@@ -82,4 +82,5 @@ private:
     // REPL state
     bool shouldQuit_ = false;
     std::string historyPath_;
+    bool quietMode_ = false;
 };
