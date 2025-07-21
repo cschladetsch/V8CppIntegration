@@ -94,8 +94,9 @@ cmake --build build --target v8console
 
 ### Option 1: Using System V8 (Recommended for Quick Start)
 ```bash
-# 1. Install dependencies
-sudo apt-get install libv8-dev libgtest-dev libreadline-dev
+# 1. Install all dependencies automatically
+./install_deps.sh
+# Or manually: sudo apt-get install libv8-dev libboost-program-options-dev libreadline-dev libgtest-dev
 
 # 2. Build with system V8
 ./ShellScripts/build.sh --system-v8
