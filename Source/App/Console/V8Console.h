@@ -117,6 +117,7 @@ private:
     PromptConfig promptConfig_;
     void LoadPromptConfig();
     void SavePromptConfig();
+    void LoadV8CRC();
     void SavePromptConfigJSON(const PromptConfig& config);
     void RunPromptWizard();
     rang::fg GetColorFromString(const std::string& color);

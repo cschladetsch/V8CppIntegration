@@ -173,6 +173,9 @@ void V8Console::RunRepl(bool quiet) {
     LoadConfig();
     LoadPromptConfig();
     
+    // Load .v8crc startup file
+    LoadV8CRC();
+    
     // Store quiet mode
     quietMode_ = quiet;
     
@@ -1508,4 +1511,77 @@ void V8Console::SavePromptConfigJSON(const PromptConfig& config) {
     file << "  \"prompt_char\": \"" << config.prompt_char << "\",\n";
     file << "  \"prompt_color\": \"" << config.prompt_color << "\"\n";
     file << "}\n";
+}
+
+void V8Console::LoadV8CRC() {
+    using namespace rang;
+    
+    // Check for ~/.config/v8rc file
+    const char* home = std::getenv("HOME");
+    if (!home) return;
+    
+    fs::path configDir = fs::path(home) / ".config";
+    fs::path v8rcPath = configDir / "v8rc";
+    
+    // Create .config directory if it doesn't exist
+    if (!fs::exists(configDir)) {
+        try {
+            fs::create_directory(configDir);
+        } catch (...) {
+            return;
+        }
+    }
+    
+    if (!fs::exists(v8rcPath)) return;
+    
+    // Read the file
+    std::ifstream file(v8rcPath);
+    if (!file) return;
+    
+    std::string line;
+    std::vector<std::string> commands;
+    
+    // Collect all commands from the file
+    while (std::getline(file, line)) {
+        // Skip empty lines and comments
+        if (line.empty() || (line[0] == '#' && line.find("&") != 0)) continue;
+        commands.push_back(line);
+    }
+    
+    if (commands.empty()) return;
+    
+    // Execute commands
+    if (!quietMode_) {
+        std::cout << fg::cyan << "Loading ~/.config/v8rc..." << style::reset << std::endl;
+    }
+    
+    for (const auto& cmd : commands) {
+        // Check if it's a JavaScript command
+        if (!cmd.empty() && cmd[0] == '&') {
+            // Execute JavaScript
+            std::string jsCode = cmd.substr(1);
+            ExecuteString(jsCode, ".v8crc");
+        } else {
+            // Handle shell commands
+            std::string expandedCommand = cmd;
+            HandleAlias(expandedCommand);
+            
+            // Handle built-in commands like alias, export
+            if (!HandleBuiltinCommand(expandedCommand)) {
+                // For other shell commands in .v8crc, we just set up aliases and exports
+                // We don't execute arbitrary shell commands for security
+                if (expandedCommand.find("alias ") == 0 || expandedCommand.find("export ") == 0) {
+                    // Already handled by HandleBuiltinCommand
+                } else if (expandedCommand.find("source ") == 0) {
+                    // Allow sourcing other files
+                    HandleBuiltinCommand(expandedCommand);
+                }
+                // Silently ignore other shell commands
+            }
+        }
+    }
+    
+    if (!quietMode_) {
+        std::cout << fg::green << "~/.config/v8rc loaded successfully" << style::reset << std::endl;
+    }
 }
