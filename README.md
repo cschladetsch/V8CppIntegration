@@ -88,6 +88,12 @@ The build system automatically selects V8 in this order:
 # Clone and enter directory
 git clone https://github.com/cschladetsch/V8CppIntegration.git && cd V8CppIntegration
 
+# Run complete build script (installs all dependencies, builds, tests, and configures)
+./build.sh
+```
+
+Or use the older script:
+```bash
 # Run automated setup (installs dependencies, builds, and configures as main shell)
 ./install_deps.sh
 ```
@@ -611,6 +617,7 @@ quit();                      // Exit console
 ### Console Features
 - **Colored Output**: Cyan titles, yellow sections, green success, red errors, blue λ prompt
 - **Automatic Colorful `ls`**: The `ls` command automatically uses `--color=auto` for colorful directory listings
+- **Startup Configuration**: Load custom configurations from `~/.config/v8rc` on startup
 - **Error Reporting**: Syntax highlighting with source code context and stack traces
 - **DLL Hot-loading**: Load/unload/reload C++ DLLs without restarting
 - **Interactive Help**: `.help` command and `help()` function for comprehensive documentation
@@ -618,6 +625,7 @@ quit();                      // Exit console
 - **History**: Command history with up/down arrow keys
 - **Auto-completion**: Tab completion for built-in functions
 - **PowerLevel10k-style Prompt Configuration**: Interactive wizard to customize your prompt
+- **Shell Alias**: Automatic `v8c` alias setup for quick access
 
 ### Prompt Configuration Wizard
 
@@ -710,6 +718,32 @@ Available segment types:
 - `user`: Username
 - `hostname`: System hostname
 - `custom`: Static text (use `content` field)
+
+### Startup Configuration (~/.config/v8rc)
+
+V8Console automatically loads `~/.config/v8rc` on startup, allowing you to customize your environment. This file supports both shell commands and JavaScript (prefixed with `&`):
+
+```bash
+# Shell aliases
+alias ll='ls -la --color=auto'
+alias gs='git status'
+
+# JavaScript functions
+&function greet(name) {
+    return `Hello, ${name || 'World'}!`;
+}
+
+# Welcome message
+&console.log('Welcome to V8Console!');
+
+# Environment variables
+export EDITOR=vim
+
+# Source other files
+source ~/.bashrc
+```
+
+The `build.sh` script automatically creates a default `~/.config/v8rc` with useful aliases and examples.
 
 ## Performance Benchmarks
 

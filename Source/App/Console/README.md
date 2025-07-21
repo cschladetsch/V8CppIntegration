@@ -15,6 +15,7 @@ A feature-rich console application that provides a shell-first interactive envir
 - **Colored Output**: Beautiful terminal output with rang.hpp integration
 - **Automatic Colorful `ls`**: The `ls` command automatically includes `--color=auto` for better visibility
 - **Lambda Prompt**: Modern λ character prompt for enhanced terminal experience
+- **Startup Configuration**: Automatic loading of `~/.config/v8rc` for custom aliases and JavaScript functions
 - **DLL Hot-Loading**: Load and reload shared libraries at runtime
 - **Script Execution**: Run JavaScript files from the command line
 - **Built-in Functions**: Extended JavaScript API for system interaction
@@ -221,6 +222,41 @@ The wizard allows you to:
 - Customize colors and formatting
 
 Prompt configuration is saved to `~/.v8prompt.json` and loaded automatically on startup.
+
+## Startup Configuration
+
+V8Console automatically loads `~/.config/v8rc` when it starts. This file allows you to:
+
+- Define shell aliases
+- Set environment variables
+- Create JavaScript functions
+- Configure your default environment
+
+Example `~/.config/v8rc`:
+```bash
+# Shell aliases
+alias ll='ls -la --color=auto'
+alias la='ls -A --color=auto'
+alias gs='git status'
+
+# JavaScript initialization
+&console.log('Welcome to V8Console!');
+
+# Custom JavaScript functions
+&function greet(name) {
+    return `Hello, ${name || 'World'}!`;
+}
+
+# Environment setup
+export EDITOR=vim
+
+# Load project-specific configs
+if [ -f ".v8project" ]; then
+    source .v8project
+fi
+```
+
+The `build.sh` script creates a default `~/.config/v8rc` with useful examples.
 
 ## Dependencies
 
