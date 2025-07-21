@@ -71,6 +71,9 @@ void printUsage(const char* programName, const po::options_description& desc) {
 }
 
 int main(int argc, char* argv[]) {
+    // Enable terminal colors
+    rang::setControlMode(rang::control::autoColor);
+    
     try {
         // Define command line options
         po::options_description desc("Options");
