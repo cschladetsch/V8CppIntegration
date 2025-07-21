@@ -13,6 +13,7 @@ A feature-rich console application that provides a shell-first interactive envir
 - **Configuration Wizard**: Interactive `v8config` command to customize your prompt
 - **Quiet Mode**: `--quiet` option to skip startup messages
 - **Colored Output**: Beautiful terminal output with rang.hpp integration
+- **Automatic Colorful `ls`**: The `ls` command automatically includes `--color=auto` for better visibility
 - **Lambda Prompt**: Modern λ character prompt for enhanced terminal experience
 - **DLL Hot-Loading**: Load and reload shared libraries at runtime
 - **Script Execution**: Run JavaScript files from the command line
@@ -94,7 +95,8 @@ Built automatically with the main project:
 
 ### Shell Commands (Default Mode)
 In shell-first mode, commands are executed as shell commands by default. Common commands include:
-- `ls`, `cd`, `pwd` - File system navigation
+- `ls` - List directory contents with automatic colorization (`--color=auto` is added automatically)
+- `cd`, `pwd` - File system navigation
 - `git` - Git commands
 - `v8config` - Run the prompt configuration wizard
 - Any other shell command available on your system

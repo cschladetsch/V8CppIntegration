@@ -450,12 +450,35 @@ std::string V8Console::ReadFile(const std::string& path) {
 bool V8Console::ExecuteShellCommand(const std::string& command) {
     using namespace rang;
     
-    std::cout << command << std::endl;
+    // Auto-enhance certain commands
+    std::string enhancedCommand = command;
+    
+    // Add color support to ls commands
+    auto words = SplitCommand(command);
+    if (!words.empty() && words[0] == "ls") {
+        // Check if --color is already specified
+        bool hasColor = false;
+        for (const auto& word : words) {
+            if (word.find("--color") != std::string::npos) {
+                hasColor = true;
+                break;
+            }
+        }
+        // Add --color=auto if not already specified
+        if (!hasColor) {
+            enhancedCommand = "ls --color=auto";
+            for (size_t i = 1; i < words.size(); ++i) {
+                enhancedCommand += " " + words[i];
+            }
+        }
+    }
+    
+    std::cout << enhancedCommand << std::endl;
     
     // Store the command for history expansion (before execution)
     lastCommand_ = command;
     
-    const int result = std::system(command.c_str());
+    const int result = std::system(enhancedCommand.c_str());
     lastExitCode_ = WEXITSTATUS(result);
     
     if (result != K_SUCCESS_EXIT_CODE) {
