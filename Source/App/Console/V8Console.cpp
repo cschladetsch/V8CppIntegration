@@ -1,4 +1,5 @@
 #include "V8Console.h"
+#include "build_info.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -135,6 +136,7 @@ void V8Console::RunRepl() {
     std::cout << "\033c\033[?1000l\033[?1002l\033[?1003l\033[?1049l";
     
     std::cout << style::bold << fg::cyan << "V8 Console - Interactive Mode" << style::reset << std::endl;
+    std::cout << fg::gray << "Built on " << BUILD_DATE << " at " << BUILD_TIME << style::reset << std::endl;
     std::cout << fg::yellow << "Commands: " << style::reset 
               << fg::magenta << ".load <file>" << style::reset << ", "
               << fg::magenta << ".dll <path>" << style::reset << ", "
