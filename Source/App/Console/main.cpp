@@ -1,4 +1,5 @@
 #include "V8Console.h"
+#include "build_info.h"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -9,6 +10,7 @@ void printUsage(const char* programName) {
     
     std::cout << style::bold << fg::cyan << "V8 Console" << style::reset 
               << " - JavaScript runtime with DLL hot-loading" << std::endl;
+    std::cout << fg::gray << "Built on " << BUILD_DATE << " at " << BUILD_TIME << style::reset << std::endl;
     std::cout << std::endl;
     
     std::cout << style::bold << fg::yellow << "Usage:" << style::reset << std::endl;

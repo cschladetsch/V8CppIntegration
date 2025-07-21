@@ -1,5 +1,17 @@
 cmake_minimum_required(VERSION 3.14)
 
+# Get current date and time
+string(TIMESTAMP BUILD_DATE "%Y-%m-%d")
+string(TIMESTAMP BUILD_TIME "%H:%M:%S")
+string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S")
+
+# Configure build info header
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/build_info.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/build_info.h
+    @ONLY
+)
+
 # V8 Console Application
 add_executable(v8console 
     main.cpp
@@ -117,6 +129,7 @@ endif()
 # Add include directories
 target_include_directories(v8console PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}  # For generated build_info.h
     ${CMAKE_SOURCE_DIR}/Include
 )
 

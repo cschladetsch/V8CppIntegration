@@ -1,0 +1,8 @@
+#ifndef BUILD_INFO_H
+#define BUILD_INFO_H
+
+#define BUILD_DATE "@BUILD_DATE@"
+#define BUILD_TIME "@BUILD_TIME@"
+#define BUILD_TIMESTAMP "@BUILD_TIMESTAMP@"
+
+#endif // BUILD_INFO_H
