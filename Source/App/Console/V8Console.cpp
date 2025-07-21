@@ -772,7 +772,7 @@ std::string V8Console::BuildPrompt() {
     }
     
     // Prompt character (λ for shell, » for JS context)
-    prompt << "\n" << fg::blue << "λ " << style::reset;
+    prompt << "\n" << fgB::blue << "λ " << style::reset;
     
     return prompt.str();
 }
@@ -1190,7 +1190,12 @@ std::string V8Console::BuildPromptFromConfig() {
     
     // Add prompt character
     if (!promptConfig_.prompt_color.empty()) {
-        prompt << GetColorFromString(promptConfig_.prompt_color);
+        // Use bright blue for blue prompt color
+        if (promptConfig_.prompt_color == "blue") {
+            prompt << fgB::blue;
+        } else {
+            prompt << GetColorFromString(promptConfig_.prompt_color);
+        }
     }
     prompt << promptConfig_.prompt_char << " " << style::reset;
     
