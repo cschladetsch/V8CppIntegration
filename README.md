@@ -80,13 +80,44 @@ The build system automatically selects V8 in this order:
 
 **Note**: When using locally built V8, the build system automatically uses clang/clang++ for ABI compatibility.
 
-## Quick Start
+## Quick Start - Complete Setup
 
-### Build Just v8console (Fastest)
+### 1. Download and Setup (One Command)
 
-If you only need the v8console REPL:
 ```bash
-# Using system V8
+# Clone and enter directory
+git clone https://github.com/cschladetsch/V8CppIntegration.git && cd V8CppIntegration
+
+# Run automated setup (installs dependencies, builds, and configures as main shell)
+./install_deps.sh
+```
+
+When prompted:
+- Enter your sudo password for dependency installation
+- Choose "Y" to build V8Console
+- Choose option "2" to set as your default shell
+
+### 2. Verify Installation
+
+```bash
+# Test v8console directly
+./Bin/v8console
+
+# Inside v8console, test features:
+pwd                           # Shell commands work directly
+&console.log("Hello V8!")     # JavaScript with & prefix
+v8config                      # Configure your prompt
+exit                          # Exit when done
+```
+
+### Manual Build (if automated setup fails)
+
+```bash
+# Install dependencies manually
+sudo apt-get update
+sudo apt-get install -y libv8-dev libboost-program-options-dev libreadline-dev build-essential cmake
+
+# Build
 cmake -B build -DUSE_SYSTEM_V8=ON
 cmake --build build --target v8console
 ./Bin/v8console

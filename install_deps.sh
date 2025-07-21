@@ -269,7 +269,168 @@ main() {
         echo
         echo "To start using V8Console:"
         echo -e "${BLUE}  ./Bin/v8console${NC}"
+        
+        # Offer shell setup
+        echo
+        read -p "Do you want to configure V8Console to start automatically in your shell? [Y/n] " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+            setup_shell_integration
+        fi
     fi
+}
+
+# Function to setup shell integration
+setup_shell_integration() {
+    echo
+    echo -e "${BLUE}=== Shell Integration Setup ===${NC}"
+    echo
+    echo "Choose how to integrate V8Console:"
+    echo "1) Add to current shell startup (testing only)"
+    echo "2) Set as default shell (RECOMMENDED - use as main shell)"
+    echo "3) Create terminal profile (for specific terminals)"
+    echo "4) Skip shell integration"
+    echo
+    read -p "Enter your choice [1-4]: " -n 1 -r choice
+    echo
+    
+    case "$choice" in
+        1)
+            setup_shell_startup
+            ;;
+        2)
+            setup_default_shell
+            ;;
+        3)
+            show_terminal_profile_instructions
+            ;;
+        4)
+            echo "Skipping shell integration."
+            ;;
+        *)
+            echo -e "${RED}Invalid choice. Skipping shell integration.${NC}"
+            ;;
+    esac
+}
+
+# Function to add V8Console to shell startup
+setup_shell_startup() {
+    local SHELL_RC=""
+    local SHELL_NAME=""
+    local V8C_PATH="$(pwd)/Bin/v8console"
+    
+    # Detect current shell
+    if [[ "$SHELL" == *"bash"* ]]; then
+        SHELL_RC="$HOME/.bashrc"
+        SHELL_NAME="bash"
+    elif [[ "$SHELL" == *"zsh"* ]]; then
+        SHELL_RC="$HOME/.zshrc"
+        SHELL_NAME="zsh"
+    else
+        echo -e "${YELLOW}Unknown shell: $SHELL${NC}"
+        echo "Please add the following to your shell's startup file:"
+        echo "  if [ -f $V8C_PATH ]; then"
+        echo "      exec $V8C_PATH"
+        echo "  fi"
+        return
+    fi
+    
+    echo -e "${BLUE}Adding V8Console to $SHELL_NAME startup...${NC}"
+    
+    # Check if already added
+    if grep -q "v8console" "$SHELL_RC" 2>/dev/null; then
+        echo -e "${YELLOW}V8Console already appears to be in $SHELL_RC${NC}"
+        read -p "Do you want to add it anyway? [y/N] " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            return
+        fi
+    fi
+    
+    # Backup existing file
+    cp "$SHELL_RC" "$SHELL_RC.backup.$(date +%Y%m%d_%H%M%S)"
+    echo -e "${GREEN}✓ Created backup: $SHELL_RC.backup.*${NC}"
+    
+    # Add V8Console to startup
+    cat >> "$SHELL_RC" << EOF
+
+# V8Console - JavaScript-powered shell
+# Added by install_deps.sh on $(date)
+# To disable, comment out the following lines
+if [ -f $V8C_PATH ]; then
+    # Start V8Console only in interactive shells
+    if [[ \$- == *i* ]]; then
+        echo "Starting V8Console..."
+        exec $V8C_PATH
+    fi
+fi
+EOF
+    
+    echo -e "${GREEN}✓ Added V8Console to $SHELL_RC${NC}"
+    echo
+    echo "V8Console will start automatically in new $SHELL_NAME sessions."
+    echo "To test now, run:"
+    echo -e "${BLUE}  source $SHELL_RC${NC}"
+    echo
+    echo "To disable later, remove the V8Console section from $SHELL_RC"
+}
+
+# Function to set as default shell
+setup_default_shell() {
+    local V8C_PATH="$(pwd)/Bin/v8console"
+    
+    echo -e "${BLUE}Setting V8Console as default shell...${NC}"
+    echo
+    echo -e "${YELLOW}Warning: This will change your default login shell.${NC}"
+    read -p "Are you sure you want to continue? [y/N] " -n 1 -r
+    echo
+    
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Cancelled."
+        return
+    fi
+    
+    # Run the v8shell installation script
+    if [ -f "./Scripts/install_v8shell.sh" ]; then
+        echo -e "${BLUE}Running shell installation script...${NC}"
+        ./Scripts/install_v8shell.sh
+    else
+        # Manual installation
+        echo -e "${BLUE}Adding v8console to /etc/shells...${NC}"
+        if ! grep -q "$V8C_PATH" /etc/shells 2>/dev/null; then
+            echo "$V8C_PATH" | sudo tee -a /etc/shells > /dev/null
+            echo -e "${GREEN}✓ Added to /etc/shells${NC}"
+        else
+            echo -e "${GREEN}✓ Already in /etc/shells${NC}"
+        fi
+        
+        echo
+        echo "To set as your default shell, run:"
+        echo -e "${BLUE}  chsh -s $V8C_PATH${NC}"
+    fi
+}
+
+# Function to show terminal profile instructions
+show_terminal_profile_instructions() {
+    local V8C_PATH="$(pwd)/Bin/v8console"
+    
+    echo -e "${BLUE}=== Terminal Profile Setup ===${NC}"
+    echo
+    echo "Create a new terminal profile that runs V8Console:"
+    echo
+    echo -e "${YELLOW}For GNOME Terminal:${NC}"
+    echo "1. Open Terminal → Preferences"
+    echo "2. Click '+' to create a new profile"
+    echo "3. Name it 'V8Console'"
+    echo "4. In 'Command' tab, check 'Run a custom command'"
+    echo "5. Set command to: $V8C_PATH"
+    echo
+    echo -e "${YELLOW}For other terminals:${NC}"
+    echo "- Konsole: Settings → Edit Current Profile → Command"
+    echo "- iTerm2: Preferences → Profiles → Command"
+    echo "- Windows Terminal: Settings → Profiles → Command line"
+    echo
+    echo "Set the command to: $V8C_PATH"
 }
 
 # Run main function

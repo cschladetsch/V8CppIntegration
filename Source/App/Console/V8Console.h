@@ -9,7 +9,7 @@
 
 class V8Console {
 public:
-    V8Console();
+    V8Console() noexcept;
     ~V8Console();
     
     // Initialize V8
@@ -31,7 +31,7 @@ public:
     void RunRepl(bool quiet = false);
     
     // Get DLL loader
-    DllLoader& GetDllLoader() { return dllLoader_; }
+    [[nodiscard]] DllLoader& GetDllLoader() noexcept { return dllLoader_; }
 
 private:
     // V8 components
@@ -70,7 +70,7 @@ private:
     void DisplayVars();
     
     // Timing helpers
-    std::string FormatDuration(const std::chrono::high_resolution_clock::duration& duration);
+    [[nodiscard]] std::string FormatDuration(const std::chrono::high_resolution_clock::duration& duration) const;
     
     // Output helpers
     void PrintResult(v8::Local<v8::Value> value);
@@ -81,8 +81,8 @@ private:
     bool ExecuteShellCommand(const std::string& command);
     
     // History expansion helpers
-    std::string ExpandHistory(const std::string& line);
-    std::vector<std::string> SplitCommand(const std::string& command);
+    [[nodiscard]] std::string ExpandHistory(const std::string& line) const;
+    [[nodiscard]] static std::vector<std::string> SplitCommand(const std::string& command);
     
     // Prompt helpers
     std::string BuildPrompt();
@@ -91,7 +91,7 @@ private:
     std::string GetGitStatus();
     bool IsGitRepo();
     std::string TruncatePath(const std::string& path, size_t maxLen = 30);
-    int GetLastExitCode() const { return lastExitCode_; }
+    [[nodiscard]] int GetLastExitCode() const noexcept { return lastExitCode_; }
     std::string GetUsername();
     std::string GetHostname();
     std::string GetTime(const std::string& format = "%H:%M:%S");
