@@ -21,6 +21,8 @@ void V8Console::DisplayHelp() {
     printCommand(".reload <path>", "Reload a DLL (hot-reload)");
     printCommand(".vars", "Display all global variables");
     printCommand(".clear", "Clear the screen");
+    printCommand(".cwd", "Display current working directory");
+    printCommand(".cwd <path>", "Change current working directory");
     printCommand(".help", "Show this help message");
     printCommand(".quit", "Exit the console");
     printCommand("!<command>", "Execute a shell command");

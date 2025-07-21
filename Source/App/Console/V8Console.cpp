@@ -244,8 +244,45 @@ void V8Console::RunRepl() {
                 path.erase(0, path.find_first_not_of(" \t"));
                 path.erase(path.find_last_not_of(" \t") + 1);
                 dllLoader_.ReloadDll(path, isolate_, context);
+            } else if (line == ".cwd") {
+                // Display current working directory
+                try {
+                    std::cout << rang::fg::cyan << "Current directory: " << rang::style::reset 
+                              << fs::current_path().string() << std::endl;
+                } catch (const std::exception& e) {
+                    std::cerr << rang::fg::red << "Error getting current directory: " << rang::style::reset 
+                              << e.what() << std::endl;
+                }
+            } else if (line.starts_with(".cwd ")) {
+                // Change working directory
+                std::string path = line.substr(5);
+                // Trim whitespace
+                path.erase(0, path.find_first_not_of(" \t"));
+                path.erase(path.find_last_not_of(" \t") + 1);
+                
+                // Remove quotes if present
+                if (!path.empty() && path.front() == '"' && path.back() == '"') {
+                    path = path.substr(1, path.length() - 2);
+                }
+                
+                // Expand tilde to home directory
+                if (!path.empty() && path[0] == '~') {
+                    const char* home = std::getenv("HOME");
+                    if (home) {
+                        path = std::string(home) + path.substr(1);
+                    }
+                }
+                
+                try {
+                    fs::current_path(path);
+                    std::cout << rang::fg::green << "Changed directory to: " << rang::style::reset 
+                              << fs::current_path().string() << std::endl;
+                } catch (const std::exception& e) {
+                    std::cerr << rang::fg::red << "Error changing directory: " << rang::style::reset 
+                              << e.what() << std::endl;
+                }
             } else {
-                std::cerr << fg::red << "Unknown command: " << style::reset << line << std::endl;
+                std::cerr << rang::fg::red << "Unknown command: " << rang::style::reset << line << std::endl;
             }
         } else {
             // Execute JavaScript
@@ -322,8 +359,7 @@ std::string V8Console::ReadFile(const std::string& path) {
 }
 
 bool V8Console::ExecuteShellCommand(const std::string& command) {
-    namespace fg = rang::fg;
-    namespace style = rang::style;
+    using namespace rang;
     
     std::cout << fg::cyan << "Shell: " << style::reset << command << std::endl;
     
