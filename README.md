@@ -21,7 +21,7 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 7. **Performance Benchmarks**: Google Benchmark integration for performance testing
 8. **Docker Support**: Multi-stage Docker builds for easy deployment
 9. **CI/CD Ready**: GitHub Actions workflow for automated testing
-10. **Interactive V8 Console**: Full-featured REPL with colored output, DLL hot-loading, and λ prompt
+10. **Interactive V8 Shell**: Shell-first environment with JavaScript support, colored output, and PowerLevel10k-style configuration
 11. **Dynamic Library Support**: Hot-loading of C++ DLLs with automatic V8 function registration
 
 ## Code Quality
@@ -616,6 +616,99 @@ quit();                      // Exit console
 - **Variable Inspector**: `.vars` command to view all global variables and functions
 - **History**: Command history with up/down arrow keys
 - **Auto-completion**: Tab completion for built-in functions
+- **PowerLevel10k-style Prompt Configuration**: Interactive wizard to customize your prompt
+
+### Prompt Configuration Wizard
+
+The V8Console includes a PowerLevel10k-inspired configuration wizard that lets you customize your prompt appearance:
+
+```bash
+# Run the configuration wizard
+v8config
+
+# Alternative command
+prompt-wizard
+```
+
+The wizard offers three prompt styles:
+
+1. **Minimal** (Default):
+   ```
+   ~/projects/v8shell  main ✚
+   λ 
+   ```
+
+2. **Full** (With user, host, time):
+   ```
+   ✗ 14:32:05 user@hostname ~/projects/v8shell  main ✚
+   λ 
+   ```
+
+3. **Classic** (Traditional shell style):
+   ```
+   [user@host] ~/projects/v8shell
+   $ 
+   ```
+
+The wizard guides you through:
+- Prompt style selection
+- Prompt character choice (λ, ❯, $, >, ➜, or custom)
+- Git integration options
+- Time display format
+- JavaScript context indicator
+- Two-line vs single-line prompt
+
+Your configuration is saved to `~/.v8prompt.json` and applied immediately. The prompt dynamically shows:
+- Exit code indicators (✗ for errors)
+- Current working directory
+- Git branch and status
+- JavaScript context indicator
+- Custom time formats
+- Username and hostname (optional)
+
+#### Manual Configuration
+
+You can also manually edit `~/.v8prompt.json` for advanced customization:
+
+```json
+{
+  "segments": [
+    {
+      "type": "exit_code",
+      "fg": "red",
+      "suffix": " "
+    },
+    {
+      "type": "cwd",
+      "fg": "blue"
+    },
+    {
+      "type": "git",
+      "fg": "magenta",
+      "prefix": "  "
+    },
+    {
+      "type": "js_context",
+      "fg": "green",
+      "prefix": " ",
+      "content": "JS"
+    }
+  ],
+  "newline": "\n",
+  "prompt_char": "λ",
+  "prompt_color": "blue"
+}
+```
+
+Available segment types:
+- `exit_code`: Shows error indicator on non-zero exit
+- `cwd`: Current working directory
+- `git`: Git branch and status
+- `js_context`: JavaScript mode indicator
+- `time`: Current time (use `format` for strftime format)
+- `user`: Username
+- `hostname`: System hostname
+- `custom`: Static text (use `content` field)
 
 ## Performance Benchmarks
 
