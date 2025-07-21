@@ -108,10 +108,10 @@ When prompted:
 ### 2. Verify Installation
 
 ```bash
-# Test v8console directly
-./Bin/v8console
+# Test v8c directly
+./Bin/v8c
 
-# Inside v8console, test features:
+# Inside v8c, test features:
 pwd                           # Shell commands work directly
 &console.log("Hello V8!")     # JavaScript with & prefix
 v8config                      # Configure your prompt
@@ -127,8 +127,8 @@ sudo apt-get install -y libv8-dev libboost-program-options-dev libreadline-dev b
 
 # Build
 cmake -B build -DUSE_SYSTEM_V8=ON
-cmake --build build --target v8console
-./Bin/v8console
+cmake --build build --target v8c
+./Bin/v8c
 ```
 
 ### Option 1: Using System V8 (Recommended for Quick Start)
@@ -146,7 +146,7 @@ cmake --build build --target v8console
 ./build/AdvancedExample
 
 # 4. Run interactive V8 console with colored output
-./Bin/v8console
+./Bin/v8c
 
 # Note: To build without readline support (not recommended):
 # ./ShellScripts/build.sh --system-v8 --no-readline
@@ -195,7 +195,7 @@ cmake --build build
 V8CppIntegration/
 ├── .github/workflows/      # CI/CD pipeline configuration
 ├── Bin/                    # Compiled binaries and runtime files
-│   ├── v8console           # Interactive V8 REPL console
+│   ├── v8c                 # Interactive V8 REPL console
 │   ├── demo_minimal.js     # Minimal demo for embedded V8
 │   └── Fib.so             # Example DLL
 ├── CMake/                  # CMake modules
@@ -513,24 +513,24 @@ The V8 Console operates in **shell mode by default**, meaning:
 ### Starting the Console
 ```bash
 # Run in interactive mode (default)
-./Bin/v8console
+./Bin/v8c
 
 # Run in quiet mode (skip startup messages)
-./Bin/v8console --quiet
-./Bin/v8console -q
+./Bin/v8c --quiet
+./Bin/v8c -q
 
 # Run with help
-./Bin/v8console --help
-./Bin/v8console -h
+./Bin/v8c --help
+./Bin/v8c -h
 
 # Run with pre-loaded DLL
-./Bin/v8console -i ./Bin/Fib.so
+./Bin/v8c -i ./Bin/Fib.so
 
 # Execute script with DLL
-./Bin/v8console script.js ./Bin/Fib.so
+./Bin/v8c script.js ./Bin/Fib.so
 
 # Combined options
-./Bin/v8console -qi script.js  # Quiet interactive mode with script
+./Bin/v8c -qi script.js  # Quiet interactive mode with script
 ```
 
 When started correctly, you should see:
