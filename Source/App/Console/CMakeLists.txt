@@ -12,6 +12,16 @@ configure_file(
     @ONLY
 )
 
+# Find Boost.ProgramOptions
+find_package(Boost QUIET COMPONENTS program_options)
+if(NOT Boost_FOUND)
+    message(STATUS "Boost.ProgramOptions not found on system.")
+    message(FATAL_ERROR "Please install Boost.ProgramOptions:\n"
+                        "  Ubuntu/Debian: sudo apt-get install libboost-program-options-dev\n"
+                        "  macOS: brew install boost\n"
+                        "  Or disable v8console target")
+endif()
+
 # V8 Console Application
 add_executable(v8console 
     main.cpp
@@ -114,6 +124,13 @@ if(USE_READLINE)
 else()
     message(STATUS "Building without GNU Readline support")
     target_compile_definitions(v8console PRIVATE NO_READLINE)
+endif()
+
+# Link Boost.ProgramOptions
+if(Boost_FOUND)
+    target_link_libraries(v8console PRIVATE Boost::program_options)
+else()
+    target_link_libraries(v8console PRIVATE Boost::program_options)
 endif()
 
 # Platform-specific linking

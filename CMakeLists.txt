@@ -87,6 +87,12 @@ endif()
 # Find dependencies
 find_package(Threads REQUIRED)
 
+# Find Boost.ProgramOptions
+find_package(Boost QUIET COMPONENTS program_options)
+if(NOT Boost_FOUND)
+    message(STATUS "Boost.ProgramOptions not found. It will be downloaded when needed.")
+endif()
+
 # Handle GTest for testing
 if(ENABLE_TESTING)
     if(NOT USE_SYSTEM_V8)
@@ -338,6 +344,14 @@ if(ENABLE_TESTING AND GTest_FOUND)
         add_dependencies(V8ConsoleTests googletest)
     endif()
     add_test(NAME V8ConsoleTests COMMAND V8ConsoleTests)
+    
+    # Command Line Arguments test suite with GTest
+    add_executable(CommandLineTests Tests/Unit/CommandLineTests.cpp)
+    target_link_libraries(CommandLineTests PRIVATE GTest::gtest GTest::gtest_main pthread Boost::program_options)
+    if(NOT USE_SYSTEM_V8)
+        add_dependencies(CommandLineTests googletest)
+    endif()
+    add_test(NAME CommandLineTests COMMAND CommandLineTests)
 
     # Integration test suite with GTest (third test suite)
     # Integration Tests
@@ -417,10 +431,11 @@ if(ENABLE_TESTING AND GTest_FOUND)
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/BasicTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AdvancedTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/V8ConsoleTests
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CommandLineTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/IntegrationTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/InteroperabilityTests
     )
-    set(ALL_TEST_TARGETS BasicTests AdvancedTests V8ConsoleTests IntegrationTests InteroperabilityTests)
+    set(ALL_TEST_TARGETS BasicTests AdvancedTests V8ConsoleTests CommandLineTests IntegrationTests InteroperabilityTests)
     
     if(TARGET FibonacciTests)
         list(APPEND ALL_TEST_COMMANDS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/FibonacciTests)
