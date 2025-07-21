@@ -1,8 +1,8 @@
 # V8 Console Application
 
-**Version 0.2** - Enhanced Compatibility and Reliability
+**Version 0.2.1** - Bright Blue Lambda, Enhanced Testing, and Improved Demos
 
-A feature-rich console application that provides a shell-first interactive environment with JavaScript execution capabilities and dynamic library loading. Updated in v0.2 with improved error handling, V8 compatibility, and comprehensive test coverage.
+A feature-rich console application that provides a shell-first interactive environment with JavaScript execution capabilities and dynamic library loading. Updated in v0.2.1 with bright blue lambda prompt, comprehensive edge case testing, and enhanced demo scripts perfect for screen recording.
 
 ## Features
 
@@ -14,7 +14,7 @@ A feature-rich console application that provides a shell-first interactive envir
 - **Quiet Mode**: `--quiet` option to skip startup messages
 - **Colored Output**: Beautiful terminal output with rang.hpp integration
 - **Automatic Colorful `ls`**: The `ls` command automatically includes `--color=auto` for better visibility
-- **Lambda Prompt**: Modern λ character prompt for enhanced terminal experience
+- **Bright Blue Lambda Prompt**: Modern λ character in bright blue for enhanced visibility
 - **Startup Configuration**: Automatic loading of `~/.config/v8rc` for custom aliases and JavaScript functions
 - **DLL Hot-Loading**: Load and reload shared libraries at runtime
 - **Script Execution**: Run JavaScript files from the command line

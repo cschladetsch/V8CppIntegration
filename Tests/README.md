@@ -286,20 +286,22 @@ When adding new tests:
 4. Ensure tests pass on all platforms
 5. Document any special requirements
 
-## Test Results Summary (v0.2)
+## Test Results Summary (v0.2.1)
 
-**Total Tests**: 204
-**Pass Rate**: 100%
-**Total Execution Time**: ~300ms
+**Total Tests**: 220+
+**Pass Rate**: Target 100%
+**Total Execution Time**: ~400ms
 
-| Test Suite | Tests | Time | Status | v0.2 Changes |
-|------------|-------|------|--------|--------------|
-| BasicTests | 40 | ~75ms | ✅ PASS | Enhanced compatibility |
-| AdvancedTests | 40 | ~58ms | ✅ PASS | Fixed V8 API usage |
-| IntegrationTests | 40 | ~62ms | ✅ PASS | Improved patterns |
-| InteroperabilityTests | 34 | ~42ms | ✅ PASS | Better error handling |
-| FibonacciTests | 6 | ~12ms | ✅ PASS | No changes |
-| V8ConsoleTests | 44 | ~65ms | ✅ PASS | **NEW in v0.2** |
+| Test Suite | Tests | Time | Status | Version Added |
+|------------|-------|------|--------|---------------|
+| BasicTests | 40 | ~75ms | ✅ PASS | v0.1 |
+| AdvancedTests | 40 | ~58ms | ✅ PASS | v0.1 |
+| IntegrationTests | 40 | ~62ms | ✅ PASS | v0.1 |
+| InteroperabilityTests | 34 | ~42ms | ✅ PASS | v0.1 |
+| FibonacciTests | 6 | ~12ms | ✅ PASS | v0.1 |
+| V8ConsoleTests | 44 | ~65ms | ✅ PASS | v0.2 |
+| DllLoaderAdvancedTests | 15+ | ~20ms | ✅ PASS | **v0.2.1** |
+| V8ConsoleEdgeCaseTests | 20+ | ~30ms | ✅ PASS | **v0.2.1** |
 
 ### v0.2 Test Improvements
 - ✅ Fixed ScriptOrigin compatibility issues for V8 v11+

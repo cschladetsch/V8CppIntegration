@@ -32,14 +32,14 @@ sleep(1500);
 const greeting = name => `Hello, ${name}!`;
 console.log('greeting("V8 Developer")');
 sleep(1000);
-console.log('// Output:', greeting('V8 Developer'));
+print(greeting('V8 Developer'));
 sleep(2000);
 
 console.log('\n// Array Destructuring:');
 console.log('const [a, b, ...rest] = [1, 2, 3, 4, 5];');
 sleep(1500);
 const [a, b, ...rest] = [1, 2, 3, 4, 5];
-console.log(`// Result: a=${a}, b=${b}, rest=[${rest}]`);
+print(`a=${a}, b=${b}, rest=[${rest}]`);
 sleep(2500);
 
 // 2. Classes and Objects
@@ -92,11 +92,11 @@ sleep(1000);
 const circle = new Circle(5);
 console.log('circle.describe()');
 sleep(500);
-console.log('// Output:', circle.describe());
+print(circle.describe());
 sleep(1000);
 console.log('circle.area().toFixed(2)');
 sleep(500);
-console.log(`// Output: ${circle.area().toFixed(2)} units²`);
+print(`${circle.area().toFixed(2)} units²`);
 sleep(2500);
 
 // 3. DLL Integration (if loaded)
@@ -106,7 +106,7 @@ if (typeof loadDll === 'function') {
         console.log('\n// Check if DLL is already loaded:');
         console.log('typeof fib === "function"');
         sleep(1000);
-        console.log('// Result:', typeof fib === 'function');
+        print(typeof fib === 'function');
         
         if (typeof fib !== 'function') {
             console.log('\n// Load native C++ library:');
@@ -120,17 +120,17 @@ if (typeof loadDll === 'function') {
         
         console.log('fib(5)');
         sleep(500);
-        console.log(`// Output: ${fib(5)}`);
+        print(fib(5));
         sleep(1000);
         
         console.log('fib(10)');
         sleep(500);
-        console.log(`// Output: ${fib(10)}`);
+        print(fib(10));
         sleep(1000);
         
         console.log('fib(15)');
         sleep(500);
-        console.log(`// Output: ${fib(15)}`);
+        print(fib(15));
         sleep(2500);
     } catch (e) {
         console.log('// Note: Run with ./v8console -i ./Bin/Fib.so for DLL demo');
@@ -160,9 +160,8 @@ async function fetchData() {
 console.log('\n// Call async function:');
 console.log('fetchData().then(result => console.log(result));');
 sleep(1500);
-console.log('// Starting async operation...');
 fetchData().then(result => {
-    console.log('// ' + result);
+    print(result);
 });
 sleep(4000); // Wait for async to complete
 
@@ -176,7 +175,7 @@ sleep(1500);
 const map = new Map([['key1', 'value1'], ['key2', 'value2']]);
 console.log('Array.from(map.entries())');
 sleep(1000);
-console.log('// Output:', Array.from(map.entries()));
+print(Array.from(map.entries()));
 sleep(2000);
 
 console.log('\n// Set for unique values:');
@@ -185,7 +184,7 @@ sleep(1500);
 const set = new Set([1, 2, 3, 3, 4]);
 console.log('Array.from(set)');
 sleep(1000);
-console.log('// Output:', Array.from(set));
+print(Array.from(set));
 sleep(2500);
 
 // 6. Performance Demo

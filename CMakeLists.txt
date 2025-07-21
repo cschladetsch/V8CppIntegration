@@ -339,6 +339,29 @@ if(ENABLE_TESTING AND GTest_FOUND)
     endif()
     add_test(NAME V8ConsoleTests COMMAND V8ConsoleTests)
     
+    # DllLoader Advanced Tests
+    add_executable(DllLoaderAdvancedTests Tests/Unit/DllLoaderAdvancedTests.cpp
+                   Source/App/Console/DllLoader.cpp)
+    configure_test_target(DllLoaderAdvancedTests)
+    target_link_libraries(DllLoaderAdvancedTests PRIVATE GTest::gtest GTest::gtest_main pthread dl)
+    target_include_directories(DllLoaderAdvancedTests PRIVATE 
+                              ${CMAKE_SOURCE_DIR}/Include
+                              ${CMAKE_SOURCE_DIR}/Include/third_party
+                              ${CMAKE_SOURCE_DIR}/Source/App/Console)
+    if(NOT USE_SYSTEM_V8)
+        add_dependencies(DllLoaderAdvancedTests googletest)
+    endif()
+    add_test(NAME DllLoaderAdvancedTests COMMAND DllLoaderAdvancedTests)
+    
+    # V8 Edge Case Tests
+    add_executable(V8ConsoleEdgeCaseTests Tests/Unit/V8ConsoleEdgeCaseTests.cpp)
+    configure_test_target(V8ConsoleEdgeCaseTests)
+    target_link_libraries(V8ConsoleEdgeCaseTests PRIVATE GTest::gtest GTest::gtest_main pthread)
+    if(NOT USE_SYSTEM_V8)
+        add_dependencies(V8ConsoleEdgeCaseTests googletest)
+    endif()
+    add_test(NAME V8ConsoleEdgeCaseTests COMMAND V8ConsoleEdgeCaseTests)
+    
     # V8ConsoleCore test suite with GTest
     add_executable(V8ConsoleCoreTests Tests/Unit/V8ConsoleCoreTests.cpp)
     configure_test_target(V8ConsoleCoreTests)
@@ -442,12 +465,14 @@ if(ENABLE_TESTING AND GTest_FOUND)
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/BasicTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AdvancedTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/V8ConsoleTests
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DllLoaderAdvancedTests
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/V8ConsoleEdgeCaseTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/V8ConsoleCoreTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CommandLineTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/IntegrationTests
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/InteroperabilityTests
     )
-    set(ALL_TEST_TARGETS BasicTests AdvancedTests V8ConsoleTests V8ConsoleCoreTests CommandLineTests IntegrationTests InteroperabilityTests)
+    set(ALL_TEST_TARGETS BasicTests AdvancedTests V8ConsoleTests DllLoaderAdvancedTests V8ConsoleEdgeCaseTests V8ConsoleCoreTests CommandLineTests IntegrationTests InteroperabilityTests)
     
     if(TARGET FibonacciTests)
         list(APPEND ALL_TEST_COMMANDS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/FibonacciTests)

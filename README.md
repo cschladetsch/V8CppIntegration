@@ -1,6 +1,6 @@
 # V8 C++ Integration <img src="Resources/Logo.png" alt="V8 C++ Integration Logo" width="58" style="vertical-align: middle"> 
 
-**Version 0.2** - Improved Compatibility and Code Quality
+**Version 0.2.1** - Enhanced Testing, Bright Blue Lambda, and Improved Demo Scripts
 
 This repository demonstrates how to build V8 and create bidirectional communication between C++ and JavaScript, with comprehensive examples and testing.
 
@@ -21,12 +21,14 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 7. **Performance Benchmarks**: Google Benchmark integration for performance testing
 8. **Docker Support**: Multi-stage Docker builds for easy deployment
 9. **CI/CD Ready**: GitHub Actions workflow for automated testing
-10. **Interactive V8 Shell**: Shell-first environment with JavaScript support, colored output, and PowerLevel10k-style configuration
+10. **Interactive V8 Shell**: Shell-first environment with JavaScript support, bright blue lambda prompt, colored output, and PowerLevel10k-style configuration
 11. **Dynamic Library Support**: Hot-loading of C++ DLLs with automatic V8 function registration
+12. **Enhanced Demo Scripts**: Slow-paced demos with syntax highlighting perfect for screen recording
+13. **GUI Support**: Experimental ImGui-based graphical console (v8gui)
 
 ## Code Quality
 
-- **Testing**: 204 tests with 100% pass rate
+- **Testing**: 220+ tests with comprehensive edge case coverage
 - **Code Standards**: C++20 with clang-tidy configuration
 - **Documentation**: Comprehensive README files throughout the project
 - **Version Control**: Git with semantic versioning (currently v0.2)
