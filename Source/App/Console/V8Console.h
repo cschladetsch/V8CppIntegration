@@ -5,6 +5,7 @@
 #include <chrono>
 #include <map>
 #include <v8.h>
+#include <rang/rang.hpp>
 #include "DllLoader.h"
 
 class V8Console {

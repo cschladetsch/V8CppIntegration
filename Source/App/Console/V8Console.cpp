@@ -1,17 +1,15 @@
 #include "V8Console.h"
+#ifdef HAS_BUILD_INFO
 #include "build_info.h"
+#endif
 #include "v8_compat.h"
 
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
-#include <expected>  // C++23
 #include <filesystem>
-#include <format>     // C++23
 #include <fstream>
 #include <iostream>
-#include <print>      // C++23
-#include <ranges>    // C++23
 #include <regex>
 #include <sstream>
 #include <unistd.h>
@@ -183,7 +181,9 @@ void V8Console::RunRepl(bool quiet) {
         std::cout << K_RESET_TERMINAL;
         
         std::cout << style::bold << fg::cyan << "V8 Shell - Interactive Mode" << style::reset << std::endl;
+#ifdef HAS_BUILD_INFO
         std::cout << fg::gray << "Built on " << BUILD_DATE << " at " << BUILD_TIME << style::reset << std::endl;
+#endif
         std::cout << fg::yellow << "Commands: " << style::reset 
                   << fg::magenta << ".load <file>" << style::reset << ", "
                   << fg::magenta << ".dll <path>" << style::reset << ", "
@@ -284,14 +284,14 @@ void V8Console::RunRepl(bool quiet) {
                 DisplayVars();
             } else if (line == ".clear") {
                 std::cout << K_CLEAR_SCREEN;
-            } else if (line.starts_with(".load ")) {
+            } else if (line.size() >= 6 && line.substr(0, 6) == ".load ") {
                 std::string filename = line.substr(6);
                 // Trim whitespace
                 filename.erase(0, filename.find_first_not_of(" \t"));
                 filename.erase(filename.find_last_not_of(" \t") + 1);
                 
-                // Remove quotes if present (C++23 style)
-                if (filename.starts_with('"') && filename.ends_with('"')) {
+                // Remove quotes if present
+                if (filename.size() >= 2 && filename.front() == '"' && filename.back() == '"') {
                     filename = filename.substr(1, filename.length() - 2);
                 }
                 
@@ -303,7 +303,7 @@ void V8Console::RunRepl(bool quiet) {
                 if (success) {
                     std::cout << fg::gray << " ⏱ " << FormatDuration(duration) << style::reset << std::endl;
                 }
-            } else if (line.starts_with(".dll ")) {
+            } else if (line.size() >= 5 && line.substr(0, 5) == ".dll ") {
                 std::string path = line.substr(5);
                 // Trim whitespace
                 path.erase(0, path.find_first_not_of(" \t"));
@@ -312,11 +312,11 @@ void V8Console::RunRepl(bool quiet) {
             } else if (line == ".dlls") {
                 const auto dlls = dllLoader_.GetLoadedDlls();
                 std::cout << fg::yellow << "Loaded DLLs:" << style::reset << std::endl;
-                // C++23 ranges with std::print
-                std::ranges::for_each(dlls, [](const auto& dll) {
-                    std::println("  • {}", dll);
-                });
-            } else if (line.starts_with(".reload ")) {
+                // Print loaded DLLs
+                for (const auto& dll : dlls) {
+                    std::cout << "  • " << dll << std::endl;
+                }
+            } else if (line.size() >= 8 && line.substr(0, 8) == ".reload ") {
                 std::string path = line.substr(8);
                 path.erase(0, path.find_first_not_of(" \t"));
                 path.erase(path.find_last_not_of(" \t") + 1);
@@ -330,15 +330,15 @@ void V8Console::RunRepl(bool quiet) {
                     std::cerr << rang::fg::red << "Error getting current directory: " << rang::style::reset 
                               << e.what() << std::endl;
                 }
-            } else if (line.starts_with(".cwd ")) {
+            } else if (line.size() >= 5 && line.substr(0, 5) == ".cwd ") {
                 // Change working directory
                 std::string path = line.substr(5);
                 // Trim whitespace
                 path.erase(0, path.find_first_not_of(" \t"));
                 path.erase(path.find_last_not_of(" \t") + 1);
                 
-                // Remove quotes if present (C++23 style)
-                if (path.starts_with('"') && path.ends_with('"')) {
+                // Remove quotes if present
+                if (path.size() >= 2 && path.front() == '"' && path.back() == '"') {
                     path = path.substr(1, path.length() - 2);
                 }
                 
@@ -416,7 +416,7 @@ bool V8Console::CompileAndRun(const std::string& source, const std::string& name
     const v8::Local<v8::String> sourceV8 = v8::String::NewFromUtf8(isolate_, source.c_str()).ToLocalChecked();
     const v8::Local<v8::String> nameV8 = v8::String::NewFromUtf8(isolate_, name.c_str()).ToLocalChecked();
     
-    const v8::ScriptOrigin origin = v8_compat::CreateScriptOrigin(isolate_, nameV8);
+    v8::ScriptOrigin origin = v8_compat::CreateScriptOrigin(isolate_, nameV8);
     v8::Local<v8::Script> script;
     if (!v8::Script::Compile(context, sourceV8, &origin).ToLocal(&script)) {
         ReportException(&tryCatch);
@@ -439,10 +439,10 @@ bool V8Console::CompileAndRun(const std::string& source, const std::string& name
 }
 
 std::string V8Console::ReadFile(const std::string& path) {
-    // C++23 style with better error handling
-    if (std::ifstream file{path, std::ios::binary}) {
-        return std::string{std::istreambuf_iterator<char>{file}, 
-                          std::istreambuf_iterator<char>{}};
+    std::ifstream file(path, std::ios::binary);
+    if (file) {
+        return std::string(std::istreambuf_iterator<char>(file), 
+                          std::istreambuf_iterator<char>());
     }
     return "";
 }
@@ -499,7 +499,7 @@ std::vector<std::string> V8Console::SplitCommand(const std::string& command) {
     return words;
 }
 
-std::string V8Console::ExpandHistory(const std::string& line) {
+std::string V8Console::ExpandHistory(const std::string& line) const {
     if (lastCommand_.empty()) {
         return line;
     }
@@ -757,10 +757,10 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
     // alias - set or show aliases
     if (cmd == "alias") {
         if (words.size() == 1) {
-            // Show all aliases (C++23 ranges with std::print)
-            std::ranges::for_each(aliases_, [](const auto& [name, value]) {
-                std::println("alias {}='{}'", name, value);
-            });
+            // Show all aliases
+            for (const auto& [name, value] : aliases_) {
+                std::cout << "alias " << name << "='" << value << "'" << std::endl;
+            }
         } else {
             // Parse alias definition (alias name='value' or alias name=value)
             std::string arg = command.substr(6); // Skip "alias "
@@ -769,9 +769,10 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
                 std::string name = arg.substr(0, eq);
                 std::string value = arg.substr(eq + 1);
                 
-                // Remove quotes if present (C++23)
-                if ((value.starts_with('\'') && value.ends_with('\'')) ||
-                    (value.starts_with('"') && value.ends_with('"'))) {
+                // Remove quotes if present
+                if (value.size() >= 2 && 
+                    ((value.front() == '\'' && value.back() == '\'') ||
+                     (value.front() == '"' && value.back() == '"'))) {
                     value = value.substr(1, value.length() - 2);
                 }
                 
@@ -796,10 +797,10 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
     // export - set environment variable
     if (cmd == "export") {
         if (words.size() == 1) {
-            // Show all exports (C++23 std::print)
-            std::ranges::for_each(envVars_, [](const auto& [name, value]) {
-                std::println("export {}=\"{}\"", name, value);
-            });
+            // Show all exports
+            for (const auto& [name, value] : envVars_) {
+                std::cout << "export " << name << "=\"" << value << "\"" << std::endl;
+            }
         } else {
             // Parse export VAR=value
             for (size_t i = 1; i < words.size(); ++i) {
@@ -809,9 +810,10 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
                     std::string name = arg.substr(0, eq);
                     std::string value = arg.substr(eq + 1);
                     
-                    // Remove quotes if present (C++23)
-                    if ((value.starts_with('\'') && value.ends_with('\'')) ||
-                        (value.starts_with('"') && value.ends_with('"'))) {
+                    // Remove quotes if present
+                    if (value.size() >= 2 && 
+                        ((value.front() == '\'' && value.back() == '\'') ||
+                         (value.front() == '"' && value.back() == '"'))) {
                         value = value.substr(1, value.length() - 2);
                     }
                     
@@ -919,9 +921,9 @@ void V8Console::LoadConfig() {
         if (line.empty() || line[0] == '#') continue;
         
         // Simple parsing for alias and export commands
-        if (line.starts_with("alias ")) {
+        if (line.size() >= 6 && line.substr(0, 6) == "alias ") {
             HandleBuiltinCommand(line);
-        } else if (line.starts_with("export ")) {
+        } else if (line.size() >= 7 && line.substr(0, 7) == "export ") {
             HandleBuiltinCommand(line);
         }
     }
@@ -936,21 +938,21 @@ void V8Console::SaveConfig() {
     config << "# V8 Shell configuration file\n";
     config << "# Generated by v8console\n\n";
     
-    // Save aliases (C++23 ranges)
+    // Save aliases
     if (!aliases_.empty()) {
         config << "# Aliases\n";
-        std::ranges::for_each(aliases_, [&config](const auto& [name, value]) {
-            config << std::format("alias {}='{}'\n", name, value);
-        });
+        for (const auto& [name, value] : aliases_) {
+            config << "alias " << name << "='" << value << "'\n";
+        }
         config << "\n";
     }
     
-    // Save environment variables (C++23 format)
+    // Save environment variables
     if (!envVars_.empty()) {
         config << "# Environment variables\n";
-        std::ranges::for_each(envVars_, [&config](const auto& [name, value]) {
-            config << std::format("export {}=\"{}\"\n", name, value);
-        });
+        for (const auto& [name, value] : envVars_) {
+            config << "export " << name << "=\"" << value << "\"\n";
+        }
         config << "\n";
     }
 }
@@ -1363,9 +1365,11 @@ void V8Console::RunPromptWizard() {
     std::getline(std::cin, choice);
     
     if (!choice.empty() && (choice[0] == 'n' || choice[0] == 'N')) {
-        // Remove git segments (C++23 ranges)
-        std::erase_if(newConfig.segments,
-            [](const PromptConfig::Segment& s) { return s.type == "git"; });
+        // Remove git segments
+        newConfig.segments.erase(
+            std::remove_if(newConfig.segments.begin(), newConfig.segments.end(),
+                [](const PromptConfig::Segment& s) { return s.type == "git"; }),
+            newConfig.segments.end());
     }
     
     // Question 4: Show time?
@@ -1441,31 +1445,32 @@ void V8Console::SavePromptConfigJSON(const PromptConfig& config) {
     file << "{\n";
     file << "  \"segments\": [\n";
     
-    // C++23 ranges with enumerate
-    for (const auto& [i, seg] : config.segments | std::views::enumerate) {
+    // Write segments
+    for (size_t i = 0; i < config.segments.size(); ++i) {
+        const auto& seg = config.segments[i];
         file << "    {\n";
-        file << std::format("      \"type\": \"{}\"" , seg.type);
+        file << "      \"type\": \"" << seg.type << "\"";
         
         if (!seg.content.empty()) {
-            file << std::format(",\n      \"content\": \"{}\"", seg.content);
+            file << ",\n      \"content\": \"" << seg.content << "\"";
         }
         if (!seg.fg.empty()) {
-            file << std::format(",\n      \"fg\": \"{}\"", seg.fg);
+            file << ",\n      \"fg\": \"" << seg.fg << "\"";
         }
         if (!seg.bg.empty()) {
-            file << std::format(",\n      \"bg\": \"{}\"", seg.bg);
+            file << ",\n      \"bg\": \"" << seg.bg << "\"";
         }
         if (!seg.format.empty()) {
-            file << std::format(",\n      \"format\": \"{}\"", seg.format);
+            file << ",\n      \"format\": \"" << seg.format << "\"";
         }
         if (seg.bold) {
             file << ",\n      \"bold\": true";
         }
         if (!seg.prefix.empty()) {
-            file << std::format(",\n      \"prefix\": \"{}\"", seg.prefix);
+            file << ",\n      \"prefix\": \"" << seg.prefix << "\"";
         }
         if (!seg.suffix.empty()) {
-            file << std::format(",\n      \"suffix\": \"{}\"", seg.suffix);
+            file << ",\n      \"suffix\": \"" << seg.suffix << "\"";
         }
         
         file << "\n    }";
