@@ -1,17 +1,23 @@
 #include "V8Console.h"
 #include "build_info.h"
-#include <iostream>
-#include <fstream>
-#include <sstream>
+#include "v8_compat.h"
+
+#include <algorithm>
 #include <chrono>
 #include <cstdlib>
+#include <expected>  // C++23
 #include <filesystem>
+#include <format>     // C++23
+#include <fstream>
+#include <iostream>
+#include <print>      // C++23
+#include <ranges>    // C++23
 #include <regex>
-#include <algorithm>
+#include <sstream>
 #include <unistd.h>
+
 #include <libplatform/libplatform.h>
 #include <rang/rang.hpp>
-#include <v8_compat.h>
 
 #ifndef NO_READLINE
 #include <readline/readline.h>
@@ -20,11 +26,35 @@
 
 namespace fs = std::filesystem;
 
+namespace {
+// Constants
+constexpr const char* const K_DEFAULT_PROMPT_CHAR = "λ";
+constexpr const char* const K_JAVA_SCRIPT_PREFIX = "&";
+constexpr const char* const K_REPL_CONTEXT_NAME = "<repl>";
+constexpr size_t K_MAX_PATH_LENGTH = 30;
+constexpr size_t K_MAX_HOSTNAME_LENGTH = 256;
+constexpr size_t K_BUFFER_SIZE = 100;
+constexpr size_t K_GIT_BUFFER_SIZE = 128;
+constexpr size_t K_GIT_STATUS_BUFFER_SIZE = 256;
+
+// ANSI escape codes
+constexpr const char* const K_CLEAR_SCREEN = "\033[H\033[2J";
+constexpr const char* const K_RESET_TERMINAL = "\033c\033[?1000l\033[?1002l\033[?1003l\033[?1049l";
+
+// Special characters
+constexpr char K_CTRL_L = '\014';
+constexpr char K_QUOTE_CHAR = '\0';
+
+// Exit codes
+constexpr int K_SUCCESS_EXIT_CODE = 0;
+constexpr int K_FAILURE_EXIT_CODE = 1;
+}
+
 #ifndef NO_READLINE
 // Readline key binding callback for Ctrl+L
 static int clear_screen_handler(int, int) {
     // Clear screen
-    printf("\033[H\033[2J");
+    printf(K_CLEAR_SCREEN);
     // Redraw the current line
     rl_on_new_line();
     rl_redisplay();
@@ -32,7 +62,12 @@ static int clear_screen_handler(int, int) {
 }
 #endif
 
-V8Console::V8Console() : isolate_(nullptr), shouldQuit_(false) {
+V8Console::V8Console() noexcept
+    : platform_(nullptr)
+    , isolate_(nullptr)
+    , shouldQuit_(false)
+    , quietMode_(false)
+    , lastExitCode_(K_SUCCESS_EXIT_CODE) {
     // Readline will be initialized when RunRepl is called
 }
 
@@ -48,7 +83,7 @@ bool V8Console::Initialize() {
     v8::V8::InitializePlatform(platform_.get());
     v8::V8::Initialize();
     
-    // Create a new Isolate
+    // Create a new Isolate with RAII
     v8::Isolate::CreateParams create_params;
     create_params.array_buffer_allocator = 
         v8::ArrayBuffer::Allocator::NewDefaultAllocator();
@@ -63,11 +98,11 @@ bool V8Console::Initialize() {
         v8::Isolate::Scope isolate_scope(isolate_);
         v8::HandleScope handle_scope(isolate_);
         
-        v8::Local<v8::Context> context = v8::Context::New(isolate_);
+        const v8::Local<v8::Context> context = v8::Context::New(isolate_);
         context_.Reset(isolate_, context);
         
         // Enter context scope before registering builtins
-        v8::Context::Scope context_scope(context);
+        const v8::Context::Scope context_scope(context);
         
         // Register built-in functions
         RegisterBuiltins(context);
@@ -100,10 +135,10 @@ void V8Console::Shutdown() {
 bool V8Console::LoadDll(const std::string& path) {
     using namespace rang;
     
-    v8::Isolate::Scope isolate_scope(isolate_);
-    v8::HandleScope handle_scope(isolate_);
-    v8::Local<v8::Context> context = context_.Get(isolate_);
-    v8::Context::Scope context_scope(context);
+    const v8::Isolate::Scope isolate_scope(isolate_);
+    const v8::HandleScope handle_scope(isolate_);
+    const v8::Local<v8::Context> context = context_.Get(isolate_);
+    const v8::Context::Scope context_scope(context);
     
     std::cout << fg::cyan << "Loading DLL: " << style::reset << path << std::endl;
     if (dllLoader_.LoadDll(path, isolate_, context)) {
@@ -123,13 +158,13 @@ void V8Console::RunRepl(bool quiet) {
     rl_editing_mode = 1;  // 1 = emacs mode (default), 0 = vi mode
     
     // Bind Ctrl+L to clear screen
-    rl_bind_key('\014', clear_screen_handler);  // \014 is Ctrl+L
+    rl_bind_key(K_CTRL_L, clear_screen_handler);
     
     // Initialize history
     using_history();
     
     // Load history and config from home directory
-    if (const char* home = std::getenv("HOME")) {
+    if (const char* const home = std::getenv("HOME")) {
         historyPath_ = fs::path(home) / ".v8console.history";
         configPath_ = fs::path(home) / ".v8shellrc";
         read_history(historyPath_.c_str());
@@ -145,7 +180,7 @@ void V8Console::RunRepl(bool quiet) {
     
     if (!quiet) {
         // Reset terminal settings
-        std::cout << "\033c\033[?1000l\033[?1002l\033[?1003l\033[?1049l";
+        std::cout << K_RESET_TERMINAL;
         
         std::cout << style::bold << fg::cyan << "V8 Shell - Interactive Mode" << style::reset << std::endl;
         std::cout << fg::gray << "Built on " << BUILD_DATE << " at " << BUILD_TIME << style::reset << std::endl;
@@ -165,10 +200,10 @@ void V8Console::RunRepl(bool quiet) {
         std::cout << std::endl;
     }
     
-    v8::Isolate::Scope isolate_scope(isolate_);
-    v8::HandleScope handle_scope(isolate_);
-    v8::Local<v8::Context> context = context_.Get(isolate_);
-    v8::Context::Scope context_scope(context);
+    const v8::Isolate::Scope isolate_scope(isolate_);
+    const v8::HandleScope handle_scope(isolate_);
+    const v8::Local<v8::Context> context = context_.Get(isolate_);
+    const v8::Context::Scope context_scope(context);
     
     std::string line;
     while (!shouldQuit_) {
@@ -226,16 +261,16 @@ void V8Console::RunRepl(bool quiet) {
         line = ExpandHistory(line);
         
         // Handle JavaScript execution (preceded by &)
-        if (line[0] == '&') {
+        if (line[0] == K_JAVA_SCRIPT_PREFIX[0]) {
             std::string jsCode = line.substr(1);
             // Trim leading whitespace
             jsCode.erase(0, jsCode.find_first_not_of(" \t"));
             if (!jsCode.empty()) {
                 // Execute JavaScript
-                auto start = std::chrono::high_resolution_clock::now();
-                ExecuteString(jsCode, "<repl>");
-                auto end = std::chrono::high_resolution_clock::now();
-                auto duration = end - start;
+                const auto start = std::chrono::high_resolution_clock::now();
+                ExecuteString(jsCode, K_REPL_CONTEXT_NAME);
+                const auto end = std::chrono::high_resolution_clock::now();
+                const auto duration = end - start;
                 std::cout << fg::gray << " ⏱ " << FormatDuration(duration) << style::reset << std::endl;
             }
         }
@@ -248,23 +283,23 @@ void V8Console::RunRepl(bool quiet) {
             } else if (line == ".vars") {
                 DisplayVars();
             } else if (line == ".clear") {
-                std::cout << "\033[H\033[2J";
+                std::cout << K_CLEAR_SCREEN;
             } else if (line.starts_with(".load ")) {
                 std::string filename = line.substr(6);
                 // Trim whitespace
                 filename.erase(0, filename.find_first_not_of(" \t"));
                 filename.erase(filename.find_last_not_of(" \t") + 1);
                 
-                // Remove quotes if present
-                if (!filename.empty() && filename.front() == '"' && filename.back() == '"') {
+                // Remove quotes if present (C++23 style)
+                if (filename.starts_with('"') && filename.ends_with('"')) {
                     filename = filename.substr(1, filename.length() - 2);
                 }
                 
                 std::cout << fg::cyan << "Loading: " << style::reset << "\"" << filename << "\"";
-                auto start = std::chrono::high_resolution_clock::now();
-                bool success = ExecuteFile(filename);
-                auto end = std::chrono::high_resolution_clock::now();
-                auto duration = end - start;
+                const auto start = std::chrono::high_resolution_clock::now();
+                const bool success = ExecuteFile(filename);
+                const auto end = std::chrono::high_resolution_clock::now();
+                const auto duration = end - start;
                 if (success) {
                     std::cout << fg::gray << " ⏱ " << FormatDuration(duration) << style::reset << std::endl;
                 }
@@ -275,11 +310,12 @@ void V8Console::RunRepl(bool quiet) {
                 path.erase(path.find_last_not_of(" \t") + 1);
                 LoadDll(path);
             } else if (line == ".dlls") {
-                auto dlls = dllLoader_.GetLoadedDlls();
+                const auto dlls = dllLoader_.GetLoadedDlls();
                 std::cout << fg::yellow << "Loaded DLLs:" << style::reset << std::endl;
-                for (const auto& dll : dlls) {
-                    std::cout << "  • " << dll << std::endl;
-                }
+                // C++23 ranges with std::print
+                std::ranges::for_each(dlls, [](const auto& dll) {
+                    std::println("  • {}", dll);
+                });
             } else if (line.starts_with(".reload ")) {
                 std::string path = line.substr(8);
                 path.erase(0, path.find_first_not_of(" \t"));
@@ -301,14 +337,14 @@ void V8Console::RunRepl(bool quiet) {
                 path.erase(0, path.find_first_not_of(" \t"));
                 path.erase(path.find_last_not_of(" \t") + 1);
                 
-                // Remove quotes if present
-                if (!path.empty() && path.front() == '"' && path.back() == '"') {
+                // Remove quotes if present (C++23 style)
+                if (path.starts_with('"') && path.ends_with('"')) {
                     path = path.substr(1, path.length() - 2);
                 }
                 
                 // Expand tilde to home directory
                 if (!path.empty() && path[0] == '~') {
-                    const char* home = std::getenv("HOME");
+                    const char* const home = std::getenv("HOME");
                     if (home) {
                         path = std::string(home) + path.substr(1);
                     }
@@ -355,32 +391,32 @@ bool V8Console::ExecuteString(const std::string& source, const std::string& name
     if (!isolate_) return false;
     
     // Store JS commands for history (prefixed with &)
-    if (name == "<repl>") {
-        lastCommand_ = "&" + source;
+    if (name == K_REPL_CONTEXT_NAME) {
+        lastCommand_ = K_JAVA_SCRIPT_PREFIX + source;
     }
     
-    v8::Isolate::Scope isolate_scope(isolate_);
-    v8::HandleScope handle_scope(isolate_);
-    v8::Local<v8::Context> context = context_.Get(isolate_);
-    v8::Context::Scope context_scope(context);
+    const v8::Isolate::Scope isolate_scope(isolate_);
+    const v8::HandleScope handle_scope(isolate_);
+    const v8::Local<v8::Context> context = context_.Get(isolate_);
+    const v8::Context::Scope context_scope(context);
     
     bool success = CompileAndRun(source, name);
-    lastExitCode_ = success ? 0 : 1;
+    lastExitCode_ = success ? K_SUCCESS_EXIT_CODE : K_FAILURE_EXIT_CODE;
     return success;
 }
 
 bool V8Console::CompileAndRun(const std::string& source, const std::string& name) {
-    v8::HandleScope handle_scope(isolate_);
-    v8::Local<v8::Context> context = context_.Get(isolate_);
-    v8::Context::Scope context_scope(context);
+    const v8::HandleScope handle_scope(isolate_);
+    const v8::Local<v8::Context> context = context_.Get(isolate_);
+    const v8::Context::Scope context_scope(context);
     
     v8::TryCatch tryCatch(isolate_);
     
     // Compile the script
-    v8::Local<v8::String> sourceV8 = v8::String::NewFromUtf8(isolate_, source.c_str()).ToLocalChecked();
-    v8::Local<v8::String> nameV8 = v8::String::NewFromUtf8(isolate_, name.c_str()).ToLocalChecked();
+    const v8::Local<v8::String> sourceV8 = v8::String::NewFromUtf8(isolate_, source.c_str()).ToLocalChecked();
+    const v8::Local<v8::String> nameV8 = v8::String::NewFromUtf8(isolate_, name.c_str()).ToLocalChecked();
     
-    v8::ScriptOrigin origin = v8_compat::CreateScriptOrigin(isolate_, nameV8);
+    const v8::ScriptOrigin origin = v8_compat::CreateScriptOrigin(isolate_, nameV8);
     v8::Local<v8::Script> script;
     if (!v8::Script::Compile(context, sourceV8, &origin).ToLocal(&script)) {
         ReportException(&tryCatch);
@@ -395,7 +431,7 @@ bool V8Console::CompileAndRun(const std::string& source, const std::string& name
     }
     
     // Print result in REPL mode
-    if (name == "<repl>" && !result->IsUndefined()) {
+    if (name == K_REPL_CONTEXT_NAME && !result->IsUndefined()) {
         PrintResult(result);
     }
     
@@ -403,7 +439,8 @@ bool V8Console::CompileAndRun(const std::string& source, const std::string& name
 }
 
 std::string V8Console::ReadFile(const std::string& path) {
-    if (std::ifstream file{path}) {
+    // C++23 style with better error handling
+    if (std::ifstream file{path, std::ios::binary}) {
         return std::string{std::istreambuf_iterator<char>{file}, 
                           std::istreambuf_iterator<char>{}};
     }
@@ -418,10 +455,10 @@ bool V8Console::ExecuteShellCommand(const std::string& command) {
     // Store the command for history expansion (before execution)
     lastCommand_ = command;
     
-    int result = std::system(command.c_str());
+    const int result = std::system(command.c_str());
     lastExitCode_ = WEXITSTATUS(result);
     
-    if (result != 0) {
+    if (result != K_SUCCESS_EXIT_CODE) {
         std::cerr << fg::red << "Command failed with exit code: " << style::reset 
                   << lastExitCode_ << std::endl;
         return false;
@@ -434,7 +471,7 @@ std::vector<std::string> V8Console::SplitCommand(const std::string& command) {
     std::vector<std::string> words;
     std::string current;
     bool inQuotes = false;
-    char quoteChar = '\0';
+    char quoteChar = K_QUOTE_CHAR;
     
     for (size_t i = 0; i < command.length(); ++i) {
         char c = command[i];
@@ -477,7 +514,7 @@ std::string V8Console::ExpandHistory(const std::string& line) {
     }
     
     // Split last command into words for word-based expansions
-    auto lastWords = SplitCommand(lastCommand_);
+    const auto lastWords = SplitCommand(lastCommand_);
     
     // Handle !:$ (last word)
     pos = expanded.find("!:$");
@@ -506,7 +543,7 @@ std::string V8Console::ExpandHistory(const std::string& line) {
     }
     
     // Handle !:n (nth word) and !:n-m (range)
-    std::regex wordRef(R"(\!:(\d+)(?:-(\d+))?)");
+    const std::regex wordRef(R"(\!:(\d+)(?:-(\d+))?)");
     std::smatch match;
     std::string temp = expanded;
     
@@ -540,15 +577,19 @@ bool V8Console::IsGitRepo() {
 std::string V8Console::GetGitBranch() {
     if (!IsGitRepo()) return "";
     
-    FILE* pipe = popen("git rev-parse --abbrev-ref HEAD 2>/dev/null", "r");
+    // RAII wrapper for FILE*
+    struct FileDeleter {
+        void operator()(FILE* f) const { if (f) pclose(f); }
+    };
+    
+    std::unique_ptr<FILE, FileDeleter> pipe(popen("git rev-parse --abbrev-ref HEAD 2>/dev/null", "r"));
     if (!pipe) return "";
     
-    char buffer[128];
+    char buffer[K_GIT_BUFFER_SIZE];
     std::string result;
-    while (fgets(buffer, sizeof(buffer), pipe)) {
+    while (fgets(buffer, sizeof(buffer), pipe.get())) {
         result += buffer;
     }
-    pclose(pipe);
     
     // Remove trailing newline
     if (!result.empty() && result.back() == '\n') {
@@ -561,20 +602,24 @@ std::string V8Console::GetGitBranch() {
 std::string V8Console::GetGitStatus() {
     if (!IsGitRepo()) return "";
     
-    FILE* pipe = popen("git status --porcelain 2>/dev/null", "r");
+    // RAII wrapper for FILE*
+    struct FileDeleter {
+        void operator()(FILE* f) const { if (f) pclose(f); }
+    };
+    
+    std::unique_ptr<FILE, FileDeleter> pipe(popen("git status --porcelain 2>/dev/null", "r"));
     if (!pipe) return "";
     
-    char buffer[256];
+    char buffer[K_GIT_STATUS_BUFFER_SIZE];
     bool hasModified = false;
     bool hasUntracked = false;
     bool hasStaged = false;
     
-    while (fgets(buffer, sizeof(buffer), pipe)) {
+    while (fgets(buffer, sizeof(buffer), pipe.get())) {
         if (buffer[0] == 'M' || buffer[1] == 'M') hasModified = true;
         if (buffer[0] == '?' && buffer[1] == '?') hasUntracked = true;
         if (buffer[0] != ' ' && buffer[0] != '?') hasStaged = true;
     }
-    pclose(pipe);
     
     std::string status;
     if (hasStaged) status += "●";     // Staged changes
@@ -589,7 +634,7 @@ std::string V8Console::TruncatePath(const std::string& path, size_t maxLen) {
     
     // Replace home directory with ~
     std::string result = path;
-    const char* home = std::getenv("HOME");
+    const char* const home = std::getenv("HOME");
     if (home && result.find(home) == 0) {
         result = "~" + result.substr(strlen(home));
     }
@@ -597,13 +642,14 @@ std::string V8Console::TruncatePath(const std::string& path, size_t maxLen) {
     if (result.length() <= maxLen) return result;
     
     // Truncate from the beginning, keeping the most relevant part
-    size_t pos = result.length() - maxLen + 3; // 3 for "..."
-    size_t slashPos = result.find('/', pos);
+    constexpr size_t kEllipsisLength = 3;
+    const size_t pos = result.length() - maxLen + kEllipsisLength;
+    const size_t slashPos = result.find('/', pos);
     if (slashPos != std::string::npos) {
         return "..." + result.substr(slashPos);
     }
     
-    return "..." + result.substr(result.length() - maxLen + 3);
+    return "..." + result.substr(result.length() - maxLen + kEllipsisLength);
 }
 
 std::string V8Console::BuildPrompt() {
@@ -617,14 +663,14 @@ std::string V8Console::BuildPrompt() {
     std::ostringstream prompt;
     
     // Exit code indicator (red ✗ if last command failed)
-    if (lastExitCode_ != 0) {
+    if (lastExitCode_ != K_SUCCESS_EXIT_CODE) {
         prompt << fg::red << "✗ " << style::reset;
     }
     
     // Current directory (truncated)
     try {
-        std::string cwd = fs::current_path().string();
-        prompt << fg::blue << TruncatePath(cwd) << style::reset;
+        const std::string cwd = fs::current_path().string();
+        prompt << fg::blue << TruncatePath(cwd, K_MAX_PATH_LENGTH) << style::reset;
     } catch (...) {
         prompt << fg::blue << "?" << style::reset;
     }
@@ -641,7 +687,7 @@ std::string V8Console::BuildPrompt() {
     }
     
     // V8/JS indicator when in JavaScript mode
-    if (!lastCommand_.empty() && lastCommand_[0] == '&') {
+    if (!lastCommand_.empty() && lastCommand_[0] == K_JAVA_SCRIPT_PREFIX[0]) {
         prompt << " " << fg::green << "JS" << style::reset;
     }
     
@@ -686,13 +732,13 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
             path = words[1];
         } else {
             // cd with no args goes to home
-            const char* home = std::getenv("HOME");
+            const char* const home = std::getenv("HOME");
             if (home) path = home;
         }
         
         // Expand tilde
         if (!path.empty() && path[0] == '~') {
-            const char* home = std::getenv("HOME");
+            const char* const home = std::getenv("HOME");
             if (home) {
                 path = std::string(home) + path.substr(1);
             }
@@ -700,10 +746,10 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
         
         try {
             fs::current_path(path);
-            lastExitCode_ = 0;
+            lastExitCode_ = K_SUCCESS_EXIT_CODE;
         } catch (const std::exception& e) {
             std::cerr << fg::red << "cd: " << style::reset << e.what() << std::endl;
-            lastExitCode_ = 1;
+            lastExitCode_ = K_FAILURE_EXIT_CODE;
         }
         return true;
     }
@@ -711,10 +757,10 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
     // alias - set or show aliases
     if (cmd == "alias") {
         if (words.size() == 1) {
-            // Show all aliases
-            for (const auto& [name, value] : aliases_) {
-                std::cout << "alias " << name << "='" << value << "'" << std::endl;
-            }
+            // Show all aliases (C++23 ranges with std::print)
+            std::ranges::for_each(aliases_, [](const auto& [name, value]) {
+                std::println("alias {}='{}'", name, value);
+            });
         } else {
             // Parse alias definition (alias name='value' or alias name=value)
             std::string arg = command.substr(6); // Skip "alias "
@@ -723,10 +769,9 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
                 std::string name = arg.substr(0, eq);
                 std::string value = arg.substr(eq + 1);
                 
-                // Remove quotes if present
-                if (value.length() >= 2 && 
-                    ((value.front() == '\'' && value.back() == '\'') ||
-                     (value.front() == '"' && value.back() == '"'))) {
+                // Remove quotes if present (C++23)
+                if ((value.starts_with('\'') && value.ends_with('\'')) ||
+                    (value.starts_with('"') && value.ends_with('"'))) {
                     value = value.substr(1, value.length() - 2);
                 }
                 
@@ -751,10 +796,10 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
     // export - set environment variable
     if (cmd == "export") {
         if (words.size() == 1) {
-            // Show all exports
-            for (const auto& [name, value] : envVars_) {
-                std::cout << "export " << name << "=\"" << value << "\"" << std::endl;
-            }
+            // Show all exports (C++23 std::print)
+            std::ranges::for_each(envVars_, [](const auto& [name, value]) {
+                std::println("export {}=\"{}\"", name, value);
+            });
         } else {
             // Parse export VAR=value
             for (size_t i = 1; i < words.size(); ++i) {
@@ -764,10 +809,9 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
                     std::string name = arg.substr(0, eq);
                     std::string value = arg.substr(eq + 1);
                     
-                    // Remove quotes if present
-                    if (value.length() >= 2 && 
-                        ((value.front() == '\'' && value.back() == '\'') ||
-                         (value.front() == '"' && value.back() == '"'))) {
+                    // Remove quotes if present (C++23)
+                    if ((value.starts_with('\'') && value.ends_with('\'')) ||
+                        (value.starts_with('"') && value.ends_with('"'))) {
                         value = value.substr(1, value.length() - 2);
                     }
                     
@@ -785,10 +829,10 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
     if (cmd == "pwd") {
         try {
             std::cout << fs::current_path().string() << std::endl;
-            lastExitCode_ = 0;
+            lastExitCode_ = K_SUCCESS_EXIT_CODE;
         } catch (const std::exception& e) {
             std::cerr << fg::red << "pwd: " << style::reset << e.what() << std::endl;
-            lastExitCode_ = 1;
+            lastExitCode_ = K_FAILURE_EXIT_CODE;
         }
         return true;
     }
@@ -810,7 +854,7 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
                         // Recursively process each line
                         std::string expanded = ExpandHistory(fileLine);
                         
-                        if (expanded[0] == '&') {
+                        if (expanded[0] == K_JAVA_SCRIPT_PREFIX[0]) {
                             std::string jsCode = expanded.substr(1);
                             jsCode.erase(0, jsCode.find_first_not_of(" \t"));
                             if (!jsCode.empty()) {
@@ -828,11 +872,11 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
                         }
                     }
                 }
-                lastExitCode_ = 0;
+                lastExitCode_ = K_SUCCESS_EXIT_CODE;
             } else {
                 std::cerr << fg::red << "source: " << style::reset 
                           << "cannot read file: " << words[1] << std::endl;
-                lastExitCode_ = 1;
+                lastExitCode_ = K_FAILURE_EXIT_CODE;
             }
         }
         return true;
@@ -892,36 +936,36 @@ void V8Console::SaveConfig() {
     config << "# V8 Shell configuration file\n";
     config << "# Generated by v8console\n\n";
     
-    // Save aliases
+    // Save aliases (C++23 ranges)
     if (!aliases_.empty()) {
         config << "# Aliases\n";
-        for (const auto& [name, value] : aliases_) {
-            config << "alias " << name << "='" << value << "'\n";
-        }
+        std::ranges::for_each(aliases_, [&config](const auto& [name, value]) {
+            config << std::format("alias {}='{}'\n", name, value);
+        });
         config << "\n";
     }
     
-    // Save environment variables
+    // Save environment variables (C++23 format)
     if (!envVars_.empty()) {
         config << "# Environment variables\n";
-        for (const auto& [name, value] : envVars_) {
-            config << "export " << name << "=\"" << value << "\"\n";
-        }
+        std::ranges::for_each(envVars_, [&config](const auto& [name, value]) {
+            config << std::format("export {}=\"{}\"\n", name, value);
+        });
         config << "\n";
     }
 }
 
 std::string V8Console::GetUsername() {
-    const char* user = std::getenv("USER");
+    const char* const user = std::getenv("USER");
     if (!user) {
-        user = std::getenv("USERNAME");
+        const char* const username = std::getenv("USERNAME");
+        return username ? username : "user";
     }
-    return user ? user : "user";
+    return user;
 }
 
 std::string V8Console::GetHostname() {
-    constexpr size_t kMaxHostnameLength = 256;
-    char hostname[kMaxHostnameLength];
+    char hostname[K_MAX_HOSTNAME_LENGTH];
     if (gethostname(hostname, sizeof(hostname)) == 0) {
         return std::string(hostname);
     }
@@ -931,8 +975,7 @@ std::string V8Console::GetHostname() {
 std::string V8Console::GetTime(const std::string& format) {
     const auto now = std::chrono::system_clock::now();
     const auto time_t = std::chrono::system_clock::to_time_t(now);
-    constexpr size_t kBufferSize = 100;
-    char buffer[kBufferSize];
+    char buffer[K_BUFFER_SIZE];
     std::strftime(buffer, sizeof(buffer), format.c_str(), std::localtime(&time_t));
     return std::string(buffer);
 }
@@ -995,8 +1038,8 @@ std::string V8Console::BuildPromptFromConfig() {
             prompt << segment.content;
         } else if (segment.type == "cwd") {
             try {
-                std::string cwd = fs::current_path().string();
-                prompt << TruncatePath(cwd);
+                const std::string cwd = fs::current_path().string();
+                prompt << TruncatePath(cwd, K_MAX_PATH_LENGTH);
             } catch (...) {
                 prompt << "?";
             }
@@ -1020,7 +1063,7 @@ std::string V8Console::BuildPromptFromConfig() {
         } else if (segment.type == "host") {
             prompt << GetHostname();
         } else if (segment.type == "js_indicator") {
-            if (!lastCommand_.empty() && lastCommand_[0] == '&') {
+            if (!lastCommand_.empty() && lastCommand_[0] == K_JAVA_SCRIPT_PREFIX[0]) {
                 prompt << (segment.content.empty() ? "JS" : segment.content);
             }
         }
@@ -1320,12 +1363,9 @@ void V8Console::RunPromptWizard() {
     std::getline(std::cin, choice);
     
     if (!choice.empty() && (choice[0] == 'n' || choice[0] == 'N')) {
-        // Remove git segments
-        newConfig.segments.erase(
-            std::remove_if(newConfig.segments.begin(), newConfig.segments.end(),
-                [](const PromptConfig::Segment& s) { return s.type == "git"; }),
-            newConfig.segments.end()
-        );
+        // Remove git segments (C++23 ranges)
+        std::erase_if(newConfig.segments,
+            [](const PromptConfig::Segment& s) { return s.type == "git"; });
     }
     
     // Question 4: Show time?
@@ -1401,31 +1441,31 @@ void V8Console::SavePromptConfigJSON(const PromptConfig& config) {
     file << "{\n";
     file << "  \"segments\": [\n";
     
-    for (size_t i = 0; i < config.segments.size(); ++i) {
-        const auto& seg = config.segments[i];
+    // C++23 ranges with enumerate
+    for (const auto& [i, seg] : config.segments | std::views::enumerate) {
         file << "    {\n";
-        file << "      \"type\": \"" << seg.type << "\"";
+        file << std::format("      \"type\": \"{}\"" , seg.type);
         
         if (!seg.content.empty()) {
-            file << ",\n      \"content\": \"" << seg.content << "\"";
+            file << std::format(",\n      \"content\": \"{}\"", seg.content);
         }
         if (!seg.fg.empty()) {
-            file << ",\n      \"fg\": \"" << seg.fg << "\"";
+            file << std::format(",\n      \"fg\": \"{}\"", seg.fg);
         }
         if (!seg.bg.empty()) {
-            file << ",\n      \"bg\": \"" << seg.bg << "\"";
+            file << std::format(",\n      \"bg\": \"{}\"", seg.bg);
         }
         if (!seg.format.empty()) {
-            file << ",\n      \"format\": \"" << seg.format << "\"";
+            file << std::format(",\n      \"format\": \"{}\"", seg.format);
         }
         if (seg.bold) {
             file << ",\n      \"bold\": true";
         }
         if (!seg.prefix.empty()) {
-            file << ",\n      \"prefix\": \"" << seg.prefix << "\"";
+            file << std::format(",\n      \"prefix\": \"{}\"", seg.prefix);
         }
         if (!seg.suffix.empty()) {
-            file << ",\n      \"suffix\": \"" << seg.suffix << "\"";
+            file << std::format(",\n      \"suffix\": \"{}\"", seg.suffix);
         }
         
         file << "\n    }";
