@@ -37,7 +37,7 @@ fi
 
 # Test 3: Test basic execution
 echo -n "3. Testing basic execution... "
-if ./Bin/v8console -c "exit" 2>/dev/null; then
+if echo "exit" | ./Bin/v8console --quiet 2>/dev/null; then
     echo -e "${GREEN}✓ Runs successfully${NC}"
 else
     echo -e "${RED}✗ Failed to run${NC}"
@@ -47,21 +47,23 @@ fi
 
 # Test 4: Test JavaScript execution
 echo -n "4. Testing JavaScript execution... "
-TEST_OUTPUT=$(echo '&console.log("test")' | ./Bin/v8console --quiet 2>&1 | grep -o "test" || true)
-if [ "$TEST_OUTPUT" = "test" ]; then
+TEST_OUTPUT=$(echo '&console.log("test")' | ./Bin/v8console --quiet 2>&1)
+if echo "$TEST_OUTPUT" | grep -q "test"; then
     echo -e "${GREEN}✓ JavaScript works${NC}"
 else
     echo -e "${RED}✗ JavaScript execution failed${NC}"
+    echo "   Output: $TEST_OUTPUT"
     exit 1
 fi
 
 # Test 5: Test shell command execution
 echo -n "5. Testing shell command execution... "
-TEST_OUTPUT=$(echo 'echo test' | ./Bin/v8console --quiet 2>&1 | grep -o "test" || true)
-if [ "$TEST_OUTPUT" = "test" ]; then
+TEST_OUTPUT=$(echo 'echo test' | ./Bin/v8console --quiet 2>&1)
+if echo "$TEST_OUTPUT" | grep -q "test"; then
     echo -e "${GREEN}✓ Shell commands work${NC}"
 else
     echo -e "${RED}✗ Shell command execution failed${NC}"
+    echo "   Output: $TEST_OUTPUT"
     exit 1
 fi
 

@@ -181,7 +181,7 @@ void V8Console::DisplayVars() {
     std::cout << std::endl;
 }
 
-std::string V8Console::FormatDuration(const std::chrono::high_resolution_clock::duration& duration) {
+std::string V8Console::FormatDuration(const std::chrono::high_resolution_clock::duration& duration) const {
     using namespace std::chrono;
     
     auto us = duration_cast<microseconds>(duration);
