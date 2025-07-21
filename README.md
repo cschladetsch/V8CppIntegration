@@ -610,6 +610,7 @@ quit();                      // Exit console
 
 ### Console Features
 - **Colored Output**: Cyan titles, yellow sections, green success, red errors, blue λ prompt
+- **Automatic Colorful `ls`**: The `ls` command automatically uses `--color=auto` for colorful directory listings
 - **Error Reporting**: Syntax highlighting with source code context and stack traces
 - **DLL Hot-loading**: Load/unload/reload C++ DLLs without restarting
 - **Interactive Help**: `.help` command and `help()` function for comprehensive documentation
