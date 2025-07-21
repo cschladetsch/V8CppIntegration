@@ -35,6 +35,14 @@ Unit tests verify the correctness of individual classes and functions in isolati
 - Console command parsing
 - REPL behavior (limited due to V8 constraints)
 
+### CommandLineTests.cpp
+- Command line argument parsing tests
+- Boost.ProgramOptions integration
+- Option validation and combinations
+- Tests for --help, --interactive, --quiet options
+- Script file and DLL argument handling
+- Error handling for invalid options
+
 ## Running Tests
 
 ```bash
@@ -46,6 +54,7 @@ Unit tests verify the correctness of individual classes and functions in isolati
 ./Bin/AdvancedTests
 ./Bin/InteroperabilityTests
 ./Bin/V8ConsoleTests
+./Bin/CommandLineTests
 
 # Run with filter
 ./Bin/BasicTests --gtest_filter=StringTest.*

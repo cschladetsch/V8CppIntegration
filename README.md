@@ -44,6 +44,10 @@ This repository demonstrates how to build V8 and create bidirectional communicat
   - **Manual installation**: `sudo apt-get install libreadline-dev`
   - **Disable auto-install**: `cmake -DAUTO_INSTALL_READLINE=OFF ...`
   - **Build without readline**: `cmake -DUSE_READLINE=OFF ...`
+- Boost.ProgramOptions (required for V8 console):
+  - **Ubuntu/Debian**: `sudo apt-get install libboost-program-options-dev`
+  - **macOS**: `brew install boost`
+  - **Other systems**: See Boost documentation
 
 ### For System V8 Option
 ```bash
@@ -464,14 +468,22 @@ The project includes a full-featured interactive V8 console with colored output 
 # Run in interactive mode (default)
 ./Bin/v8console
 
+# Run in quiet mode (skip startup messages)
+./Bin/v8console --quiet
+./Bin/v8console -q
+
 # Run with help
 ./Bin/v8console --help
+./Bin/v8console -h
 
 # Run with pre-loaded DLL
 ./Bin/v8console -i ./Bin/Fib.so
 
 # Execute script with DLL
 ./Bin/v8console script.js ./Bin/Fib.so
+
+# Combined options
+./Bin/v8console -qi script.js  # Quiet interactive mode with script
 ```
 
 ### Console Commands
@@ -487,6 +499,15 @@ The project includes a full-featured interactive V8 console with colored output 
 
 # File operations
 .load script.js            # Load JavaScript file
+
+# Working directory
+.cwd                       # Display current working directory
+.cwd /path/to/dir         # Change current working directory
+
+# Shell commands
+!ls -la                    # Execute shell command
+!git status               # Run git commands
+!make test                # Run build commands
 
 # Exit
 .quit                      # Exit console

@@ -1,5 +1,7 @@
 # JavaScript Scripts
 
+**Version 0.2** - Enhanced Compatibility and Improved Console Output
+
 This directory contains JavaScript test files and demo scripts for the V8CppIntegration project.
 
 ## Files
@@ -50,3 +52,25 @@ The screentogif demos are designed for creating documentation videos:
 ./Bin/v8console -i ./Bin/Fib.so
 > .load Scripts/JavaScript/screentogif_slow_demo.js
 ```
+
+## Shell Commands
+
+The V8 console now operates in shell-first mode, where commands are executed as shell commands by default:
+
+```bash
+# Execute shell commands directly (no prefix needed)
+λ pwd
+/home/user/V8CppIntegration
+
+λ ls Scripts/JavaScript/
+demo.js  test_console.js  test_fib.js  test_minimal.js  v8console_test.js
+
+# Execute JavaScript code with the & prefix
+λ &console.log('Hello from JavaScript!')
+Hello from JavaScript!
+
+λ &2 + 2
+4
+```
+
+**Note**: As of v0.2, the console operates in shell-first mode. Use the `&` prefix to execute JavaScript code.

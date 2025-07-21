@@ -1,5 +1,7 @@
 # DLL Examples
 
+**Version 0.2** - Enhanced V8 Compatibility and Improved Error Handling
+
 This directory contains example dynamic libraries (DLLs) that demonstrate how to create C++ libraries that can be loaded into the V8 console application.
 
 ## Directory Structure
@@ -32,10 +34,10 @@ A demonstration DLL that provides Fibonacci sequence calculations.
 # Load the Fibonacci DLL
 .dll ./Bin/Fib.so
 
-# Use the function
-fib(10)  // Returns: 88
-fib(1)   // Returns: 1
-fib(5)   // Returns: 12
+# Use the function (with & prefix for JavaScript)
+&fib(10)  // Returns: 88
+&fib(1)   // Returns: 1
+&fib(5)   // Returns: 12
 ```
 
 #### Usage from JavaScript
@@ -252,3 +254,18 @@ The Fibonacci DLL serves as a complete example showing:
 - Proper memory management
 
 Use it as a template for creating your own DLLs.
+
+## v0.2 Improvements
+
+- **Enhanced V8 Compatibility**: Updated for V8 v11+ API changes
+- **Better Error Handling**: Improved error checks in DLL loading and function registration
+- **Shell-First Mode**: Console now operates in shell-first mode by default, use `&` prefix for JavaScript
+- **Test Coverage**: Fibonacci DLL now has comprehensive test suite (6 tests)
+- **Memory Management**: Improved HandleScope usage in DLL examples
+
+## Known Limitations
+
+- **Platform Support**: DLL loading currently uses POSIX dlopen/dlsym (Linux/macOS only)
+- **Windows Support**: Future versions will add Windows DLL support
+- **Security**: No sandboxing for loaded DLLs - only load trusted libraries
+- **Hot-reload**: Some edge cases in hot-reloading may require console restart
