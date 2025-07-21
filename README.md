@@ -17,7 +17,7 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 3. **Multiple Examples**: From minimal demos to advanced integration patterns
 4. **System V8 Support**: Option to use system-installed V8 libraries
 5. **V8 Compatibility Layer**: Cross-version compatibility via v8_compat.h for seamless integration
-6. **Comprehensive Test Suite**: 204 GTest-based tests covering all aspects of V8 integration
+6. **Comprehensive Test Suite**: 283 GTest-based tests covering all aspects of V8 integration
 7. **Performance Benchmarks**: Google Benchmark integration for performance testing
 8. **Docker Support**: Multi-stage Docker builds for easy deployment
 9. **CI/CD Ready**: GitHub Actions workflow for automated testing

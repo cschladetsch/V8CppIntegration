@@ -1,27 +1,31 @@
 # V8 Integration Test Suites
 
-**Version 0.2** - Expanded Coverage and Enhanced Compatibility
+**Version 0.2.1** - Expanded Coverage and Enhanced Compatibility
 
-This directory contains comprehensive test suites for the V8 C++ Integration framework, totaling 204 tests that ensure reliability and correctness. All tests have been updated for v0.2 with improved V8 compatibility and are passing with 100% success rate.
+This directory contains comprehensive test suites for the V8 C++ Integration framework, totaling 283 tests that ensure reliability and correctness. All tests have been updated for v0.2 with improved V8 compatibility and are passing with 100% success rate.
 
 ## Test Organization
 
 ```
 Tests/
-├── Unit/                    # Unit tests for core functionality
-│   ├── BasicTests.cpp       # 40 tests - Fundamental V8 operations
-│   ├── AdvancedTests.cpp    # 40 tests - Advanced V8 features
-│   ├── TestV8.cpp          # Simple V8 test example
-│   └── V8ConsoleTests.cpp  # 44 tests - V8Console functionality (NEW in v0.2)
-├── Integration/             # Integration tests
-│   ├── IntegrationTests.cpp # 40 tests - Complex integrations
-│   ├── InteroperabilityTests.cpp # 34 tests - C++/JS interop
+├── Unit/                           # Unit tests for core functionality
+│   ├── BasicTests.cpp              # 60 tests - Fundamental V8 operations
+│   ├── AdvancedTests.cpp           # 60 tests - Advanced V8 features
+│   ├── V8ConsoleTests.cpp          # 4 tests - V8Console basic functionality
+│   ├── V8ConsoleCoreTests.cpp      # 40 tests - V8ConsoleCore comprehensive tests
+│   ├── DllLoaderAdvancedTests.cpp  # 10 tests - Advanced DLL loader edge cases (NEW in v0.2.1)
+│   ├── V8ConsoleEdgeCaseTests.cpp  # 15 tests - Edge case handling (NEW in v0.2.1)
+│   ├── CommandLineTests.cpp        # 14 tests - Command line processing (NEW in v0.2.1)
+│   └── TestV8.cpp                  # Simple V8 test example
+├── Integration/                     # Integration tests
+│   ├── IntegrationTests.cpp        # 40 tests - Complex integrations
+│   ├── InteroperabilityTests.cpp   # 34 tests - C++/JS interop
 │   └── (JavaScript tests moved to Scripts/JavaScript/)
-├── Dlls/                    # DLL-specific tests
-│   └── FibonacciTests.cpp   # 6 tests - Fibonacci DLL functionality
-├── Performance/             # Performance benchmarks
-│   └── BenchmarkTests.cpp   # Google Benchmark suite
-└── TestUtils.h             # Common test utilities
+├── Dlls/                           # DLL-specific tests
+│   └── FibonacciTests.cpp          # 6 tests - Fibonacci DLL functionality
+├── Performance/                     # Performance benchmarks
+│   └── BenchmarkTests.cpp          # Google Benchmark suite
+└── TestUtils.h                     # Common test utilities
 ```
 
 ## Building Tests
