@@ -12,6 +12,15 @@ configure_file(
     @ONLY
 )
 
+# Fetch nlohmann/json
+include(FetchContent)
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.3
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 # Find Boost.ProgramOptions
 find_package(Boost REQUIRED COMPONENTS program_options)
 if(NOT Boost_FOUND)
@@ -22,7 +31,7 @@ if(NOT Boost_FOUND)
 endif()
 
 # V8 Console Application
-add_executable(v8console 
+add_executable(v8c 
     main.cpp
     DllLoader.cpp
     DllLoader.h
@@ -34,19 +43,22 @@ add_executable(v8console
 )
 
 # Set properties
-set_target_properties(v8console PROPERTIES
+set_target_properties(v8c PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
-    OUTPUT_NAME v8console
+    OUTPUT_NAME v8c
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Bin
 )
 
 # Link V8 and other dependencies
-configure_v8_target(v8console)
+configure_v8_target(v8c)
+
+# Link the console core library and nlohmann/json
+target_link_libraries(v8c PRIVATE V8ConsoleCore nlohmann_json::nlohmann_json)
 
 # Add compile definition based on USE_SYSTEM_V8
 if(USE_SYSTEM_V8)
-    target_compile_definitions(v8console PRIVATE USE_SYSTEM_V8)
+    target_compile_definitions(v8c PRIVATE USE_SYSTEM_V8)
 endif()
 
 # Option to disable readline (enabled by default)
@@ -122,39 +134,39 @@ if(USE_READLINE)
     endif()
 else()
     message(STATUS "Building without GNU Readline support")
-    target_compile_definitions(v8console PRIVATE NO_READLINE)
+    target_compile_definitions(v8c PRIVATE NO_READLINE)
 endif()
 
 # Link Boost.ProgramOptions
 if(Boost_FOUND)
-    target_link_libraries(v8console PRIVATE Boost::program_options)
+    target_link_libraries(v8c PRIVATE Boost::program_options)
 else()
-    target_link_libraries(v8console PRIVATE Boost::program_options)
+    target_link_libraries(v8c PRIVATE Boost::program_options)
 endif()
 
 # Platform-specific linking
 if(UNIX AND NOT APPLE)
-    target_link_libraries(v8console PRIVATE dl)
+    target_link_libraries(v8c PRIVATE dl)
     if(USE_READLINE AND READLINE_LIB)
-        target_link_libraries(v8console PRIVATE ${READLINE_LIB})
+        target_link_libraries(v8c PRIVATE ${READLINE_LIB})
     endif()
 elseif(WIN32)
-    target_link_libraries(v8console PRIVATE kernel32)
+    target_link_libraries(v8c PRIVATE kernel32)
 endif()
 
 # Add include directories
-target_include_directories(v8console PRIVATE
+target_include_directories(v8c PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}  # For generated build_info.h
     ${CMAKE_SOURCE_DIR}/Include
 )
 
 # Add third-party includes as SYSTEM to suppress warnings
-target_include_directories(v8console SYSTEM PRIVATE
+target_include_directories(v8c SYSTEM PRIVATE
     ${CMAKE_SOURCE_DIR}/Include/third_party
 )
 
 # Install target
-install(TARGETS v8console
+install(TARGETS v8c
     RUNTIME DESTINATION bin
 )

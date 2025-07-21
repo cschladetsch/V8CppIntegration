@@ -33,8 +33,30 @@ public:
     
     // Get DLL loader
     [[nodiscard]] DllLoader& GetDllLoader() noexcept { return dllLoader_; }
+    
+    // Run prompt configuration wizard
+    void RunPromptWizard();
 
 private:
+    // Prompt configuration (defined early for use in method declarations)
+    struct PromptConfig {
+        struct Segment {
+            std::string type;      // "text", "cwd", "git", "exit_code", "time", "user", "host", "js_indicator", "exec_time"
+            std::string content;   // For "text" type
+            std::string fg;        // Foreground color
+            std::string bg;        // Background color
+            std::string format;    // Format string (for time, etc.)
+            bool bold = false;
+            std::string prefix;    // Text before the segment
+            std::string suffix;    // Text after the segment
+        };
+        std::vector<Segment> leftSegments;
+        std::vector<Segment> rightSegments;
+        std::string newline = "\n";
+        std::string prompt_char = "❯";
+        std::string prompt_color = "cyan";
+        bool twoLine = false;  // Whether to use two-line prompt
+    };
     // V8 components
     std::unique_ptr<v8::Platform> platform_;
     v8::Isolate* isolate_;
@@ -88,38 +110,22 @@ private:
     // Prompt helpers
     std::string BuildPrompt();
     std::string BuildPromptFromConfig();
+    std::string BuildSegments(const std::vector<PromptConfig::Segment>& segments);
     std::string GetGitBranch();
     std::string GetGitStatus();
+    std::string GetGitRemote();
     bool IsGitRepo();
     std::string TruncatePath(const std::string& path, size_t maxLen = 30);
     [[nodiscard]] int GetLastExitCode() const noexcept { return lastExitCode_; }
     std::string GetUsername();
     std::string GetHostname();
     std::string GetTime(const std::string& format = "%H:%M:%S");
-    
-    // Prompt configuration
-    struct PromptConfig {
-        struct Segment {
-            std::string type;      // "text", "cwd", "git", "exit_code", "time", "user", "host", "js_indicator"
-            std::string content;   // For "text" type
-            std::string fg;        // Foreground color
-            std::string bg;        // Background color
-            std::string format;    // Format string (for time, etc.)
-            bool bold = false;
-            std::string prefix;    // Text before the segment
-            std::string suffix;    // Text after the segment
-        };
-        std::vector<Segment> segments;
-        std::string newline = "\n";
-        std::string prompt_char = "λ";
-        std::string prompt_color = "blue";
-    };
+    std::string formatExecutionTime(const std::chrono::microseconds& us);
     PromptConfig promptConfig_;
     void LoadPromptConfig();
     void SavePromptConfig();
     void LoadV8CRC();
     void SavePromptConfigJSON(const PromptConfig& config);
-    void RunPromptWizard();
     rang::fg GetColorFromString(const std::string& color);
     rang::bg GetBgColorFromString(const std::string& color);
     
@@ -129,6 +135,12 @@ private:
     void LoadConfig();
     void SaveConfig();
     
+    // Auto-completion helpers
+    std::vector<std::string> GetCompletions(const std::string& text, int start, int end);
+    std::vector<std::string> GetObjectProperties(const std::string& objectPath);
+    static char** CompletionGenerator(const char* text, int start, int end);
+    static V8Console* completionInstance_;  // Static instance for readline callback
+    
     // REPL state
     bool shouldQuit_ = false;
     std::string historyPath_;
@@ -136,6 +148,8 @@ private:
     bool quietMode_ = false;
     std::string lastCommand_;  // Store the last executed command for history expansion
     int lastExitCode_ = 0;  // Store last command exit code for prompt
+    std::chrono::microseconds lastExecutionTime_{0};  // Store last command execution time
+    bool jsMode_ = false;  // Current mode: false = shell, true = JavaScript
     std::map<std::string, std::string> aliases_;  // Shell aliases
     std::map<std::string, std::string> envVars_;  // Environment variables
 };
