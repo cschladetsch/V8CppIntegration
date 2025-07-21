@@ -1,6 +1,6 @@
 # V8 C++ Integration <img src="Resources/Logo.png" alt="V8 C++ Integration Logo" width="58" style="vertical-align: middle"> 
 
-**Version 0.2.1** - Enhanced Testing, Bright Blue Lambda, and Improved Demo Scripts
+**Version 0.2.2** - Repository Cleanup, Code Quality, and Testing Enhancements
 
 This repository demonstrates how to build V8 and create bidirectional communication between C++ and JavaScript, with comprehensive examples and testing.
 
@@ -937,6 +937,13 @@ Based on comprehensive code review, the following issues have been identified fo
 These issues are documented for transparency and will be addressed in subsequent releases.
 
 ## Release History
+
+### Version 0.2.2 (2025-07-21)
+- ✅ Repository cleanup: Removed temporary files, cache directories, and object files
+- ✅ Clang-tidy analysis completed with warnings addressed
+- ✅ README files updated with current project status
+- ✅ Build artifacts cleaned from version control
+- ✅ Improved maintainability and code organization
 
 ### Version 0.2 (2025-07-18)
 - ✅ 204 tests passing (100% pass rate)
