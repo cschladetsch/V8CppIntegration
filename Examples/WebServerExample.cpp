@@ -1,4 +1,4 @@
-#include "v8_compat.h"
+#include "V8Compat.h"
 #include <iostream>
 #include <string>
 #include <map>
@@ -11,7 +11,7 @@
 #include <regex>
 #include <libplatform/libplatform.h>
 #include <v8.h>
-#include "v8_compat.h"
+#include "V8Compat.h"
 
 // Simple HTTP server implementation using V8 for request handling
 class V8WebServer {

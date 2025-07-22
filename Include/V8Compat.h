@@ -26,10 +26,9 @@ inline v8::ScriptOrigin CreateScriptOrigin(
     bool is_module = false) {
     
 #if V8_MAJOR_VERSION >= 11 || (defined(USE_SYSTEM_V8) && !defined(V8_MAJOR_VERSION))
-    // Newer V8 API (v11+) requires isolate as first parameter
+    // Newer V8 API (v11+) doesn't take isolate as first parameter
     // The 11th parameter is host_defined_options which we can leave as default
     return v8::ScriptOrigin(
-        isolate,
         resource_name,
         line_offset,
         column_offset,
@@ -41,9 +40,8 @@ inline v8::ScriptOrigin CreateScriptOrigin(
         is_module
     );
 #else
-    // Older V8 API (pre-v11)
+    // Older V8 API (pre-v11) - also doesn't take isolate
     return v8::ScriptOrigin(
-        isolate,
         resource_name,
         line_offset,
         column_offset,

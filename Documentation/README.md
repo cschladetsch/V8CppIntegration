@@ -4,6 +4,9 @@ This directory contains documentation configuration and generated documentation 
 
 ## Contents
 
+- **V8ConsoleShellIntegration.md** - Comprehensive guide for V8 Console Shell/JS integration
+- **V8ConsoleQuickReference.md** - Quick reference card for V8 Console commands
+- **CompileTimeOptimizations.md** - Documentation on compile-time optimizations
 - **Doxyfile** - Doxygen configuration file for generating API documentation
 - **html/** - Generated HTML documentation (created after running Doxygen, gitignored)
 - **latex/** - Generated LaTeX documentation (created after running Doxygen, gitignored)

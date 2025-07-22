@@ -1,9 +1,9 @@
-#include "v8_compat.h"
+#include "V8Compat.h"
 #include <iostream>
 #include <string>
 #include "libplatform/libplatform.h"
 #include "v8.h"
-#include "v8_compat.h"
+#include "V8Compat.h"
 
 using namespace v8;
 

@@ -83,6 +83,7 @@ private:
     std::string FormatExecutionTime(const std::chrono::microseconds& us);
     DroppedFile AnalyzeFile(const std::filesystem::path& path);
     bool LoadImageTexture(const std::string& path, unsigned int& textureId);
+    bool LoadOpenGLFunctions();
     
     // Member variables
     GLFWwindow* window_;

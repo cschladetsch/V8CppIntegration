@@ -76,6 +76,7 @@ target_include_directories(v8gui PRIVATE
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
     ${V8_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/v8/include
     ${CMAKE_SOURCE_DIR}/Source/Library/V8Integration/include
     ${CMAKE_SOURCE_DIR}/Source/Library/V8ConsoleCore/include
 )
@@ -84,10 +85,12 @@ target_include_directories(v8gui PRIVATE
 target_link_libraries(v8gui PRIVATE
     V8ConsoleCore
     V8Integration
-    ${V8_LIBRARIES}
-    v8_libplatform
+    ${CMAKE_SOURCE_DIR}/v8/out/x64.release/obj/libv8_monolith.a
+    ${CMAKE_SOURCE_DIR}/v8/out/x64.release/obj/libv8_libplatform.a
+    ${CMAKE_SOURCE_DIR}/v8/out/x64.release/obj/libv8_libbase.a
     glfw
     OpenGL::GL
+    dl
     pthread
     stdc++fs
     nlohmann_json::nlohmann_json

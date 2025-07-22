@@ -2,11 +2,14 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 #include <GL/gl.h>
 #include <iostream>
 #include <fstream>
 #include <format>
 #include <algorithm>
+#include <dlfcn.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -41,6 +44,24 @@ V8ConsoleGUI::~V8ConsoleGUI() {
 }
 
 bool V8ConsoleGUI::Initialize() {
+    // Initialize console core - V8 platform will be initialized by V8Integration
+    try {
+        console_ = std::make_unique<v8console::V8ConsoleCore>();
+        v8integration::V8Config config;
+        config.appName = "V8ConsoleGUI";
+        
+        if (!console_->Initialize(config)) {
+            std::cerr << "Failed to initialize console core\n";
+            return false;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Exception during V8 initialization: " << e.what() << "\n";
+        return false;
+    } catch (...) {
+        std::cerr << "Unknown exception during V8 initialization\n";
+        return false;
+    }
+
     // Initialize GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW\n";
@@ -63,6 +84,13 @@ bool V8ConsoleGUI::Initialize() {
 
     glfwMakeContextCurrent(window_);
     glfwSwapInterval(1); // Enable vsync
+    
+    // Load OpenGL functions
+    if (!LoadOpenGLFunctions()) {
+        std::cerr << "Failed to load OpenGL functions\n";
+        glfwTerminate();
+        return false;
+    }
 
     // Setup drag & drop callback
     glfwSetDropCallback(window_, DropCallback);
@@ -87,16 +115,6 @@ bool V8ConsoleGUI::Initialize() {
 
     // Load fonts
     io.Fonts->AddFontFromFileTTF("/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf", fontSize_);
-    
-    // Initialize console core
-    console_ = std::make_unique<v8console::V8ConsoleCore>();
-    v8integration::V8Config config;
-    config.appName = "V8ConsoleGUI";
-    
-    if (!console_->Initialize(config)) {
-        std::cerr << "Failed to initialize console core\n";
-        return false;
-    }
 
     // Set output callbacks
     console_->SetOutputCallback([this](const std::string& text) {
@@ -435,7 +453,7 @@ void V8ConsoleGUI::ExecuteCommand(const std::string& command) {
     
     // Show output if any
     if (!result.output.empty()) {
-        // Output callback will handle this
+        AddEntry(EntryType::Output, result.output);
     }
     
     // Show error if any
@@ -570,6 +588,24 @@ bool V8ConsoleGUI::LoadImageTexture(const std::string& path, unsigned int& textu
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     
     stbi_image_free(data);
+    return true;
+}
+
+bool V8ConsoleGUI::LoadOpenGLFunctions() {
+    // GLFW3 with modern OpenGL context doesn't require explicit function loading
+    // on most systems, but we'll add a basic check
+    
+    // Check if we can get the OpenGL version
+    const char* version = (const char*)glGetString(GL_VERSION);
+    if (!version) {
+        std::cerr << "Failed to get OpenGL version\n";
+        return false;
+    }
+    
+    std::cout << "OpenGL Version: " << version << std::endl;
+    
+    // For a more robust solution, we would use GLAD or GLEW here
+    // But for basic functionality with GLFW3, this should suffice
     return true;
 }
 

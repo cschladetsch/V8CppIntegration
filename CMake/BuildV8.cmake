@@ -52,13 +52,19 @@ else()
 endif()
 
 # Update archives with symbol tables
-if(V8_LIBRARIES)
+if(V8_LIBRARIES AND EXISTS ${V8_LIBRARIES})
     foreach(lib ${V8_LIBRARIES})
-        execute_process(COMMAND ranlib ${lib})
+        if(EXISTS ${lib})
+            execute_process(COMMAND ranlib ${lib} ERROR_QUIET)
+        endif()
     endforeach()
 endif()
-execute_process(COMMAND ranlib ${V8_LIBBASE})
-execute_process(COMMAND ranlib ${V8_LIBPLATFORM})
+if(EXISTS ${V8_LIBBASE})
+    execute_process(COMMAND ranlib ${V8_LIBBASE} ERROR_QUIET)
+endif()
+if(EXISTS ${V8_LIBPLATFORM})
+    execute_process(COMMAND ranlib ${V8_LIBPLATFORM} ERROR_QUIET)
+endif()
 
 # Create an imported target for V8
 add_library(V8::V8 INTERFACE IMPORTED GLOBAL)
@@ -68,9 +74,13 @@ if(V8_LIBRARIES)
     list(LENGTH V8_LIBRARIES lib_count)
     if(${lib_count} GREATER 1)
         # Multiple libraries - use interface target
+        # Chrome's libc++ libraries
+        set(V8_LIBCXX ${V8_BUILD_DIR}/obj/buildtools/third_party/libc++/libc++.a)
+        set(V8_LIBCXXABI ${V8_BUILD_DIR}/obj/buildtools/third_party/libc++abi/libc++abi.a)
+        
         set_target_properties(V8::V8 PROPERTIES
             INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIRS}"
-            INTERFACE_LINK_LIBRARIES "${V8_LIBRARIES};${V8_LIBPLATFORM};${V8_LIBBASE};pthread;dl;m"
+            INTERFACE_LINK_LIBRARIES "${V8_LIBRARIES};${V8_LIBPLATFORM};${V8_LIBBASE};${V8_LIBCXX};${V8_LIBCXXABI};pthread;dl;m"
         )
     else()
         # Single library - use static imported target
@@ -79,9 +89,13 @@ if(V8_LIBRARIES)
             IMPORTED_LOCATION ${V8_LIBRARIES}
             INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIRS}"
         )
+        # Chrome's libc++ libraries
+        set(V8_LIBCXX ${V8_BUILD_DIR}/obj/buildtools/third_party/libc++/libc++.a)
+        set(V8_LIBCXXABI ${V8_BUILD_DIR}/obj/buildtools/third_party/libc++abi/libc++abi.a)
+        
         set_target_properties(V8::V8 PROPERTIES
             INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIRS}"
-            INTERFACE_LINK_LIBRARIES "V8::V8_STATIC;${V8_LIBPLATFORM};${V8_LIBBASE};pthread;dl;m"
+            INTERFACE_LINK_LIBRARIES "V8::V8_STATIC;${V8_LIBPLATFORM};${V8_LIBBASE};${V8_LIBCXX};${V8_LIBCXXABI};pthread;dl;m"
         )
     endif()
 else()

@@ -506,7 +506,7 @@ cmake --build build --target run_all_tests
 
 ## V8 Console Usage
 
-The project includes a full-featured interactive V8 console that operates as a **shell-first environment** with JavaScript capabilities:
+The project includes a full-featured interactive V8 console that operates as a **shell-first environment** with JavaScript capabilities. For comprehensive documentation, see [V8 Console Shell/JS Integration Guide](Documentation/V8ConsoleShellIntegration.md).
 
 ### Console Modes
 

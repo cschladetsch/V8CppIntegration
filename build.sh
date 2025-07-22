@@ -125,7 +125,7 @@ build_v8console() {
     info "Configuring with CMake..."
     cmake -B build \
         -DCMAKE_BUILD_TYPE=Release \
-        -DUSE_SYSTEM_V8=ON \
+        -DUSE_SYSTEM_V8=OFF \
         -DENABLE_TESTING=ON \
         -DENABLE_EXAMPLES=ON \
         -G Ninja
