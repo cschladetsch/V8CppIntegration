@@ -82,7 +82,9 @@ install_dependencies() {
             libboost-program-options-dev \
             libreadline-dev \
             libgtest-dev \
-            libbenchmark-dev
+            libbenchmark-dev \
+            libglfw3-dev \
+            libgl1-mesa-dev
             
     elif [ "$OS" == "macos" ]; then
         if ! command -v brew &> /dev/null; then
@@ -90,10 +92,24 @@ install_dependencies() {
         fi
         
         info "Installing dependencies via Homebrew..."
-        brew install cmake ninja boost readline googletest google-benchmark v8
+        brew install cmake ninja boost readline googletest google-benchmark v8 glfw
     fi
     
     success "Dependencies installed"
+}
+
+# Initialize git submodules
+init_submodules() {
+    header "Initializing Git Submodules"
+    
+    info "Updating git submodules..."
+    git submodule update --init --recursive
+    
+    if [ -d "External/imgui" ] && [ -d "External/rang" ]; then
+        success "Git submodules initialized successfully"
+    else
+        error "Failed to initialize git submodules"
+    fi
 }
 
 # Build V8Console
@@ -117,8 +133,14 @@ build_v8console() {
     info "Building v8console..."
     cmake --build build --target v8console -j$(nproc)
     
+    info "Building v8gui..."
+    cmake --build build --target v8gui -j$(nproc) || warning "v8gui build failed (optional component)"
+    
     if [ -f "./Bin/v8console" ]; then
         success "v8console built successfully at ./Bin/v8console"
+        if [ -f "./Bin/v8gui" ]; then
+            success "v8gui built successfully at ./Bin/v8gui"
+        fi
     else
         error "Failed to build v8console"
     fi
@@ -240,10 +262,11 @@ main() {
     # Ask user what they want to do
     echo "This script will:"
     echo "1. Install all dependencies"
-    echo "2. Build v8console"
-    echo "3. Run all tests"
-    echo "4. Set up 'v8c' alias in your shell"
-    echo "5. Create a default ~/.config/v8rc configuration"
+    echo "2. Initialize git submodules (imgui)"
+    echo "3. Build v8console"
+    echo "4. Run all tests"
+    echo "5. Set up 'v8c' alias in your shell"
+    echo "6. Create a default ~/.config/v8rc configuration"
     echo ""
     read -p "Continue? [Y/n] " -n 1 -r
     echo ""
@@ -255,6 +278,7 @@ main() {
     
     # Execute all steps
     install_dependencies
+    init_submodules
     build_v8console
     run_tests
     configure_shell_alias
