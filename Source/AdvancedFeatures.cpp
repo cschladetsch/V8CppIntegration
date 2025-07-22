@@ -53,7 +53,6 @@ v8::Local<v8::Value> WebAssemblyManager::instantiateWasm(v8::Isolate* isolate,
                                                         v8::Local<v8::Value> module,
                                                         v8::Local<v8::Object> imports) {
     v8::EscapableHandleScope handle_scope(isolate);
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     
     if (!module->IsWasmModuleObject()) {
         isolate->ThrowException(v8::Exception::TypeError(
@@ -249,7 +248,6 @@ void AsyncManager::setIntervalCallback(const v8::FunctionCallbackInfo<v8::Value>
 // ModuleManager Implementation
 void ModuleManager::initialize(v8::Isolate* isolate) {
     v8::HandleScope handle_scope(isolate);
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     
     // Enable ES6 modules
     // isolate->SetHostImportModuleDynamicallyCallback(nullptr); // Ambiguous in some V8 versions

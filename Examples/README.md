@@ -336,4 +336,4 @@ As of version 0.2, the following improvements have been made:
 - [V8 API Documentation](https://v8.github.io/api/head/)
 - Main project README for overall project context and v0.2 release notes
 - Tests directory for comprehensive usage examples
-- Include/v8_compat.h for V8 version compatibility helpers
+- Include/V8Compat.h for V8 version compatibility helpers

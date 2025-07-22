@@ -6,7 +6,7 @@ This directory contains the framework headers that extend V8's functionality for
 
 ## Header Files
 
-### error_handler.h
+### ErrorHandler.h
 Comprehensive error handling utilities for V8 applications:
 - **Exception Handling**: Catch and format JavaScript exceptions
 - **Stack Traces**: Parse and beautify stack traces
@@ -14,7 +14,7 @@ Comprehensive error handling utilities for V8 applications:
 - **Error Recovery**: Graceful error recovery strategies
 - **Debugging**: Enhanced debugging information
 
-### monitoring.h
+### Monitoring.h
 Production monitoring and observability features:
 - **Metrics Collection**: CPU, memory, and custom metrics
 - **Performance Profiling**: Function execution timing
@@ -22,7 +22,7 @@ Production monitoring and observability features:
 - **Event Tracking**: Custom event emission and tracking
 - **Integration**: Export to Prometheus, StatsD, etc.
 
-### security.h
+### Security.h
 Security features for running untrusted JavaScript:
 - **Context Isolation**: Separate contexts for different trust levels
 - **Resource Limits**: CPU time, memory, and recursion limits
@@ -30,7 +30,7 @@ Security features for running untrusted JavaScript:
 - **Permission System**: Fine-grained permission controls
 - **Audit Logging**: Security event logging
 
-### advanced_features.h
+### AdvancedFeatures.h
 Advanced V8 features and modern JavaScript support:
 - **WebAssembly**: WASM loading and execution
 - **ES Modules**: Dynamic import and module loading
@@ -42,7 +42,7 @@ Advanced V8 features and modern JavaScript support:
 
 ### Error Handling
 ```cpp
-#include "v8_integration/error_handler.h"
+#include "V8Integration/ErrorHandler.h"
 
 v8_integration::ErrorHandler handler(isolate);
 handler.SetLogLevel(v8_integration::LogLevel::WARNING);
@@ -58,7 +58,7 @@ if (tryCatch.HasCaught()) {
 
 ### Monitoring
 ```cpp
-#include "v8_integration/monitoring.h"
+#include "V8Integration/Monitoring.h"
 
 v8_integration::Monitor monitor(isolate);
 monitor.StartProfiling();
@@ -72,7 +72,7 @@ std::cout << "Memory used: " << metrics.memoryUsed << " bytes\n";
 
 ### Security
 ```cpp
-#include "v8_integration/security.h"
+#include "V8Integration/Security.h"
 
 v8_integration::SecurityContext secureContext(isolate);
 secureContext.SetMemoryLimit(100 * 1024 * 1024); // 100MB
@@ -85,7 +85,7 @@ secureContext.ExecuteScript(untrustedCode);
 
 ### Advanced Features
 ```cpp
-#include "v8_integration/advanced_features.h"
+#include "V8Integration/AdvancedFeatures.h"
 
 v8_integration::ModuleLoader loader(isolate);
 loader.EnableDynamicImport();
@@ -150,7 +150,7 @@ These headers represent the framework foundation and demonstrate best practices 
 
 ### Implementation Status
 - ✅ Header files define clean APIs
-- ✅ Compatible with v8_compat.h for version independence
+- ✅ Compatible with V8Compat.h for version independence
 - ⚠️ Some implementations are partial (see Source/ directory)
 - 📝 Full implementations planned for future releases
 
@@ -168,7 +168,7 @@ These headers represent the framework foundation and demonstrate best practices 
 
 ### Contributing
 When extending these headers:
-- Maintain V8 version compatibility via v8_compat.h
+- Maintain V8 version compatibility via V8Compat.h
 - Follow RAII principles
 - Document thread safety requirements
 - Provide comprehensive examples

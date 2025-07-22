@@ -16,7 +16,7 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 2. **CMake Build System**: Modern CMake configuration with FindV8 module
 3. **Multiple Examples**: From minimal demos to advanced integration patterns
 4. **System V8 Support**: Option to use system-installed V8 libraries
-5. **V8 Compatibility Layer**: Cross-version compatibility via v8_compat.h for seamless integration
+5. **V8 Compatibility Layer**: Cross-version compatibility via V8Compat.h for seamless integration
 6. **Comprehensive Test Suite**: 283 GTest-based tests covering all aspects of V8 integration
 7. **Performance Benchmarks**: Google Benchmark integration for performance testing
 8. **Docker Support**: Multi-stage Docker builds for easy deployment
@@ -61,17 +61,17 @@ sudo apt-get install libv8-dev libgtest-dev
 
 This project provides three main build scripts:
 
-1. **`ShellScripts/setup_and_build_v8.sh`** - Downloads and builds V8 from source
-2. **`ShellScripts/build.sh`** - Main project build script (uses local V8 by default)
-3. **`compile_standalone.sh`** - Single-file compilation for quick experiments
+1. **`build.sh`** - Complete build script that installs dependencies, initializes submodules, builds, and tests
+2. **`ShellScripts/setup_and_build_v8.sh`** - Downloads and builds V8 from source (optional)
+3. **`ShellScripts/build.sh`** - Alternative project build script
 
 ### How the Build System Works
 
 | Script | Purpose | When to Use |
 |--------|---------|-------------|
-| `ShellScripts/setup_and_build_v8.sh` | Download and build V8 from source | First-time setup, CI/CD |
+| `build.sh` | Complete setup, build, test, and configure | First-time setup, complete build |
+| `ShellScripts/setup_and_build_v8.sh` | Download and build V8 from source | When you need V8 built from source |
 | `ShellScripts/build.sh` | Build project (auto-detects V8) | Regular development |
-| `compile_standalone.sh` | Compile single C++ files | Quick experiments |
 
 ### V8 Detection Priority
 
@@ -241,9 +241,13 @@ V8CppIntegration/
 │       └── RunTests.sh
 ├── Source/                 # Source code  
 │   ├── App/                # Applications
-│   │   └── Console/        # V8 console with DLL hot-loading
+│   │   ├── Console/        # V8 console with DLL hot-loading
+│   │   └── ConsoleGUI/     # ImGui-based GUI console (v8gui)
 │   ├── DllExamples/        # Example DLLs
 │   │   └── Dlls/           # DLL implementations (Fibonacci, etc.)
+│   ├── Library/            # Core libraries
+│   │   ├── V8ConsoleCore/  # Core console functionality
+│   │   └── V8Integration/  # V8 integration library
 │   ├── AdvancedFeatures.cpp
 │   ├── ErrorHandler.cpp
 │   ├── Monitoring.cpp
@@ -263,6 +267,7 @@ V8CppIntegration/
 │       ├── BasicTests.cpp
 │       └── TestV8.cpp
 ├── V8Embed/                # V8 embedding utilities
+├── ShellTests/             # Shell test scripts
 ├── ShellScripts/
 │   ├── build.sh            # Main build script
 │   ├── compile_standalone.sh   # Standalone example compilation

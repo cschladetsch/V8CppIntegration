@@ -7,17 +7,31 @@ This directory contains the main source code for the V8 C++ Integration framewor
 ```
 Source/
 ├── App/                      # Applications
-│   └── Console/              # V8 console application with DLL hot-loading
-│       ├── main.cpp          # Console application entry point
-│       ├── V8Console.cpp     # Core V8 console implementation
-│       ├── V8Console.h       # V8 console header
-│       ├── DllLoader.cpp     # Dynamic library loading system
-│       ├── DllLoader.h       # DLL loader header
-│       └── CMakeLists.txt    # Console build configuration
+│   ├── Console/              # V8 console application with DLL hot-loading
+│   │   ├── main.cpp          # Console application entry point
+│   │   ├── V8Console.cpp     # Core V8 console implementation
+│   │   ├── V8Console.h       # V8 console header
+│   │   ├── DllLoader.cpp     # Dynamic library loading system
+│   │   ├── DllLoader.h       # DLL loader header
+│   │   └── CMakeLists.txt    # Console build configuration
+│   └── ConsoleGUI/           # ImGui-based GUI console
+│       ├── main.cpp          # GUI entry point
+│       ├── V8ConsoleGUI.cpp  # GUI implementation
+│       ├── V8ConsoleGUI.h    # GUI header
+│       └── CMakeLists.txt    # GUI build configuration
 ├── DllExamples/              # Example DLLs for testing
 │   └── Dlls/                 # DLL implementations
 │       ├── Fib.cpp           # Fibonacci calculation DLL
 │       └── CMakeLists.txt    # DLL build configuration
+├── Library/                  # Core libraries
+│   ├── V8ConsoleCore/        # Core console functionality
+│   │   ├── include/          # Public headers
+│   │   ├── src/              # Implementation
+│   │   └── CMakeLists.txt    # Library build configuration
+│   └── V8Integration/        # V8 integration library
+│       ├── include/          # Public headers
+│       ├── src/              # Implementation
+│       └── CMakeLists.txt    # Library build configuration
 ├── AdvancedFeatures.cpp      # Advanced V8 features implementation
 ├── ErrorHandler.cpp          # Error handling utilities
 ├── Monitoring.cpp            # Monitoring and metrics

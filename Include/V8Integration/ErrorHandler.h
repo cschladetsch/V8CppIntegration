@@ -117,8 +117,7 @@ private:
 class SecurityManager {
 public:
     static void enableSandbox(v8::Isolate* isolate);
-    static void setResourceLimits(v8::Isolate* isolate, size_t max_memory_mb,
-                                 uint32_t max_execution_time_ms);
+    static void setResourceLimits(size_t max_memory_mb);
     static void restrictGlobalAccess(v8::Local<v8::Context> context);
     static bool validateScript(const std::string& script);
     static void enableCodeSigning(bool enable);

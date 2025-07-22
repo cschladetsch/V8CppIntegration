@@ -2,7 +2,7 @@
 #ifdef HAS_BUILD_INFO
 #include "build_info.h"
 #endif
-#include "v8_compat.h"
+#include "V8Compat.h"
 
 #include <algorithm>
 #include <chrono>

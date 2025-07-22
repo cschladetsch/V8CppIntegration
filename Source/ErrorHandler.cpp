@@ -239,6 +239,9 @@ void V8ErrorHandler::handleFatalError(const ErrorInfo& error) {
 }
 
 void V8ErrorHandler::messageHandler(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+    // Mark message parameter as unused to avoid warning
+    (void)message;
+    
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     
@@ -276,8 +279,7 @@ void SecurityManager::enableSandbox(v8::Isolate* isolate) {
     Logger::getInstance().info("V8 sandbox enabled");
 }
 
-void SecurityManager::setResourceLimits(v8::Isolate* isolate, size_t max_memory_mb,
-                                       uint32_t max_execution_time_ms) {
+void SecurityManager::setResourceLimits(size_t max_memory_mb) {
     // isolate->SetRAMSizeLimit(max_memory_mb * 1024 * 1024); // Not available in all V8 versions
     // Note: Execution time limits would need custom implementation
     Logger::getInstance().info("Resource limits set: " + std::to_string(max_memory_mb) + "MB memory");
@@ -330,6 +332,11 @@ v8::ModifyCodeGenerationFromStringsResult SecurityManager::allowCodeGeneration(
     v8::Local<v8::Context> context,
     v8::Local<v8::Value> source,
     bool is_code_like) {
+    // Mark parameters as unused to avoid warnings
+    (void)context;
+    (void)source;
+    (void)is_code_like;
+    
     // By default, disallow code generation for security
     Logger::getInstance().warn("Code generation attempt blocked");
     return {false, v8::Local<v8::String>()};
@@ -337,6 +344,10 @@ v8::ModifyCodeGenerationFromStringsResult SecurityManager::allowCodeGeneration(
 
 bool SecurityManager::allowWasmCodeGeneration(v8::Local<v8::Context> context,
                                              v8::Local<v8::String> source) {
+    // Mark parameters as unused to avoid warnings
+    (void)context;
+    (void)source;
+    
     // By default, disallow WASM code generation
     Logger::getInstance().warn("WASM code generation attempt blocked");
     return false;

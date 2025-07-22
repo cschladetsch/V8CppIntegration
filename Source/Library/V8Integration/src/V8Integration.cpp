@@ -367,6 +367,9 @@ void V8Integration::ClearError() {
 }
 
 bool V8Integration::LoadDll(const std::string& path) {
+    // Mark parameter as unused to avoid warning
+    (void)path;
+    
     // DLL loading functionality would be implemented here
     // For now, just return false as it's not implemented
     impl_->lastError_ = "DLL loading not implemented in V8Integration";
@@ -395,6 +398,9 @@ v8::Local<v8::String> V8Integration::ToV8String(v8::Isolate* isolate, const std:
 // V8Scope implementation
 // V8Scope implementation
 V8Scope::V8Scope(V8Integration& v8) {
+    // Mark parameter as unused to avoid warning
+    (void)v8;
+    
     // V8Scope is not implemented with pImpl pattern to avoid HandleScope allocation issues
     // Users should create scopes directly as stack objects:
     // v8::Isolate::Scope isolate_scope(isolate);
