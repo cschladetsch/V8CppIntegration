@@ -43,14 +43,13 @@ if(NOT V8_FOUND)
     endif()
 endif()
 
-# ImGui
-set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
-if(NOT EXISTS ${IMGUI_DIR})
-    # Clone ImGui if not present
-    execute_process(
-        COMMAND git clone https://github.com/ocornut/imgui.git ${IMGUI_DIR}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
+# ImGui - expecting it as a git submodule in External directory
+set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/External/imgui)
+if(NOT EXISTS ${IMGUI_DIR}/imgui.cpp)
+    message(FATAL_ERROR "ImGui not found at ${IMGUI_DIR}. Please add it as a git submodule:\n"
+                        "  cd ${CMAKE_SOURCE_DIR}\n"
+                        "  git submodule add https://github.com/ocornut/imgui.git External/imgui\n"
+                        "  git submodule update --init --recursive")
 endif()
 
 # ImGui sources
