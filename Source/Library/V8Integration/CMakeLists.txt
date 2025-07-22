@@ -49,6 +49,8 @@ target_include_directories(V8Integration
 target_link_libraries(V8Integration
     PUBLIC
         ${V8_LIBRARIES}
+        /opt/homebrew/lib/libv8_libplatform.dylib
+        /opt/homebrew/lib/libv8_libbase.dylib
         pthread
 )
 

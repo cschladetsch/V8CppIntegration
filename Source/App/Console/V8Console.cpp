@@ -84,7 +84,7 @@ bool V8Console::Initialize() {
     // Initialize V8 platform
     v8::V8::InitializeICUDefaultLocation("");
     v8::V8::InitializeExternalStartupData("");
-    platform_ = v8::platform::NewDefaultPlatform();
+    platform_ = v8_compat::CreateDefaultPlatform();
     v8::V8::InitializePlatform(platform_.get());
     v8::V8::Initialize();
     
@@ -160,7 +160,7 @@ void V8Console::RunRepl(bool quiet) {
     
 #ifndef NO_READLINE
     // Initialize readline with emacs mode (normal mode)
-    rl_editing_mode = 1;  // 1 = emacs mode (default), 0 = vi mode
+    // rl_editing_mode = 1;  // 1 = emacs mode (default), 0 = vi mode - Not available on macOS
     
     // Bind Ctrl+L to clear screen
     rl_bind_key(K_CTRL_L, clear_screen_handler);

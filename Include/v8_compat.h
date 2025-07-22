@@ -9,7 +9,12 @@ namespace v8_compat {
 
 // Platform creation wrapper
 inline std::unique_ptr<v8::Platform> CreateDefaultPlatform(int thread_pool_size = 0) {
-    return v8::platform::NewDefaultPlatform(thread_pool_size);
+    return v8::platform::NewDefaultPlatform(
+        thread_pool_size,
+        v8::platform::IdleTaskSupport::kDisabled,
+        v8::platform::InProcessStackDumping::kDisabled,
+        std::unique_ptr<v8::TracingController>{}
+    );
 }
 
 // ScriptOrigin creation wrapper to handle API differences between V8 versions
@@ -25,9 +30,22 @@ inline v8::ScriptOrigin CreateScriptOrigin(
     bool is_wasm = false,
     bool is_module = false) {
     
-#if V8_MAJOR_VERSION >= 11 || (defined(USE_SYSTEM_V8) && !defined(V8_MAJOR_VERSION))
-    // Newer V8 API (v11+) requires isolate as first parameter
-    // The 11th parameter is host_defined_options which we can leave as default
+#if V8_MAJOR_VERSION >= 13 || (defined(USE_SYSTEM_V8) && !defined(V8_MAJOR_VERSION))
+    // V8 13+ API - no isolate parameter, includes host_defined_options
+    return v8::ScriptOrigin(
+        resource_name,
+        line_offset,
+        column_offset,
+        is_shared_cross_origin,
+        script_id,
+        source_map_url,
+        is_opaque,
+        is_wasm,
+        is_module,
+        v8::Local<v8::Data>()  // host_defined_options - empty for now
+    );
+#elif V8_MAJOR_VERSION >= 11
+    // V8 11-12 API - requires isolate as first parameter
     return v8::ScriptOrigin(
         isolate,
         resource_name,
@@ -43,16 +61,15 @@ inline v8::ScriptOrigin CreateScriptOrigin(
 #else
     // Older V8 API (pre-v11)
     return v8::ScriptOrigin(
-        isolate,
         resource_name,
-        line_offset,
-        column_offset,
-        is_shared_cross_origin,
-        script_id,
+        v8::Integer::New(isolate, line_offset),
+        v8::Integer::New(isolate, column_offset),
+        v8::Boolean::New(isolate, is_shared_cross_origin),
+        v8::Integer::New(isolate, script_id),
         source_map_url,
-        is_opaque,
-        is_wasm,
-        is_module
+        v8::Boolean::New(isolate, is_opaque),
+        v8::Boolean::New(isolate, is_wasm),
+        v8::Boolean::New(isolate, is_module)
     );
 #endif
 }

@@ -34,7 +34,12 @@ public:
                 v8::V8::InitializeICUDefaultLocation(config.appName.c_str());
                 v8::V8::InitializeExternalStartupData(config.appName.c_str());
                 
-                g_platform = v8::platform::NewDefaultPlatform();
+                g_platform = v8::platform::NewDefaultPlatform(
+                    0,  // thread_pool_size
+                    v8::platform::IdleTaskSupport::kDisabled,
+                    v8::platform::InProcessStackDumping::kDisabled,
+                    std::unique_ptr<v8::TracingController>{}
+                );
                 v8::V8::InitializePlatform(g_platform.get());
                 v8::V8::Initialize();
             }
@@ -97,7 +102,7 @@ public:
             g_platform_ref_count--;
             if (g_platform_ref_count == 0) {
                 v8::V8::Dispose();
-                v8::V8::ShutdownPlatform();
+                v8::V8::DisposePlatform();
                 g_platform.reset();
             }
         }
@@ -122,7 +127,7 @@ public:
         v8::Local<v8::String> source_v8 = ToV8String(isolate_, source);
         v8::Local<v8::String> name_v8 = ToV8String(isolate_, name);
         
-        v8::ScriptOrigin origin(isolate_, name_v8);
+        v8::ScriptOrigin origin(name_v8);
         v8::Local<v8::Script> script;
         
         if (!v8::Script::Compile(context, source_v8, &origin).ToLocal(&script)) {

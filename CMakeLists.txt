@@ -52,6 +52,13 @@ message("")
 
 project(V8IntegrationFramework VERSION 1.0.0 LANGUAGES CXX)
 
+# Add global compile definitions for V8 pointer compression
+if(APPLE)
+    add_compile_definitions(V8_COMPRESS_POINTERS)
+    add_compile_definitions(V8_31BIT_SMIS_ON_64BIT_ARCH)
+    add_compile_definitions(V8_ENABLE_SANDBOX)
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -502,6 +509,8 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/ErrorHandler.cpp")
     # Add compile definitions for v8_integration
     if(USE_SYSTEM_V8)
         target_compile_definitions(v8_integration PUBLIC USE_SYSTEM_V8)
+        target_compile_definitions(v8_integration PUBLIC V8_COMPRESS_POINTERS)
+        target_compile_definitions(v8_integration PUBLIC V8_31BIT_SMIS_ON_64BIT_ARCH)
     endif()
     
     # Add precompiled headers to v8_integration library

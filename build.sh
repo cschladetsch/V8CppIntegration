@@ -115,7 +115,7 @@ build_v8console() {
         -G Ninja
     
     info "Building v8console..."
-    cmake --build build --target v8console -j$(nproc)
+    cmake --build build --target v8c -j$(sysctl -n hw.ncpu 2>/dev/null || echo 1)
     
     if [ -f "./Bin/v8console" ]; then
         success "v8console built successfully at ./Bin/v8console"
@@ -129,7 +129,7 @@ run_tests() {
     header "Running Tests"
     
     info "Building all tests..."
-    cmake --build build --target all -j$(nproc)
+    cmake --build build --target all -j$(sysctl -n hw.ncpu 2>/dev/null || echo 1)
     
     info "Running test suite..."
     if ./ShellScripts/run_tests.sh; then
