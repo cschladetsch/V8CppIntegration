@@ -34,7 +34,13 @@ endif()
 # Create the library
 add_library(V8Integration 
     src/V8Integration.cpp
+    src/v8_platform_compat.cpp
 )
+
+# Add the pre-built V8 C API object file if it exists
+if(EXISTS "${CMAKE_SOURCE_DIR}/build/v8_c_api/v8_platform_c_api.o")
+    target_sources(V8Integration PRIVATE "${CMAKE_SOURCE_DIR}/build/v8_c_api/v8_platform_c_api.o")
+endif()
 
 # Include directories
 target_include_directories(V8Integration 

@@ -84,7 +84,7 @@ bool V8Console::Initialize() {
     // Initialize V8 platform
     v8::V8::InitializeICUDefaultLocation("");
     v8::V8::InitializeExternalStartupData("");
-    platform_ = v8::platform::NewDefaultPlatform();
+    platform_ = v8_compat::CreateDefaultPlatform();
     v8::V8::InitializePlatform(platform_.get());
     v8::V8::Initialize();
     

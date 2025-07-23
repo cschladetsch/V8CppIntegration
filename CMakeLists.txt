@@ -234,6 +234,11 @@ if(USE_SYSTEM_V8)
 else()
     # Include the build-from-source logic here
     include(CMake/BuildV8.cmake)
+    
+    # When using local V8, also use its toolchain for ABI compatibility
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/V8ToolchainConfig.cmake")
+        include(cmake/V8ToolchainConfig.cmake)
+    endif()
 endif()
 
 # Option to enable precompiled headers
@@ -653,7 +658,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/App/Console/CMakeLists.txt")
 endif()
 
 # V8 GUI Application (v8gui)
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/App/ConsoleGUI/CMakeLists.txt")
+if(BUILD_CONSOLE_GUI AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Source/App/ConsoleGUI/CMakeLists.txt")
     add_subdirectory(Source/App/ConsoleGUI)
 endif()
 

@@ -7,10 +7,8 @@
 
 namespace v8_compat {
 
-// Platform creation wrapper
-inline std::unique_ptr<v8::Platform> CreateDefaultPlatform(int thread_pool_size = 0) {
-    return v8::platform::NewDefaultPlatform(thread_pool_size);
-}
+// Platform creation wrapper - defined in Source/v8_platform_compat.cpp
+std::unique_ptr<v8::Platform> CreateDefaultPlatform(int thread_pool_size = 0);
 
 // ScriptOrigin creation wrapper to handle API differences between V8 versions
 inline v8::ScriptOrigin CreateScriptOrigin(
@@ -25,9 +23,22 @@ inline v8::ScriptOrigin CreateScriptOrigin(
     bool is_wasm = false,
     bool is_module = false) {
     
-#if V8_MAJOR_VERSION >= 11 || (defined(USE_SYSTEM_V8) && !defined(V8_MAJOR_VERSION))
-    // Newer V8 API (v11+) doesn't take isolate as first parameter
-    // The 11th parameter is host_defined_options which we can leave as default
+#if V8_MAJOR_VERSION >= 14
+    // V8 14+ API - no isolate parameter, host_defined_options as last parameter
+    return v8::ScriptOrigin(
+        resource_name,
+        line_offset,
+        column_offset,
+        is_shared_cross_origin,
+        script_id,
+        source_map_url,
+        is_opaque,
+        is_wasm,
+        is_module
+        // host_defined_options parameter is optional and defaults to Local<Data>()
+    );
+#elif V8_MAJOR_VERSION >= 11 || (defined(USE_SYSTEM_V8) && !defined(V8_MAJOR_VERSION))
+    // V8 11-13 API - no isolate parameter
     return v8::ScriptOrigin(
         resource_name,
         line_offset,
@@ -40,7 +51,7 @@ inline v8::ScriptOrigin CreateScriptOrigin(
         is_module
     );
 #else
-    // Older V8 API (pre-v11) - also doesn't take isolate
+    // Older V8 API (pre-v11) - isolate as first parameter
     return v8::ScriptOrigin(
         resource_name,
         line_offset,

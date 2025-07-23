@@ -1,4 +1,5 @@
 #include "V8Integration.h"
+#include "v8_compat.h"
 #include <libplatform/libplatform.h>
 #include <fstream>
 #include <sstream>
@@ -34,7 +35,7 @@ public:
                 v8::V8::InitializeICUDefaultLocation(config.appName.c_str());
                 v8::V8::InitializeExternalStartupData(config.appName.c_str());
                 
-                g_platform = v8::platform::NewDefaultPlatform();
+                g_platform = v8_compat::CreateDefaultPlatform();
                 v8::V8::InitializePlatform(g_platform.get());
                 v8::V8::Initialize();
             }
@@ -97,7 +98,8 @@ public:
             g_platform_ref_count--;
             if (g_platform_ref_count == 0) {
                 v8::V8::Dispose();
-                v8::V8::DisposePlatform();
+                // V8::ShutdownPlatform() was removed in V8 14+
+                // The platform will be shut down when disposed
                 g_platform.reset();
             }
         }
