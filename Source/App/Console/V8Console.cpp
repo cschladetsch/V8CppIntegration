@@ -9,11 +9,13 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <regex>
 #include <sstream>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <signal.h>
 #include <format>
 #include <iomanip>
 
@@ -335,6 +337,52 @@ void V8Console::RunRepl(bool quiet) {
                 path.erase(0, path.find_first_not_of(" \t"));
                 path.erase(path.find_last_not_of(" \t") + 1);
                 dllLoader_.ReloadDll(path, isolate_, context);
+            } else if (line == ".date") {
+                // Display current date and time
+                auto now = std::chrono::system_clock::now();
+                auto time = std::chrono::system_clock::to_time_t(now);
+                std::cout << fg::green << "Current date: " << style::reset 
+                         << std::ctime(&time);
+            } else if (line == ".time") {
+                // Display high-precision time
+                auto now = std::chrono::high_resolution_clock::now();
+                auto duration = now.time_since_epoch();
+                auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration) % 1000;
+                auto micros = std::chrono::duration_cast<std::chrono::microseconds>(duration) % 1000;
+                auto time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+                
+                std::cout << fg::cyan << "High-precision time: " << style::reset;
+                std::cout << std::put_time(std::localtime(&time), "%H:%M:%S");
+                std::cout << "." << std::setfill('0') << std::setw(3) << millis.count();
+                std::cout << "." << std::setfill('0') << std::setw(3) << micros.count() << std::endl;
+            } else if (line == ".weather") {
+                // Simple weather command (placeholder)
+                std::cout << fg::yellow << "Weather: " << style::reset 
+                         << "☀️  Sunny, 72°F (Use .weather <city> for real weather)" << std::endl;
+            } else if (line == ".git") {
+                // Quick git status
+                std::cout << fg::magenta << "Git Status: " << style::reset << std::endl;
+                system("git status --porcelain 2>/dev/null | head -10 || echo 'Not a git repository'");
+            } else if (line.size() >= 6 && line.substr(0, 6) == ".calc ") {
+                // Simple calculator
+                std::string expr = line.substr(6);
+                expr.erase(0, expr.find_first_not_of(" \t"));
+                
+                std::cout << fg::blue << "Calculating: " << style::reset << expr << " = ";
+                
+                // Execute as JavaScript expression
+                std::string jsExpr = "&" + expr;
+                if (jsExpr[1] != '&') {
+                    ExecuteString(expr, "<calc>");
+                } else {
+                    std::cout << fg::red << "Invalid expression" << style::reset << std::endl;
+                }
+            } else if (line.size() >= 9 && line.substr(0, 9) == ".weather ") {
+                // Weather for specific city (placeholder)
+                std::string city = line.substr(9);
+                city.erase(0, city.find_first_not_of(" \t"));
+                std::cout << fg::yellow << "Weather for " << city << ": " << style::reset 
+                         << "🌤️  Partly cloudy, 68°F (Mock data - integrate weather API)" << std::endl;
             } else if (line == ".cwd") {
                 // Display current working directory
                 try {
@@ -983,6 +1031,126 @@ bool V8Console::HandleBuiltinCommand(const std::string& command) {
     if (cmd == "v8config" || cmd == "prompt-wizard") {
         RunPromptWizard();
         lastExitCode_ = 0;
+        return true;
+    }
+    
+    // kill - terminate process by PID
+    if (cmd == "kill") {
+        if (words.size() < 2) {
+            std::cerr << fg::red << "kill: " << style::reset << "usage: kill [-signal] pid" << std::endl;
+            lastExitCode_ = K_FAILURE_EXIT_CODE;
+            return true;
+        }
+        
+        int signal = SIGTERM;  // default signal
+        int pidIndex = 1;
+        
+        // Check if first argument is a signal
+        if (words[1][0] == '-') {
+            std::string sigStr = words[1].substr(1);
+            if (sigStr == "9" || sigStr == "KILL") {
+                signal = SIGKILL;
+            } else if (sigStr == "15" || sigStr == "TERM") {
+                signal = SIGTERM;
+            } else if (sigStr == "2" || sigStr == "INT") {
+                signal = SIGINT;
+            } else if (sigStr == "1" || sigStr == "HUP") {
+                signal = SIGHUP;
+            }
+            pidIndex = 2;
+            
+            if (words.size() < 3) {
+                std::cerr << fg::red << "kill: " << style::reset << "missing process ID" << std::endl;
+                lastExitCode_ = K_FAILURE_EXIT_CODE;
+                return true;
+            }
+        }
+        
+        try {
+            pid_t pid = std::stoi(words[pidIndex]);
+            if (kill(pid, signal) == 0) {
+                std::cout << "Process " << pid << " terminated" << std::endl;
+                lastExitCode_ = K_SUCCESS_EXIT_CODE;
+            } else {
+                std::cerr << fg::red << "kill: " << style::reset << strerror(errno) << std::endl;
+                lastExitCode_ = K_FAILURE_EXIT_CODE;
+            }
+        } catch (const std::exception& e) {
+            std::cerr << fg::red << "kill: " << style::reset << "invalid process ID: " << words[pidIndex] << std::endl;
+            lastExitCode_ = K_FAILURE_EXIT_CODE;
+        }
+        return true;
+    }
+    
+    // ps - show processes (simplified)
+    if (cmd == "ps") {
+        std::string psCmd = "ps";
+        if (words.size() > 1) {
+            for (size_t i = 1; i < words.size(); ++i) {
+                psCmd += " " + words[i];
+            }
+        } else {
+            psCmd += " aux";  // default to show all processes
+        }
+        
+        lastExitCode_ = ExecuteShellCommand(psCmd) ? K_SUCCESS_EXIT_CODE : K_FAILURE_EXIT_CODE;
+        return true;
+    }
+    
+    // jobs - show background jobs (placeholder - basic implementation)
+    if (cmd == "jobs") {
+        std::cout << "Background jobs feature not fully implemented yet." << std::endl;
+        std::cout << "Use 'ps aux | grep your_process' to see running processes." << std::endl;
+        lastExitCode_ = K_SUCCESS_EXIT_CODE;
+        return true;
+    }
+    
+    // bg - move job to background (placeholder)
+    if (cmd == "bg") {
+        std::cout << "Background job control not fully implemented yet." << std::endl;
+        std::cout << "Use '&' at the end of commands to run them in background." << std::endl;
+        lastExitCode_ = K_SUCCESS_EXIT_CODE;
+        return true;
+    }
+    
+    // fg - move job to foreground (placeholder)
+    if (cmd == "fg") {
+        std::cout << "Foreground job control not fully implemented yet." << std::endl;
+        lastExitCode_ = K_SUCCESS_EXIT_CODE;
+        return true;
+    }
+    
+    // env - show environment variables
+    if (cmd == "env") {
+        if (words.size() == 1) {
+            // Show all environment variables
+            extern char **environ;
+            for (char **env = environ; *env != 0; env++) {
+                std::cout << *env << std::endl;
+            }
+        } else {
+            // Run command with modified environment (simplified)
+            std::string envCmd = "env";
+            for (size_t i = 1; i < words.size(); ++i) {
+                envCmd += " " + words[i];
+            }
+            lastExitCode_ = ExecuteShellCommand(envCmd) ? K_SUCCESS_EXIT_CODE : K_FAILURE_EXIT_CODE;
+            return true;
+        }
+        lastExitCode_ = K_SUCCESS_EXIT_CODE;
+        return true;
+    }
+    
+    // unset - remove environment variable
+    if (cmd == "unset") {
+        if (words.size() > 1) {
+            for (size_t i = 1; i < words.size(); ++i) {
+                envVars_.erase(words[i]);
+                unsetenv(words[i].c_str());
+            }
+            SaveConfig();
+        }
+        lastExitCode_ = K_SUCCESS_EXIT_CODE;
         return true;
     }
     

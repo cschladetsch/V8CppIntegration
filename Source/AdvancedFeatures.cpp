@@ -1,4 +1,5 @@
 #include "V8Integration/AdvancedFeatures.h"
+#include "V8Compat.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -269,11 +270,7 @@ v8::MaybeLocal<v8::Module> ModuleManager::compileModule(v8::Isolate* isolate,
     v8::Local<v8::String> source_str = v8::String::NewFromUtf8(isolate, source.c_str()).ToLocalChecked();
     v8::Local<v8::String> name_str = v8::String::NewFromUtf8(isolate, filename.c_str()).ToLocalChecked();
     
-#ifdef USE_SYSTEM_V8
-    v8::ScriptOrigin origin(isolate, name_str, 0, 0, false, -1, v8::Local<v8::Value>(), false, false, true);
-#else
-    v8::ScriptOrigin origin(name_str, 0, 0, false, -1, v8::Local<v8::Value>(), false, false, true);
-#endif
+    v8::ScriptOrigin origin = v8_compat::CreateScriptOrigin(isolate, name_str, 0, 0, false, -1, v8::Local<v8::Value>(), false, false, true);
     
     v8::ScriptCompiler::Source source_obj(source_str, origin);
     

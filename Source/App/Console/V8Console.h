@@ -82,6 +82,14 @@ private:
     static void ListDlls(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void Quit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void Help(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void GetDate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void Fetch(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void GenerateUUID(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void Hash(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void ReadFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void WriteFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void SystemInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void Sleep(const v8::FunctionCallbackInfo<v8::Value>& args);
     
     // Register built-in functions
     void RegisterBuiltins(v8::Local<v8::Context> context);

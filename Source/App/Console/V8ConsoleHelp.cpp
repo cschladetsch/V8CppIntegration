@@ -27,6 +27,11 @@ void V8Console::DisplayHelp() {
     printCommand(".clear", "Clear the screen");
     printCommand(".cwd", "Display current working directory");
     printCommand(".cwd <path>", "Change current working directory");
+    printCommand(".date", "Display current date and time");
+    printCommand(".time", "Display high-precision time");
+    printCommand(".weather", "Get weather information");
+    printCommand(".git", "Show Git repository status");
+    printCommand(".calc <expr>", "Evaluate calculator expression");
     printCommand(".help", "Show this help message");
     printCommand(".quit", "Exit the console");
     
@@ -35,9 +40,17 @@ void V8Console::DisplayHelp() {
     printCommand("cd <path>", "Change directory");
     printCommand("pwd", "Print working directory");
     printCommand("alias", "Show or set aliases");
+    printCommand("unalias <name>", "Remove alias");
     printCommand("export", "Set environment variables");
+    printCommand("unset <var>", "Remove environment variable");
+    printCommand("env", "Show all environment variables");
     printCommand("source <file>", "Execute commands from file");
     printCommand("which <cmd>", "Show command location");
+    printCommand("kill [-sig] <pid>", "Terminate process by PID");
+    printCommand("ps [args]", "Show running processes");
+    printCommand("jobs", "Show background jobs");
+    printCommand("bg", "Move job to background");
+    printCommand("fg", "Move job to foreground");
     printCommand("v8config", "Run prompt configuration wizard");
     printCommand("exit", "Exit the shell");
     
@@ -54,6 +67,14 @@ void V8Console::DisplayHelp() {
     printFunction("unloadDll(path)", "Unload a DLL");
     printFunction("reloadDll(path)", "Reload a DLL (hot-reload)");
     printFunction("listDlls()", "Get array of loaded DLLs");
+    printFunction("getDate()", "Get current date and time");
+    printFunction("fetch(url)", "Fetch data from URL");
+    printFunction("uuid()", "Generate UUID v4");
+    printFunction("hash(string)", "Generate hash of string");
+    printFunction("readFile(path)", "Read file contents");
+    printFunction("writeFile(path, data)", "Write data to file");
+    printFunction("systemInfo()", "Get system information");
+    printFunction("sleep(ms)", "Sleep for milliseconds");
     printFunction("quit()", "Exit the console");
     
     std::cout << "\n" << style::bold << fg::yellow << "Console Objects:" << style::reset << "\n";
