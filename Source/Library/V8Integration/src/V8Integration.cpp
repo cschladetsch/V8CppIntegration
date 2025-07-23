@@ -1,5 +1,5 @@
 #include "V8Integration.h"
-#include "v8_compat.h"
+#include "V8Compat.h"
 #include <libplatform/libplatform.h>
 #include <fstream>
 #include <sstream>
@@ -124,7 +124,7 @@ public:
         v8::Local<v8::String> source_v8 = ToV8String(isolate_, source);
         v8::Local<v8::String> name_v8 = ToV8String(isolate_, name);
         
-        v8::ScriptOrigin origin(name_v8);
+        v8::ScriptOrigin origin = v8_compat::CreateScriptOrigin(isolate_, name_v8);
         v8::Local<v8::Script> script;
         
         if (!v8::Script::Compile(context, source_v8, &origin).ToLocal(&script)) {

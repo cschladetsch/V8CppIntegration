@@ -66,6 +66,9 @@ target_compile_options(V8Integration PRIVATE
     -Wpedantic
 )
 
+# Add compile definitions
+target_compile_definitions(V8Integration PRIVATE USE_SYSTEM_V8)
+
 # Export targets
 install(TARGETS V8Integration
     EXPORT V8IntegrationTargets

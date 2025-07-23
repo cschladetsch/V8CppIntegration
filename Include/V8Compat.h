@@ -37,9 +37,23 @@ inline v8::ScriptOrigin CreateScriptOrigin(
         is_module
         // host_defined_options parameter is optional and defaults to Local<Data>()
     );
-#elif V8_MAJOR_VERSION >= 11 || (defined(USE_SYSTEM_V8) && !defined(V8_MAJOR_VERSION))
-    // V8 11-13 API - no isolate parameter
+#elif V8_MAJOR_VERSION >= 11
+    // V8 11-13 API - no isolate parameter  
     return v8::ScriptOrigin(
+        resource_name,
+        line_offset,
+        column_offset,
+        is_shared_cross_origin,
+        script_id,
+        source_map_url,
+        is_opaque,
+        is_wasm,
+        is_module
+    );
+#elif defined(USE_SYSTEM_V8) && !defined(V8_MAJOR_VERSION)
+    // System V8 - isolate as first parameter
+    return v8::ScriptOrigin(
+        isolate,
         resource_name,
         line_offset,
         column_offset,
@@ -53,6 +67,7 @@ inline v8::ScriptOrigin CreateScriptOrigin(
 #else
     // Older V8 API (pre-v11) - isolate as first parameter
     return v8::ScriptOrigin(
+        isolate,
         resource_name,
         line_offset,
         column_offset,

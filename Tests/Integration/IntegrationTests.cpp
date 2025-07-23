@@ -1,4 +1,4 @@
-#include "v8_compat.h"
+#include "V8Compat.h"
 #include "../TestUtils.h"
 #include <gtest/gtest.h>
 #include <v8.h>
