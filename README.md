@@ -1,6 +1,6 @@
 # V8 C++ Integration <img src="Resources/Logo.png" alt="V8 C++ Integration Logo" width="58" style="vertical-align: middle"> 
 
-**Version 0.2.3** - V8 Configuration Compatibility and Demo Improvements
+**Version 0.2.4** - Interactive Demo Script and Documentation Updates
 
 This repository demonstrates how to build V8 and create bidirectional communication between C++ and JavaScript, with comprehensive examples and testing.
 
@@ -23,7 +23,7 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 9. **CI/CD Ready**: GitHub Actions workflow for automated testing
 10. **Interactive V8 Shell**: Shell-first environment with JavaScript support, bright blue lambda prompt, colored output, and PowerLevel10k-style configuration
 11. **Dynamic Library Support**: Hot-loading of C++ DLLs with automatic V8 function registration
-12. **Enhanced Demo Scripts**: Slow-paced demos with syntax highlighting perfect for screen recording
+12. **Enhanced Demo Scripts**: Interactive demo with auto-build, slow-paced demos with syntax highlighting perfect for screen recording
 13. **GUI Support**: Experimental ImGui-based graphical console (v8gui)
 
 ## Code Quality
@@ -74,16 +74,18 @@ sudo apt-get install libv8-dev libgtest-dev
 
 ## Build Scripts Overview
 
-This project provides three main build scripts:
+This project provides four main build scripts:
 
-1. **`build.sh`** - Complete build script that installs dependencies, initializes submodules, builds, and tests
-2. **`ShellScripts/setup_and_build_v8.sh`** - Downloads and builds V8 from source (optional)
-3. **`ShellScripts/build.sh`** - Alternative project build script
+1. **`demo_interactive.sh`** - 🎯 **NEW**: Interactive demo that builds and showcases all v8c features
+2. **`build.sh`** - Complete build script that installs dependencies, initializes submodules, builds, and tests
+3. **`ShellScripts/setup_and_build_v8.sh`** - Downloads and builds V8 from source (optional)
+4. **`ShellScripts/build.sh`** - Alternative project build script
 
 ### How the Build System Works
 
 | Script | Purpose | When to Use |
 |--------|---------|-------------|
+| `demo_interactive.sh` | **🎯 Interactive demo with auto-build** | **First-time users, demonstrations** |
 | `build.sh` | Complete setup, build, test, and configure | First-time setup, complete build |
 | `ShellScripts/setup_and_build_v8.sh` | Download and build V8 from source | When you need V8 built from source |
 | `ShellScripts/build.sh` | Build project (auto-detects V8) | Regular development |
@@ -99,7 +101,27 @@ The build system automatically selects V8 in this order:
 
 ## Quick Start - Complete Setup
 
-### 1. Download and Setup (One Command)
+### 🎯 Option 1: Interactive Demo (Recommended for First-Time Users)
+
+```bash
+# Clone and enter directory
+git clone https://github.com/cschladetsch/V8CppIntegration.git && cd V8CppIntegration
+
+# Run interactive demo (automatically builds V8 and v8c, then demonstrates all features)
+./demo_interactive.sh
+```
+
+**What the demo shows:**
+- ✅ Automatic V8 and v8c building
+- ✅ Shell command execution
+- ✅ JavaScript with & prefix
+- ✅ DLL hot-loading (Fibonacci module)
+- ✅ External JavaScript file loading
+- ✅ System information access
+- ✅ Built-in utility functions
+- ✅ REPL commands and features
+
+### 🔧 Option 2: Manual Build Setup
 
 ```bash
 # Clone and enter directory
@@ -120,7 +142,7 @@ When prompted:
 - Choose "Y" to build V8Console
 - Choose option "2" to set as your default shell
 
-### 2. Verify Installation
+### 3. Verify Installation
 
 ```bash
 # Test v8c directly
@@ -130,12 +152,12 @@ When prompted:
 pwd                           # Shell commands work directly
 &console.log("Hello V8!")     # JavaScript with & prefix
 v8config                      # Configure your prompt
-exit                          # Exit when done
+.quit                         # Exit when done
 ```
 
-### 3. Run Comprehensive Demo
+### 4. Additional Demo Scripts
 
-For a complete demonstration of all V8CppIntegration features:
+For other comprehensive demonstrations:
 
 ```bash
 # Linux/macOS - Run comprehensive demo
@@ -145,7 +167,7 @@ For a complete demonstration of all V8CppIntegration features:
 demo.bat
 ```
 
-Both demo scripts showcase all major features including JavaScript execution, shell integration, file operations, DLL loading, performance testing, and advanced JavaScript features.
+These demo scripts showcase additional features including performance testing and advanced JavaScript capabilities.
 
 ### Manual Build (if automated setup fails)
 
@@ -1017,6 +1039,15 @@ Based on comprehensive code review, the following issues have been identified fo
 These issues are documented for transparency and will be addressed in subsequent releases.
 
 ## Release History
+
+### Version 0.2.4 (2025-07-24)
+- 🎯 **NEW**: Added `demo_interactive.sh` - comprehensive interactive demo script
+- ✅ Auto-builds V8 and v8c console with progress indicators
+- ✅ Demonstrates all major features: shell commands, JavaScript, DLL loading, file operations
+- ✅ Colored output with section headers and progress tracking
+- ✅ Updated documentation with new demo script information
+- ✅ Enhanced Quick Start guide with demo-first approach
+- ✅ Added build scripts overview table with new demo script
 
 ### Version 0.2.3 (2025-07-24)
 - ✅ Fixed V8 configuration mismatches with system V8 (removed V8_COMPRESS_POINTERS and V8_31BIT_SMIS_ON_64BIT_ARCH)
