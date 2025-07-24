@@ -11,9 +11,19 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-20.04]
+        os: [ubuntu-latest, ubuntu-20.04, windows-latest]
         build-type: [Release, Debug]
-        compiler: [gcc, clang]
+        compiler: [gcc, clang, msvc]
+        exclude:
+          # Exclude invalid combinations
+          - os: windows-latest
+            compiler: gcc
+          - os: windows-latest
+            compiler: clang
+          - os: ubuntu-latest
+            compiler: msvc
+          - os: ubuntu-20.04
+            compiler: msvc
         include:
           - os: ubuntu-latest
             compiler: gcc
@@ -31,11 +41,16 @@ jobs:
             compiler: clang
             cc: clang-10
             cxx: clang++-10
+          - os: windows-latest
+            compiler: msvc
+            cc: cl
+            cxx: cl
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install dependencies
+    - name: Install dependencies (Linux)
+      if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -52,12 +67,29 @@ jobs:
           ${{ matrix.cc }} \
           ${{ matrix.cxx }}
 
-    - name: Setup build environment
+    - name: Install dependencies (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        # Install vcpkg dependencies
+        vcpkg install gtest:x64-windows
+        vcpkg install boost-program-options:x64-windows
+        # Note: V8 will need to be built from source on Windows
+        choco install cmake ninja doxygen.install graphviz
+
+    - name: Setup build environment (Linux)
+      if: runner.os == 'Linux'
       run: |
         echo "CC=${{ matrix.cc }}" >> $GITHUB_ENV
         echo "CXX=${{ matrix.cxx }}" >> $GITHUB_ENV
 
-    - name: Configure CMake
+    - name: Setup build environment (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        echo "CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
+        echo "VCPKG_TARGET_TRIPLET=x64-windows" >> $env:GITHUB_ENV
+
+    - name: Configure CMake (Linux)
+      if: runner.os == 'Linux'
       run: |
         cmake -B build \
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
@@ -67,26 +99,54 @@ jobs:
           -DENABLE_SANITIZERS=ON \
           -G Ninja
 
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        cmake -B build `
+          -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} `
+          -DUSE_SYSTEM_V8=OFF `
+          -DENABLE_TESTING=ON `
+          -DENABLE_COVERAGE=OFF `
+          -DENABLE_SANITIZERS=OFF `
+          -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
+          -DVCPKG_TARGET_TRIPLET=x64-windows `
+          -G "Visual Studio 17 2022" `
+          -A x64
+
     - name: Build
       run: cmake --build build --parallel
 
-    - name: Run tests
+    - name: Run tests (Linux)
+      if: runner.os == 'Linux'
       run: |
         cd build
         ctest --output-on-failure --parallel
 
+    - name: Run tests (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        cd build
+        ctest --output-on-failure --parallel -C ${{ matrix.build-type }}
+
     - name: Run memory tests with Valgrind
-      if: matrix.build-type == 'Debug'
+      if: matrix.build-type == 'Debug' && runner.os == 'Linux'
       run: |
         cd build
         valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./test_suite
         valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./advanced_test_suite
 
-    - name: Run static analysis
+    - name: Run static analysis (Linux)
+      if: runner.os == 'Linux'
       run: |
         cppcheck --enable=all --std=c++17 --project=build/compile_commands.json --error-exitcode=1 || true
         cd build
         make clang-tidy || true
+
+    - name: Run static analysis (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        # Static analysis for Windows can be added here if needed
+        echo "Static analysis on Windows - placeholder"
 
     - name: Generate coverage report
       if: matrix.build-type == 'Debug' && matrix.compiler == 'gcc'
