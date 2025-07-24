@@ -115,9 +115,9 @@ printf "${WHITE}This section demonstrates the V8 JavaScript engine executing bas
 printf "${WHITE}We'll test arithmetic, string manipulation, and object operations.${NC}\n\n"
 sleep $SECTION_DELAY
 
-run_js_demo "Basic Arithmetic" "&console.log('5 + 3 =', 5 + 3); &Math.pow(2, 8)"
+run_js_demo "Basic Arithmetic" "&console.log('5 + 3 =', 5 + 3); Math.pow(2, 8)"
 run_js_demo "String Operations" "&console.log('Hello'.toUpperCase() + ' World!'.toLowerCase())"
-run_js_demo "Object Manipulation" "&let obj = {name: 'V8', version: 13}; &console.log(JSON.stringify(obj))"
+run_js_demo "Object Manipulation" "&let obj = {name: 'V8', version: 13}; console.log(JSON.stringify(obj))"
 
 printf "${GREEN}Core JavaScript engine demo complete.${NC}\n\n"
 sleep $SECTION_DELAY
@@ -187,7 +187,7 @@ sleep $SECTION_DELAY
 
 run_js_demo "Async/Modern JS" "&Promise.resolve(42).then(x => console.log('Promise result:', x))"
 run_js_demo "Array Methods" "&[1,2,3,4,5].map(x => x*x).filter(x => x > 10).forEach((x,i) => console.log(\`Item \${i}: \${x}\`))"
-run_js_demo "ES6 Features" "&const [a, b, ...rest] = [1, 2, 3, 4, 5]; &console.log('Destructuring:', {a, b, rest})"
+run_js_demo "ES6 Features" "&const [a, b, ...rest] = [1, 2, 3, 4, 5]; console.log('Destructuring:', {a, b, rest})"
 
 printf "${GREEN}Advanced JavaScript features demo complete.${NC}\n\n"
 sleep $SECTION_DELAY

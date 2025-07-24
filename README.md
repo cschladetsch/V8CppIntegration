@@ -1,6 +1,6 @@
 # V8 C++ Integration <img src="Resources/Logo.png" alt="V8 C++ Integration Logo" width="58" style="vertical-align: middle"> 
 
-**Version 0.2.2** - Repository Cleanup, Code Quality, and Testing Enhancements
+**Version 0.2.3** - V8 Configuration Compatibility and Demo Improvements
 
 This repository demonstrates how to build V8 and create bidirectional communication between C++ and JavaScript, with comprehensive examples and testing.
 
@@ -978,6 +978,10 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) provides:
 2. **V8 not found**: Install libv8-dev or build from source
 3. **Test failures**: Check V8 version compatibility
 4. **Memory issues**: V8 build requires 4-8GB RAM
+5. **V8 Configuration Mismatch**: If you get errors about pointer compression or Smi size mismatches:
+   - The system V8 (from Node.js/libnode) may have different build flags than expected
+   - Solution: The CMakeLists.txt has been updated to remove incompatible flags (V8_COMPRESS_POINTERS, V8_31BIT_SMIS_ON_64BIT_ARCH)
+   - If issues persist, consider building V8 from source with `USE_SYSTEM_V8=OFF`
 
 ## Known Issues (v0.2)
 
@@ -1013,6 +1017,12 @@ Based on comprehensive code review, the following issues have been identified fo
 These issues are documented for transparency and will be addressed in subsequent releases.
 
 ## Release History
+
+### Version 0.2.3 (2025-07-24)
+- ✅ Fixed V8 configuration mismatches with system V8 (removed V8_COMPRESS_POINTERS and V8_31BIT_SMIS_ON_64BIT_ARCH)
+- ✅ Fixed demo script syntax errors (removed unnecessary second ampersand in JavaScript commands)
+- ✅ Updated troubleshooting documentation for V8 configuration issues
+- ✅ Improved compatibility with Node.js-provided V8 libraries
 
 ### Version 0.2.2 (2025-07-21)
 - ✅ Repository cleanup: Removed temporary files, cache directories, and object files
