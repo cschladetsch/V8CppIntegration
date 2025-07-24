@@ -1,4 +1,4 @@
-[submodule "Source/App/ConsoleGUI/imgui"]
+[submodule "External/imgui"]
 	path = External/imgui
 	url = https://github.com/ocornut/imgui.git
 [submodule "External/rang"]
