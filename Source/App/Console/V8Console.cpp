@@ -162,7 +162,8 @@ void V8Console::RunRepl(bool quiet) {
     
 #ifndef NO_READLINE
     // Initialize readline with emacs mode (normal mode)
-    rl_editing_mode = 1;  // 1 = emacs mode (default), 0 = vi mode
+    // Note: rl_editing_mode might not be available on all systems
+    // rl_editing_mode = 1;  // 1 = emacs mode (default), 0 = vi mode
     
     // Bind Ctrl+L to clear screen
     rl_bind_key(K_CTRL_L, clear_screen_handler);

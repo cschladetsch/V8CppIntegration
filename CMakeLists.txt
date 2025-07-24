@@ -206,16 +206,40 @@ if(USE_SYSTEM_V8)
     )
     
     if(V8_INCLUDE_DIR AND V8_LIBRARY)
+        # Also look for libplatform
+        find_library(V8_LIBRARY_PLATFORM
+            NAMES v8_libplatform
+            PATHS
+                /opt/homebrew/Cellar/v8/*/libexec
+                /opt/homebrew/libexec
+                /opt/homebrew/lib
+                /usr/local/libexec
+                /usr/local/lib
+                /usr/lib
+        )
+        
         message(STATUS "Found system V8")
         message(STATUS "  Include: ${V8_INCLUDE_DIR}")
         message(STATUS "  Library: ${V8_LIBRARY}")
+        if(V8_LIBRARY_PLATFORM)
+            message(STATUS "  Platform Library: ${V8_LIBRARY_PLATFORM}")
+        endif()
         
         # Create V8 target
         add_library(V8::V8 INTERFACE IMPORTED)
-        set_target_properties(V8::V8 PROPERTIES
-            INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIR}"
-            INTERFACE_LINK_LIBRARIES "${V8_LIBRARY};pthread;dl"
-        )
+        if(V8_LIBRARY_PLATFORM)
+            set_target_properties(V8::V8 PROPERTIES
+                INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIR}"
+                INTERFACE_LINK_LIBRARIES "${V8_LIBRARY};${V8_LIBRARY_PLATFORM};pthread;dl"
+                INTERFACE_COMPILE_DEFINITIONS "V8_COMPRESS_POINTERS;V8_31BIT_SMIS_ON_64BIT_ARCH;V8_ENABLE_SANDBOX"
+            )
+        else()
+            set_target_properties(V8::V8 PROPERTIES
+                INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIR}"
+                INTERFACE_LINK_LIBRARIES "${V8_LIBRARY};pthread;dl"
+                INTERFACE_COMPILE_DEFINITIONS "V8_COMPRESS_POINTERS;V8_31BIT_SMIS_ON_64BIT_ARCH;V8_ENABLE_SANDBOX"
+            )
+        endif()
     else()
         # Try Node.js V8
         find_path(NODE_INCLUDE_DIR v8.h
