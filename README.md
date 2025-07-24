@@ -1,8 +1,8 @@
-# V8 C++ Integration <img src="Resources/Logo.png" alt="V8 C++ Integration Logo" width="58" style="vertical-align: middle"> 
+# V8CppShell <img src="Resources/Logo.png" alt="V8CppShell Logo" width="58" style="vertical-align: middle"> 
 
-**Version 1.0** 🎉 - Production Ready V8 C++ Integration Platform
+**Version 0.2.4** - Interactive Demo Script and V8 C++ Shell Integration
 
-This repository demonstrates how to build V8 and create bidirectional communication between C++ and JavaScript, with comprehensive examples and testing.
+This repository provides a bridge between C++ and V8/JavaScript, featuring an interactive shell and comprehensive integration framework with examples and testing.
 
 ## Architecture
 
@@ -105,7 +105,7 @@ The build system automatically selects V8 in this order:
 
 ```bash
 # Clone and enter directory
-git clone https://github.com/cschladetsch/V8CppIntegration.git && cd V8CppIntegration
+git clone https://github.com/cschladetsch/V8CppShell.git && cd V8CppShell
 
 # Run interactive demo (automatically builds V8 and v8c, then demonstrates all features)
 ./demo_interactive.sh
@@ -125,7 +125,7 @@ git clone https://github.com/cschladetsch/V8CppIntegration.git && cd V8CppIntegr
 
 ```bash
 # Clone and enter directory
-git clone https://github.com/cschladetsch/V8CppIntegration.git && cd V8CppIntegration
+git clone https://github.com/cschladetsch/V8CppShell.git && cd V8CppShell
 
 # Run complete build script (installs all dependencies, builds, tests, and configures)
 ./build.sh
@@ -1039,21 +1039,6 @@ Based on comprehensive code review, the following issues have been identified fo
 These issues are documented for transparency and will be addressed in subsequent releases.
 
 ## Release History
-
-### Version 1.0 🎉 (2025-07-24) - Production Ready Release
-**Major milestone release featuring a complete, production-ready V8 C++ integration platform:**
-
-- 🎯 **Interactive Demo Script**: `demo_interactive.sh` with auto-build and comprehensive feature demonstration
-- 🚀 **Complete V8 Integration Framework**: Bidirectional C++/JavaScript communication
-- 💻 **Advanced v8c Console**: Shell/JavaScript hybrid mode with PowerLevel10k-style prompts
-- 🔥 **DLL Hot-Loading**: Dynamic C++ library loading with automatic V8 function registration
-- ✅ **Comprehensive Test Suite**: 200+ tests with 100% pass rate
-- 🏗️ **Cross-Platform Support**: Linux, macOS, Windows with Docker support
-- 📚 **Extensive Documentation**: Demo-first Quick Start, comprehensive examples
-- 🔧 **Developer Experience**: CI/CD ready, multiple build options, interactive configuration
-- 🎨 **Enhanced User Interface**: Colored output, progress indicators, error handling
-
-This release represents a fully functional, production-ready platform for integrating V8 JavaScript engine with C++ applications.
 
 ### Version 0.2.4 (2025-07-24)
 - 🎯 **NEW**: Added `demo_interactive.sh` - comprehensive interactive demo script
