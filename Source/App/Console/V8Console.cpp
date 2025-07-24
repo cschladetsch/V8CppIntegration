@@ -208,24 +208,6 @@ void V8Console::RunRepl(bool quiet) {
         // Reset terminal settings
         std::cout << K_RESET_TERMINAL;
         
-        std::cout << style::bold << fg::cyan << "V8 Shell - Interactive Mode" << style::reset << std::endl;
-#ifdef HAS_BUILD_INFO
-        std::cout << fg::gray << "Built on " << BUILD_DATE << " at " << BUILD_TIME << style::reset << std::endl;
-#endif
-        std::cout << fg::yellow << "Commands: " << style::reset 
-                  << fg::magenta << ".load <file>" << style::reset << ", "
-                  << fg::magenta << ".dll <path>" << style::reset << ", "
-                  << fg::magenta << ".dlls" << style::reset << ", "
-                  << fg::magenta << ".reload <path>" << style::reset << ", "
-                  << fg::magenta << ".vars" << style::reset << ", "
-                  << fg::magenta << ".clear" << style::reset << ", "
-                  << fg::magenta << ".help" << style::reset << ", "
-                  << fg::magenta << ".quit" << style::reset << std::endl;
-        std::cout << fg::yellow << "Mode: " << style::reset 
-                  << "Shell commands by default, use " << fg::magenta << "&" << style::reset 
-                  << " prefix for JavaScript" << std::endl;
-        std::cout << "Type shell commands or " << fg::magenta << "&<javascript>" << style::reset << ":" << std::endl;
-        std::cout << std::endl;
     }
     
     const v8::Isolate::Scope isolate_scope(isolate_);
