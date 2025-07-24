@@ -209,8 +209,8 @@ print_header "Step 7: Run Comprehensive Demo"
 
 print_step "Preparing to run comprehensive demo..."
 print_info "Looking for demo script and preparing demonstration"
-if [ ! -f "slow_demo.sh" ]; then
-    print_error "slow_demo.sh not found!"
+if [ ! -f "demo.sh" ]; then
+    print_error "demo.sh not found!"
     print_info "Creating a basic demo instead..."
     
     print_info "Generating temporary demo script on the fly"
@@ -226,9 +226,9 @@ EOF
     chmod +x temp_demo.sh
     DEMO_SCRIPT="./temp_demo.sh"
 else
-    chmod +x slow_demo.sh
-    DEMO_SCRIPT="./slow_demo.sh"
-    print_success "Found slow_demo.sh"
+    chmod +x demo.sh
+    DEMO_SCRIPT="./demo.sh"
+    print_success "Found demo.sh"
 fi
 
 print_step "Running demo script..."
@@ -262,7 +262,7 @@ done
 
 print_info "You can now run:"
 echo -e "${WHITE}  $V8CONSOLE                 # Interactive shell${NC}"
-echo -e "${WHITE}  ./slow_demo.sh             # Feature demonstration${NC}"
+echo -e "${WHITE}  ./demo.sh             # Feature demonstration${NC}"
 echo -e "${WHITE}  $V8CONSOLE --help          # Command line options${NC}"
 
 print_success "Enjoy your enhanced V8 shell with comprehensive extensions!"

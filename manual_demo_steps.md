@@ -1,10 +1,10 @@
 # Manual Demo Steps for Screen Recording
 
-If you prefer to control the pace manually, follow these steps:
+If you prefer to control the pace manually, follow these steps instead of running the automated demo scripts (`demo.sh` for Linux/macOS or `demo.bat` for Windows).
 
 ## 1. Start the V8 Console
 ```bash
-./Bin/v8console
+./Bin/v8c
 ```
 Wait for the welcome message with the λ prompt.
 

@@ -35,7 +35,7 @@ This repository demonstrates how to build V8 and create bidirectional communicat
 
 ## Prerequisites
 
-- Ubuntu/Debian-based Linux system
+### Linux (Ubuntu/Debian)
 - Git
 - CMake 3.14+
 - Python 3
@@ -48,8 +48,23 @@ This repository demonstrates how to build V8 and create bidirectional communicat
   - **Build without readline**: `cmake -DUSE_READLINE=OFF ...`
 - Boost.ProgramOptions (required for V8 console):
   - **Ubuntu/Debian**: `sudo apt-get install libboost-program-options-dev`
-  - **macOS**: `brew install boost`
-  - **Other systems**: See Boost documentation
+
+### macOS
+- Git
+- CMake 3.14+ (via Homebrew: `brew install cmake`)
+- Python 3
+- Xcode Command Line Tools
+- Ninja build system: `brew install ninja`
+- Boost.ProgramOptions: `brew install boost`
+
+### Windows 11
+- Git
+- Visual Studio 2022 with C++ development tools
+- CMake 3.14+ (included with Visual Studio or install separately)
+- Python 3
+- vcpkg package manager
+- Boost.ProgramOptions: `vcpkg install boost-program-options:x64-windows`
+- Google Test: `vcpkg install gtest:x64-windows`
 
 ### For System V8 Option
 ```bash
@@ -118,6 +133,20 @@ v8config                      # Configure your prompt
 exit                          # Exit when done
 ```
 
+### 3. Run Comprehensive Demo
+
+For a complete demonstration of all V8CppIntegration features:
+
+```bash
+# Linux/macOS - Run comprehensive demo
+./demo.sh
+
+# Windows - Run comprehensive demo
+demo.bat
+```
+
+Both demo scripts showcase all major features including JavaScript execution, shell integration, file operations, DLL loading, performance testing, and advanced JavaScript features.
+
 ### Manual Build (if automated setup fails)
 
 ```bash
@@ -131,7 +160,7 @@ cmake --build build --target v8c
 ./Bin/v8c
 ```
 
-### Option 1: Using System V8 (Recommended for Quick Start)
+### Option 1: Using System V8 (Recommended for Quick Start - Linux/macOS)
 ```bash
 # 1. Install all dependencies automatically
 ./install_deps.sh
@@ -153,6 +182,46 @@ cmake --build build --target v8c
 
 # 5. Run comprehensive test suite (160 tests)
 ./ShellScripts/run_tests.sh
+```
+
+### Windows 11 Build Instructions
+
+#### Prerequisites Setup
+```powershell
+# Install vcpkg (if not already installed)
+git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
+cd C:\vcpkg
+.\bootstrap-vcpkg.bat
+.\vcpkg integrate install
+
+# Install dependencies
+.\vcpkg install boost-program-options:x64-windows
+.\vcpkg install gtest:x64-windows
+```
+
+#### Building the Project
+```powershell
+# Clone the repository
+git clone https://github.com/cschladetsch/V8CppIntegration.git
+cd V8CppIntegration
+
+# Configure with CMake (V8 will be built from source on Windows)
+cmake -B build -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -DUSE_SYSTEM_V8=OFF -G "Visual Studio 17 2022" -A x64
+
+# Build the project
+cmake --build build --config Release
+
+# Run examples
+.\build\Release\SystemV8Example.exe
+.\build\Release\BidirectionalExample.exe
+.\build\Release\AdvancedExample.exe
+
+# Run interactive V8 console
+.\Bin\v8c.exe
+
+# Run tests
+cd build
+ctest --output-on-failure --parallel -C Release
 ```
 
 ### Option 2: Build V8 from Source (Complete Setup)
@@ -888,11 +957,12 @@ Note: These components are provided as a foundation for extending the framework.
 ## CI/CD Pipeline
 
 GitHub Actions workflow (`.github/workflows/ci.yml`) provides:
-- Multi-platform builds (Ubuntu, macOS, Windows)
-- Multiple compiler testing
-- Automated test execution
-- Docker image building
-- Security scanning
+- **Multi-platform builds**: Ubuntu 20.04/22.04, macOS, Windows 11
+- **Multiple compiler testing**: GCC, Clang (Linux/macOS), MSVC (Windows)
+- **Automated test execution**: Full test suite across all platforms
+- **Docker image building**: Linux containers for deployment
+- **Security scanning**: CodeQL analysis and vulnerability detection
+- **Windows-specific features**: vcpkg integration, Visual Studio 2022 support
 
 ## Contributing
 
@@ -928,8 +998,9 @@ Based on comprehensive code review, the following issues have been identified fo
    - Performance impact from unnecessary string copies
 
 4. **Platform Support**: 
-   - DLL loading uses POSIX-specific functions (dlopen/dlsym)
-   - Currently Linux-focused, Windows support needs improvement
+   - ✅ **Windows 11**: Full support with Visual Studio 2022 and vcpkg
+   - ✅ **Cross-platform DLL loading**: Supports both Windows (LoadLibrary/GetProcAddress) and POSIX (dlopen/dlsym)
+   - Minor path handling differences between platforms
 
 5. **Security**:
    - No sandboxing for loaded DLLs
