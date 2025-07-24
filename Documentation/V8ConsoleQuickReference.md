@@ -110,9 +110,9 @@ git add *.js
 
 ## Configuration Files
 
-- `~/.config/v8rc` - Startup commands
-- `~/.v8prompt.json` - Prompt customization
-- `~/.v8_history` - Command history
+- `~/.config/v8c/v8rc` - Startup commands
+- `~/.config/v8c/prompt.json` - Prompt customization
+- `~/.config/v8c/history` - Command history
 
 ## Error Patterns
 

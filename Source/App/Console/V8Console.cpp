@@ -175,10 +175,21 @@ void V8Console::RunRepl(bool quiet) {
     // Initialize history
     using_history();
     
-    // Load history and config from home directory
+    // Load history and config from XDG config directory
     if (const char* const home = std::getenv("HOME")) {
-        historyPath_ = fs::path(home) / ".v8console.history";
-        configPath_ = fs::path(home) / ".v8shellrc";
+        fs::path configDir = fs::path(home) / ".config" / "v8c";
+        
+        // Create config directory if it doesn't exist
+        try {
+            if (!fs::exists(configDir)) {
+                fs::create_directories(configDir);
+            }
+        } catch (...) {
+            // Ignore errors creating directory
+        }
+        
+        historyPath_ = configDir / "history";
+        configPath_ = configDir / "v8rc";
         read_history(historyPath_.c_str());
     }
 #endif
@@ -1453,7 +1464,7 @@ std::string V8Console::BuildSegments(const std::vector<PromptConfig::Segment>& s
 void V8Console::LoadPromptConfig() {
     if (configPath_.empty()) return;
     
-    fs::path promptConfigPath = fs::path(configPath_).parent_path() / ".v8prompt.json";
+    fs::path promptConfigPath = fs::path(configPath_).parent_path() / "prompt.json";
     if (!fs::exists(promptConfigPath)) {
         // Create default config
         SavePromptConfig();
@@ -1522,7 +1533,7 @@ void V8Console::LoadPromptConfig() {
 void V8Console::SavePromptConfig() {
     if (configPath_.empty()) return;
     
-    fs::path promptConfigPath = fs::path(configPath_).parent_path() / ".v8prompt.json";
+    fs::path promptConfigPath = fs::path(configPath_).parent_path() / "prompt.json";
     std::ofstream file(promptConfigPath);
     if (!file) return;
     
@@ -2078,7 +2089,7 @@ void V8Console::SavePromptConfigJSON(const PromptConfig& config) {
     j["twoLine"] = config.twoLine;
     
     // Write to file
-    fs::path promptConfigPath = fs::path(configPath_).parent_path() / ".v8prompt.json";
+    fs::path promptConfigPath = fs::path(configPath_).parent_path() / "prompt.json";
     std::ofstream file(promptConfigPath);
     if (file) {
         file << j.dump(2); // Pretty print with 2 space indent
