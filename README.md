@@ -50,12 +50,7 @@ This repository provides a bridge between C++ and V8/JavaScript, featuring an in
   - **Ubuntu/Debian**: `sudo apt-get install libboost-program-options-dev`
 
 ### macOS
-- Git
-- CMake 3.14+ (via Homebrew: `brew install cmake`)
-- Python 3
-- Xcode Command Line Tools
-- Ninja build system: `brew install ninja`
-- Boost.ProgramOptions: `brew install boost`
+*Dropped Support*
 
 ### Windows 11
 - Git
@@ -182,7 +177,7 @@ cmake --build build --target v8c
 ./Bin/v8c
 ```
 
-### Option 1: Using System V8 (Recommended for Quick Start - Linux/macOS)
+### Option 1: Using System V8 (Recommended for Quick Start - Linux)
 ```bash
 # 1. Install all dependencies automatically
 ./install_deps.sh
@@ -979,8 +974,8 @@ Note: These components are provided as a foundation for extending the framework.
 ## CI/CD Pipeline
 
 GitHub Actions workflow (`.github/workflows/ci.yml`) provides:
-- **Multi-platform builds**: Ubuntu 20.04/22.04, macOS, Windows 11
-- **Multiple compiler testing**: GCC, Clang (Linux/macOS), MSVC (Windows)
+- **Multi-platform builds**: Ubuntu 20.04/22.04, Windows 11
+- **Multiple compiler testing**: GCC, Clang (Linux), MSVC (Windows)
 - **Automated test execution**: Full test suite across all platforms
 - **Docker image building**: Linux containers for deployment
 - **Security scanning**: CodeQL analysis and vulnerability detection
