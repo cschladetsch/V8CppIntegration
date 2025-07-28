@@ -1,15 +1,24 @@
 # CMake Modules Directory
 
-This directory contains CMake modules and scripts for building the V8 C++ Integration project.
+🛠️ **Cross-Platform CMake Build System**
+
+This directory contains CMake modules and scripts for building the V8 C++ Integration project across Ubuntu, WSL2, Windows 11, macOS, and Raspberry Pi platforms.
 
 ## Files
 
 ### BuildV8.cmake
+🔧 **Cross-Platform V8 Build Module**
+
 Handles building V8 from source when `USE_SYSTEM_V8=OFF`. This module:
-- Checks for V8 source and depot_tools
-- Creates V8 build targets
-- Sets up include and library paths
-- Handles static library symbol tables with ranlib
+- 🔍 Checks for V8 source and depot_tools across platforms
+- 🏗️ Creates V8 build targets with platform-specific settings
+- 📂 Sets up include and library paths for all architectures
+- 🔧 Handles static library symbol tables with ranlib
+- 🌍 **Platform Support**: 
+  - Linux (x64, ARM64, ARM32)
+  - macOS (Intel & Apple Silicon)
+  - Windows (Visual Studio toolchain)
+  - Raspberry Pi (optimized for limited resources)
 
 ### BuildGTest.cmake
 Builds Google Test from source when using locally-built V8. This ensures ABI compatibility by:

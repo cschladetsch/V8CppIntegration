@@ -33,21 +33,62 @@ This repository provides a bridge between C++ and V8/JavaScript, featuring an in
 - **Documentation**: Comprehensive README files throughout the project
 - **Version Control**: Git with semantic versioning (currently v0.2)
 
+## Supported Platforms
+
+🌍 **Cross-Platform Support**
+- ✅ **Ubuntu/Debian** Linux systems
+- ✅ **WSL2** (Windows Subsystem for Linux)
+- ✅ **Windows 11** (Visual Studio 2019/2022)
+- ✅ **macOS** (Intel & Apple Silicon)
+- ✅ **Raspberry Pi** (ARM64 & ARM32)
+
 ## Prerequisites
 
-### Linux (Ubuntu/Debian)
+### Common Requirements
 - Git
 - CMake 3.14+
 - Python 3
 - C++ compiler with C++20 support
-- Ninja build system (optional but recommended)
-- GNU Readline development package (required for V8 console):
-  - **Automatic installation**: CMake will attempt to install it if missing (requires passwordless sudo)
-  - **Manual installation**: `sudo apt-get install libreadline-dev`
-  - **Disable auto-install**: `cmake -DAUTO_INSTALL_READLINE=OFF ...`
-  - **Build without readline**: `cmake -DUSE_READLINE=OFF ...`
-- Boost.ProgramOptions (required for V8 console):
+
+### Platform-Specific Requirements
+
+#### Ubuntu/Debian/WSL2
+```bash
+sudo apt-get install -y build-essential cmake git python3
+```
+
+#### macOS
+```bash
+# Install Xcode Command Line Tools
+xcode-select --install
+
+# Install Homebrew (if not already installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install dependencies
+brew install cmake python3
+```
+
+#### Windows 11
+- Visual Studio 2019/2022 with C++ tools
+- Python 3 from Microsoft Store or python.org
+- Git for Windows
+
+#### Raspberry Pi
+```bash
+# For ARM64/ARM32 builds
+sudo apt-get update
+sudo apt-get install -y build-essential cmake git python3 crossbuild-essential-arm64 crossbuild-essential-armhf
+```
+
+### Optional Dependencies
+- **GNU Readline** (for enhanced console):
+  - **Ubuntu/Debian**: `sudo apt-get install libreadline-dev`
+  - **macOS**: `brew install readline`
+  - **Disable**: `cmake -DUSE_READLINE=OFF ...`
+- **Boost.ProgramOptions** (for V8 console):
   - **Ubuntu/Debian**: `sudo apt-get install libboost-program-options-dev`
+<<<<<<< HEAD
 
 ### macOS
 *Dropped Support*
@@ -74,6 +115,12 @@ This project provides four main build scripts:
 1. **`demo_interactive.sh`** - 🎯 **NEW**: Interactive demo that builds and showcases all v8c features
 2. **`build.sh`** - Complete build script that installs dependencies, initializes submodules, builds, and tests
 3. **`ShellScripts/setup_and_build_v8.sh`** - Downloads and builds V8 from source (optional)
+1. **`Scripts/Build/build_v8_crossplatform.sh`** - 🆕 **Cross-platform V8 build script** with colorful banner
+   - Supports Ubuntu, WSL2, Windows 11, macOS, and Raspberry Pi
+   - Automatic platform and architecture detection
+   - Handles dependencies and build configuration
+2. **`build.sh`** - Complete build script that installs dependencies, initializes submodules, builds, and tests
+3. **`ShellScripts/setup_and_build_v8.sh`** - Downloads and builds V8 from source (legacy)
 4. **`ShellScripts/build.sh`** - Alternative project build script
 
 ### How the Build System Works
@@ -94,9 +141,9 @@ The build system automatically selects V8 in this order:
 
 **Note**: When using locally built V8, the build system automatically uses clang/clang++ for ABI compatibility.
 
-## Quick Start - Complete Setup
+## Quick Start - Cross-Platform Setup
 
-### 🎯 Option 1: Interactive Demo (Recommended for First-Time Users)
+### Universal Cross-Platform Build (Recommended)
 
 ```bash
 # Clone and enter directory
@@ -122,6 +169,22 @@ git clone https://github.com/cschladetsch/V8CppShell.git && cd V8CppShell
 # Clone and enter directory
 git clone https://github.com/cschladetsch/V8CppShell.git && cd V8CppShell
 
+# Run cross-platform V8 build script (works on Ubuntu, WSL2, Windows 11, macOS, Raspberry Pi)
+./Scripts/Build/build_v8_crossplatform.sh
+```
+
+This script will:
+- 🎨 Display a colorful banner showing supported platforms
+- 🔍 Automatically detect your platform and architecture
+- 📦 Install required dependencies (with prompts)
+- 🏗️ Set up depot_tools and fetch V8 source
+- ⚙️ Configure V8 build for your platform
+- 🚀 Build V8 with optimal settings
+- ✅ Verify the build and create build info
+
+### 2. Alternative: Complete Setup (Legacy)
+
+```bash
 # Run complete build script (installs all dependencies, builds, tests, and configures)
 ./build.sh
 ```

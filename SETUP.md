@@ -1,6 +1,8 @@
-# V8Console Complete Setup Guide
+# V8Console Complete Setup Guide - Cross-Platform
 
-This guide walks you through downloading, installing, and configuring V8Console as your shell with automatic startup.
+🌍 **Universal Setup Guide** for Ubuntu, WSL2, Windows 11, macOS, and Raspberry Pi
+
+This guide walks you through downloading, installing, and configuring V8Console as your shell with automatic startup across all supported platforms.
 
 ## Table of Contents
 1. [Download](#1-download)
@@ -23,6 +25,25 @@ cd V8CppIntegration
 ```
 
 ## 2. Setup with Dependencies
+
+### 🆕 Option A: Cross-Platform Universal Build (Recommended)
+
+Use the new cross-platform build script that works on all supported platforms:
+
+```bash
+# Run the universal cross-platform build script
+./Scripts/Build/build_v8_crossplatform.sh
+```
+
+This script will:
+- 🎨 Display a colorful banner showing all supported platforms
+- 🔍 Automatically detect your platform (Ubuntu, WSL2, Windows 11, macOS, Raspberry Pi)
+- 📦 Install platform-specific dependencies
+- ⚙️ Configure V8 build for your architecture (x64, ARM64, ARM32)
+- 🚀 Build V8 with optimal settings
+- ✅ Verify the build and create build info
+
+### Option B: Legacy Automated Setup
 
 Run the automated setup script that will install all dependencies and build V8Console:
 

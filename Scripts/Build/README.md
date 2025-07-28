@@ -1,8 +1,8 @@
 # Build Scripts Directory
 
-**Version 0.2** - Improved Build Process and Compatibility
+**Version 0.3** - Cross-Platform Support and Enhanced Build Process
 
-This directory contains the build automation scripts for the V8 C++ Integration project. Updated in v0.2 with enhanced V8 compatibility, minimal download support, and reorganized script naming.
+This directory contains the build automation scripts for the V8 C++ Integration project. Updated in v0.3 with cross-platform support (Ubuntu, WSL2, Windows 11, macOS, Raspberry Pi), colorful banner interface, and automatic platform detection.
 
 ## Quick Commands
 
@@ -34,6 +34,44 @@ sudo apt-get install -y clang libc++-dev libc++abi-dev
 ```
 
 ## Main Scripts
+
+🌟 **Featured Script**
+
+### build_v8_crossplatform.sh (NEW)
+🆕 **Universal Cross-Platform V8 Build Script**
+
+The flagship build script with full cross-platform support and colorful interface:
+
+```bash
+./build_v8_crossplatform.sh
+```
+
+**Supported Platforms:**
+- ✅ Ubuntu/Debian Linux
+- ✅ WSL2 (Windows Subsystem for Linux)
+- ✅ Windows 11 (Visual Studio 2019/2022)
+- ✅ macOS (Intel & Apple Silicon)
+- ✅ Raspberry Pi (ARM64 & ARM32)
+
+**Features:**
+- 🎨 **Colorful Banner**: Beautiful ASCII art showing all supported platforms
+- 🔍 **Auto-Detection**: Automatically detects platform and architecture
+- 📦 **Smart Dependencies**: Platform-specific dependency installation
+- ⚙️ **Optimized Builds**: Platform-specific build configurations
+- 🏗️ **Complete Workflow**: depot_tools setup → V8 fetch → configure → build → verify
+
+**Architecture Support:**
+- `x64` (Intel/AMD 64-bit)
+- `arm64` (Apple Silicon, ARM 64-bit)
+- `arm` (ARM 32-bit for older Raspberry Pi)
+
+**Build Configurations:**
+- Raspberry Pi: Uses fewer parallel jobs to accommodate limited memory
+- macOS: Handles both Intel and Apple Silicon architectures
+- Windows: Configures Visual Studio toolchain
+- Linux: Optimized for various distributions
+
+---
 
 ### Build.sh
 The main build orchestrator that handles all build configurations:
