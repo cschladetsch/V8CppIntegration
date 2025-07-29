@@ -113,8 +113,14 @@ REM Check if V8 is already built
 :check_v8_built
 call :get_v8_paths
 if exist "%V8_LIB%" (
-    call :print_success "V8 already built successfully"
-    set "V8_ALREADY_BUILT=1"
+    for %%A in ("%V8_LIB%") do set "V8_SIZE=%%~zA"
+    if !V8_SIZE! gtr 0 (
+        call :print_success "V8 already built successfully"
+        set "V8_ALREADY_BUILT=1"
+    ) else (
+        call :print_status "V8 library files are empty, will rebuild"
+        set "V8_ALREADY_BUILT=0"
+    )
 ) else (
     set "V8_ALREADY_BUILT=0"
 )
@@ -131,6 +137,16 @@ if "%V8_ALREADY_BUILT%"=="1" (
 )
 
 call :print_status "Cleaning up any partial builds..."
+
+REM Remove empty or broken V8 libraries
+call :get_v8_paths
+if exist "%V8_LIB%" (
+    for %%A in ("%V8_LIB%") do set "V8_SIZE=%%~zA"
+    if !V8_SIZE! equ 0 (
+        call :print_status "Removing empty V8 library files..."
+        del /f "%V8_LIB%" "%V8_PLATFORM%" "%V8_BASE%" 2>nul
+    )
+)
 
 REM Remove partial gclient checkouts
 for /d %%i in (_gclient_*) do (
@@ -173,6 +189,11 @@ if not exist "v8" (
     call :print_status "Fetching V8 (this may take 30-60 minutes depending on your connection)..."
     fetch v8
     call :print_success "V8 source fetched successfully"
+) else if not exist ".gclient" (
+    call :print_status "V8 directory incomplete, re-fetching..."
+    rmdir /s /q v8
+    fetch v8
+    call :print_success "V8 source fetched successfully"
 ) else (
     call :print_status "V8 directory exists, syncing..."
     pushd v8
@@ -195,6 +216,7 @@ call :print_status "Configuring V8 build for Windows (x64)..."
 pushd v8
 
 REM Generate build files with Windows-specific settings
+REM Build arguments (optimized for fast build)
 set BUILD_ARGS=is_debug=false
 set BUILD_ARGS=%BUILD_ARGS% v8_enable_sandbox=false
 set BUILD_ARGS=%BUILD_ARGS% v8_enable_pointer_compression=false
@@ -203,8 +225,16 @@ set BUILD_ARGS=%BUILD_ARGS% is_component_build=false
 set BUILD_ARGS=%BUILD_ARGS% use_custom_libcxx=false
 set BUILD_ARGS=%BUILD_ARGS% v8_use_external_startup_data=false
 set BUILD_ARGS=%BUILD_ARGS% treat_warnings_as_errors=false
-set BUILD_ARGS=%BUILD_ARGS% symbol_level=1
+set BUILD_ARGS=%BUILD_ARGS% symbol_level=0
 set BUILD_ARGS=%BUILD_ARGS% v8_enable_i18n_support=false
+set BUILD_ARGS=%BUILD_ARGS% v8_enable_test_features=false
+set BUILD_ARGS=%BUILD_ARGS% v8_enable_disassembler=false
+set BUILD_ARGS=%BUILD_ARGS% v8_enable_gdbjit=false
+set BUILD_ARGS=%BUILD_ARGS% v8_enable_verify_heap=false
+set BUILD_ARGS=%BUILD_ARGS% v8_optimized_debug=false
+set BUILD_ARGS=%BUILD_ARGS% v8_enable_slow_dchecks=false
+set BUILD_ARGS=%BUILD_ARGS% v8_enable_fast_mksnapshot=true
+set BUILD_ARGS=%BUILD_ARGS% enable_iterator_debugging=false
 set BUILD_ARGS=%BUILD_ARGS% target_os="win"
 set BUILD_ARGS=%BUILD_ARGS% is_clang=false
 set BUILD_ARGS=%BUILD_ARGS% target_cpu="x64"
@@ -237,7 +267,7 @@ if %JOBS% gtr 8 set JOBS=8
 
 call :print_status "Using %JOBS% parallel jobs"
 
-autoninja -C out\x64.release -j %JOBS% //:v8
+autoninja -C out\x64.release -j %JOBS% v8_libbase v8_libplatform v8
 
 popd
 call :print_success "V8 build completed"

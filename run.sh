@@ -250,7 +250,7 @@ cleanup_partial_builds() {
     
     # Check if V8 is already built successfully (cross-platform)
     get_v8_paths "$ARCH"
-    if [[ -f "$V8_LIB" ]]; then
+    if [[ -f "$V8_LIB" ]] && [[ -s "$V8_LIB" ]]; then
         print_success "V8 already built successfully, skipping cleanup"
         return 0
     fi
@@ -263,17 +263,23 @@ cleanup_partial_builds() {
         rm -rf _gclient_*
     fi
     
-    # Reset gclient configuration if it exists and V8 is not built
-    if [[ -f ".gclient" ]] && [[ ! -f "$V8_LIB" ]]; then
+    # Only reset gclient configuration if V8 directory doesn't exist or is clearly broken
+    if [[ -f ".gclient" ]] && [[ ! -f "$V8_LIB" ]] && [[ ! -d "v8" ]]; then
         print_status "Removing existing .gclient configuration..."
         rm -f .gclient .gclient_entries
+    fi
+    
+    # Remove empty or broken V8 libraries
+    if [[ -f "$V8_LIB" ]] && [[ ! -s "$V8_LIB" ]]; then
+        print_status "Removing empty V8 library files..."
+        rm -f "$V8_LIB" "$V8_PLATFORM" "$V8_BASE"
     fi
     
     # Only remove V8 directory if it's clearly incomplete AND no library exists
     if [[ -d "v8" ]] && [[ ! -f "$V8_LIB" ]] && [[ ! -f "v8/BUILD.gn" ]] && [[ ! -f "v8/include/v8.h" ]]; then
         print_status "Removing incomplete V8 directory..."
         rm -rf v8
-    elif [[ -d "v8" ]] && [[ -f "$V8_LIB" ]]; then
+    elif [[ -d "v8" ]] && [[ -f "$V8_LIB" ]] && [[ -s "$V8_LIB" ]]; then
         print_success "V8 directory and libraries found, keeping existing build"
     fi
 }
@@ -282,7 +288,7 @@ cleanup_partial_builds() {
 fetch_v8() {
     # Check if V8 is already built
     get_v8_paths "$ARCH"
-    if [[ -f "$V8_LIB" ]]; then
+    if [[ -f "$V8_LIB" ]] && [[ -s "$V8_LIB" ]]; then
         print_success "V8 already built, skipping source fetch"
         return 0
     fi
@@ -296,8 +302,10 @@ fetch_v8() {
     # Make sure depot_tools is in PATH
     export PATH="$SCRIPT_DIR/depot_tools:$PATH"
     
-    if [[ ! -d "v8" ]]; then
+    if [[ ! -d "v8" ]] || [[ ! -f ".gclient" ]]; then
         print_status "Fetching V8 (this may take 30-60 minutes depending on your connection)..."
+        # Remove incomplete V8 directory if it exists
+        [[ -d "v8" ]] && rm -rf v8
         fetch v8
         print_success "V8 source fetched successfully"
     else
@@ -313,7 +321,7 @@ fetch_v8() {
 configure_v8() {
     # Check if V8 is already built
     get_v8_paths "$ARCH"
-    if [[ -f "$V8_LIB" ]]; then
+    if [[ -f "$V8_LIB" ]] && [[ -s "$V8_LIB" ]]; then
         print_success "V8 already built, skipping configuration"
         return 0
     fi
@@ -325,7 +333,7 @@ configure_v8() {
     export PATH="$SCRIPT_DIR/depot_tools:$PATH"
     cd "$SCRIPT_DIR/v8"
     
-    # Base build arguments
+    # Base build arguments (optimized for fast build)
     BUILD_ARGS="is_debug=false"
     BUILD_ARGS="$BUILD_ARGS v8_enable_sandbox=false"
     BUILD_ARGS="$BUILD_ARGS v8_enable_pointer_compression=false"
@@ -334,8 +342,16 @@ configure_v8() {
     BUILD_ARGS="$BUILD_ARGS use_custom_libcxx=false"
     BUILD_ARGS="$BUILD_ARGS v8_use_external_startup_data=false"
     BUILD_ARGS="$BUILD_ARGS treat_warnings_as_errors=false"
-    BUILD_ARGS="$BUILD_ARGS symbol_level=1"
+    BUILD_ARGS="$BUILD_ARGS symbol_level=0"
     BUILD_ARGS="$BUILD_ARGS v8_enable_i18n_support=false"
+    BUILD_ARGS="$BUILD_ARGS v8_enable_test_features=false"
+    BUILD_ARGS="$BUILD_ARGS v8_enable_disassembler=false"
+    BUILD_ARGS="$BUILD_ARGS v8_enable_gdbjit=false"
+    BUILD_ARGS="$BUILD_ARGS v8_enable_verify_heap=false"
+    BUILD_ARGS="$BUILD_ARGS v8_optimized_debug=false"
+    BUILD_ARGS="$BUILD_ARGS v8_enable_slow_dchecks=false"
+    BUILD_ARGS="$BUILD_ARGS v8_enable_fast_mksnapshot=true"
+    BUILD_ARGS="$BUILD_ARGS enable_iterator_debugging=false"
     
     # Platform-specific configuration
     case $OS in
@@ -403,7 +419,7 @@ configure_v8() {
 build_v8() {
     # Check if V8 is already built
     get_v8_paths "$ARCH"
-    if [[ -f "$V8_LIB" ]]; then
+    if [[ -f "$V8_LIB" ]] && [[ -s "$V8_LIB" ]]; then
         print_success "V8 already built, skipping build step"
         return 0
     fi
@@ -429,9 +445,9 @@ build_v8() {
     
     print_status "Using $JOBS parallel jobs"
     
-    # Build V8 with progress indication  
-    print_status "Building V8 library..."
-    autoninja -C out/${ARCH}.release //:v8
+    # Build V8 with progress indication (minimal essential targets)
+    print_status "Building V8 library (optimized build)..."
+    autoninja -C out/${ARCH}.release v8_libbase v8_libplatform v8
     
     cd "$SCRIPT_DIR"
     print_success "V8 build completed"
