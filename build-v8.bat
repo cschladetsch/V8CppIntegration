@@ -281,6 +281,10 @@ call :get_v8_paths
 
 if exist "%V8_LIB%" if exist "%V8_PLATFORM%" if exist "%V8_BASE%" (
     call :print_success "V8 libraries built successfully!"
+    call :print_status "Library absolute paths:"
+    for %%F in ("%V8_LIB%") do echo   - %%~fF
+    for %%F in ("%V8_PLATFORM%") do echo   - %%~fF
+    for %%F in ("%V8_BASE%") do echo   - %%~fF
     call :print_status "Library files found:"
     dir "%V8_LIB%" "%V8_PLATFORM%" "%V8_BASE%"
     exit /b 0

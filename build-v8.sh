@@ -466,6 +466,10 @@ verify_v8_build() {
     
     if [[ -f "$V8_LIB" ]] && [[ -f "$V8_PLATFORM" ]] && [[ -f "$V8_BASE" ]]; then
         print_success "V8 libraries built successfully!"
+        print_status "Library absolute paths:"
+        echo "  - $(readlink -f "$V8_LIB")"
+        echo "  - $(readlink -f "$V8_PLATFORM")"
+        echo "  - $(readlink -f "$V8_BASE")"
         print_status "Library sizes:"
         ls -lh "$V8_LIB" "$V8_PLATFORM" "$V8_BASE"
         
