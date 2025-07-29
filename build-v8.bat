@@ -50,9 +50,9 @@ goto :eof
 
 REM Get V8 library paths for Windows
 :get_v8_paths
-set "V8_LIB=v8\out\x64.release\obj\v8.lib"
-set "V8_PLATFORM=v8\out\x64.release\obj\v8_libplatform.lib"
-set "V8_BASE=v8\out\x64.release\obj\v8_libbase.lib"
+set "V8_LIB=External\v8\out\x64.release\obj\v8.lib"
+set "V8_PLATFORM=External\v8\out\x64.release\obj\v8_libplatform.lib"
+set "V8_BASE=External\v8\out\x64.release\obj\v8_libbase.lib"
 goto :eof
 
 REM Check dependencies
@@ -89,11 +89,14 @@ REM Setup depot_tools
 call :print_status "Setting up depot_tools..."
 
 set "SCRIPT_DIR=%~dp0"
-set "DEPOT_TOOLS_DIR=%SCRIPT_DIR%depot_tools"
+mkdir "%SCRIPT_DIR%External" 2>nul
+set "DEPOT_TOOLS_DIR=%SCRIPT_DIR%External\depot_tools"
 
 if not exist "%DEPOT_TOOLS_DIR%" (
-    call :print_status "Cloning depot_tools..."
-    git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "%DEPOT_TOOLS_DIR%"
+    call :print_status "Cloning depot_tools to External\..."
+    pushd "%SCRIPT_DIR%External"
+    git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+    popd
 ) else (
     call :print_status "depot_tools already exists, updating..."
     pushd "%DEPOT_TOOLS_DIR%"
@@ -138,6 +141,9 @@ if "%V8_ALREADY_BUILT%"=="1" (
 
 call :print_status "Cleaning up any partial builds..."
 
+REM Change to External directory for cleanup
+pushd "%SCRIPT_DIR%External"
+
 REM Remove empty or broken V8 libraries
 call :get_v8_paths
 if exist "%V8_LIB%" (
@@ -156,7 +162,7 @@ for /d %%i in (_gclient_*) do (
     )
 )
 
-REM Reset gclient configuration if V8 not built
+REM Reset gclient configuration if V8 not built  
 if exist ".gclient" (
     if "%V8_ALREADY_BUILT%"=="0" (
         call :print_status "Removing existing .gclient configuration..."
@@ -173,6 +179,8 @@ if exist "v8" (
         )
     )
 )
+
+popd
 goto :eof
 
 REM Fetch V8 source
@@ -185,15 +193,17 @@ if "%V8_ALREADY_BUILT%"=="1" (
 
 call :print_status "Fetching V8 source code..."
 
+pushd "%SCRIPT_DIR%External"
+
 if not exist "v8" (
-    call :print_status "Fetching V8 (this may take 30-60 minutes depending on your connection)..."
+    call :print_status "Fetching V8 to External\ (this may take 30-60 minutes depending on your connection)..."
     fetch v8
-    call :print_success "V8 source fetched successfully"
+    call :print_success "V8 source fetched successfully to External\"
 ) else if not exist ".gclient" (
     call :print_status "V8 directory incomplete, re-fetching..."
     rmdir /s /q v8
     fetch v8
-    call :print_success "V8 source fetched successfully"
+    call :print_success "V8 source fetched successfully to External\"
 ) else (
     call :print_status "V8 directory exists, syncing..."
     pushd v8
@@ -201,6 +211,8 @@ if not exist "v8" (
     popd
     call :print_success "V8 source synchronized"
 )
+
+popd
 goto :eof
 
 REM Configure V8 build
@@ -213,7 +225,7 @@ if "%V8_ALREADY_BUILT%"=="1" (
 
 call :print_status "Configuring V8 build for Windows (x64)..."
 
-pushd v8
+pushd "%SCRIPT_DIR%External\v8"
 
 REM Generate build files with Windows-specific settings
 REM Build arguments (optimized for fast build)
@@ -259,7 +271,7 @@ if "%V8_ALREADY_BUILT%"=="1" (
 
 call :print_status "Building V8 (this may take 1-3 hours depending on your hardware)..."
 
-pushd v8
+pushd "%SCRIPT_DIR%External\v8"
 
 REM Use fewer parallel jobs on Windows to prevent memory issues
 set /a JOBS=%NUMBER_OF_PROCESSORS%
@@ -332,7 +344,7 @@ echo         "v8": "%V8_LIB:\=\\%",
 echo         "v8_libplatform": "%V8_PLATFORM:\=\\%",
 echo         "v8_libbase": "%V8_BASE:\=\\%"
 echo     },
-echo     "include_path": "v8\\include",
+echo     "include_path": "External\\v8\\include",
 echo     "project_binaries": {
 echo         "v8c": "Bin\\v8c.exe",
 echo         "examples": "build\\",

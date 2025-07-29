@@ -48,9 +48,9 @@ goto :eof
 
 REM Get V8 library paths for Windows
 :get_v8_paths
-set "V8_LIB=v8\out\x64.release\obj\v8.lib"
-set "V8_PLATFORM=v8\out\x64.release\obj\v8_libplatform.lib"
-set "V8_BASE=v8\out\x64.release\obj\v8_libbase.lib"
+set "V8_LIB=External\v8\out\x64.release\obj\v8.lib"
+set "V8_PLATFORM=External\v8\out\x64.release\obj\v8_libplatform.lib"
+set "V8_BASE=External\v8\out\x64.release\obj\v8_libbase.lib"
 goto :eof
 
 REM Check if V8 is built

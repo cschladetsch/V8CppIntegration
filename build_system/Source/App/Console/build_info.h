@@ -1,8 +1,0 @@
-#ifndef BUILD_INFO_H
-#define BUILD_INFO_H
-
-#define BUILD_DATE "2025-07-22"
-#define BUILD_TIME "09:16:28"
-#define BUILD_TIMESTAMP "2025-07-22 09:16:28"
-
-#endif // BUILD_INFO_H

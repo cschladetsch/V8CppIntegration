@@ -88,69 +88,173 @@ sudo apt-get install -y build-essential cmake git python3 crossbuild-essential-a
   - **Disable**: `cmake -DUSE_READLINE=OFF ...`
 - **Boost.ProgramOptions** (for V8 console):
   - **Ubuntu/Debian**: `sudo apt-get install libboost-program-options-dev`
-<<<<<<< HEAD
+  - **macOS**: `brew install boost`
+  - **Windows**: `vcpkg install boost-program-options:x64-windows`
 
-### macOS
-*Dropped Support*
+## Quick Start
 
-### Windows 11
-- Git
-- Visual Studio 2022 with C++ development tools
-- CMake 3.14+ (included with Visual Studio or install separately)
-- Python 3
-- vcpkg package manager
-- Boost.ProgramOptions: `vcpkg install boost-program-options:x64-windows`
-- Google Test: `vcpkg install gtest:x64-windows`
+### Step 1: Clone Repository
 
-### For System V8 Option
 ```bash
-# Install system V8 libraries and Google Test (Ubuntu/Debian)
-sudo apt-get install libv8-dev libgtest-dev
+git clone https://github.com/cschladetsch/V8CppShell.git
+cd V8CppShell
 ```
 
-## Build Scripts Overview
+### Step 2: Build V8 Engine
 
-This project provides four main build scripts:
+**Ubuntu/Linux/WSL2:**
+```bash
+./build-v8.sh
+```
 
-1. **`demo_interactive.sh`** - 🎯 **NEW**: Interactive demo that builds and showcases all v8c features
-2. **`build.sh`** - Complete build script that installs dependencies, initializes submodules, builds, and tests
-3. **`ShellScripts/setup_and_build_v8.sh`** - Downloads and builds V8 from source (optional)
-1. **`Scripts/Build/build_v8_crossplatform.sh`** - 🆕 **Cross-platform V8 build script** with colorful banner
-   - Supports Ubuntu, WSL2, Windows 11, macOS, and Raspberry Pi
-   - Automatic platform and architecture detection
-   - Handles dependencies and build configuration
-2. **`build.sh`** - Complete build script that installs dependencies, initializes submodules, builds, and tests
-3. **`ShellScripts/setup_and_build_v8.sh`** - Downloads and builds V8 from source (legacy)
-4. **`ShellScripts/build.sh`** - Alternative project build script
+**Windows 11:**
+```bash
+build-v8.bat
+```
 
-### How the Build System Works
+This will:
+- Install system dependencies
+- Download V8 source code to `External/v8/` (~1-2GB)
+- Build V8 libraries from source (1-3 hours)
+- Show absolute paths of built libraries
 
-| Script | Purpose | When to Use |
-|--------|---------|-------------|
-| `demo_interactive.sh` | **🎯 Interactive demo with auto-build** | **First-time users, demonstrations** |
-| `build.sh` | Complete setup, build, test, and configure | First-time setup, complete build |
-| `ShellScripts/setup_and_build_v8.sh` | Download and build V8 from source | When you need V8 built from source |
-| `ShellScripts/build.sh` | Build project (auto-detects V8) | Regular development |
+### Step 3: Build Console Application
 
-### V8 Detection Priority
+**Ubuntu/Linux/WSL2:**
+```bash
+./build-console.sh
+```
 
-The build system automatically selects V8 in this order:
-1. **Local V8** (default): If `v8/out/x64.release/obj/libv8_monolith.a` exists
-2. **System V8**: If `--system-v8` flag is passed to `ShellScripts/build.sh`
-3. **Build fails**: If no V8 is found (run `ShellScripts/setup_and_build_v8.sh` first)
+**Windows 11:**
+```bash
+build-console.bat
+```
 
-**Note**: When using locally built V8, the build system automatically uses clang/clang++ for ABI compatibility.
+This will:
+- Verify V8 libraries are built
+- Build the `v8c` console application
+- Place executable in `Bin/v8c` (or `Bin/v8c.exe` on Windows)
 
-## Quick Start - Cross-Platform Setup
-
-### Universal Cross-Platform Build (Recommended)
+### Step 4: Run V8 Console
 
 ```bash
-# Clone and enter directory
-git clone https://github.com/cschladetsch/V8CppShell.git && cd V8CppShell
+./Bin/v8c              # Interactive mode
+./Bin/v8c script.js    # Run JavaScript file
+./Bin/v8c --help       # Show all options
+```
 
-# Run interactive demo (automatically builds V8 and v8c, then demonstrates all features)
-./demo_interactive.sh
+## Build System Overview
+
+This project provides a modern, separated build system:
+
+| Script | Purpose | Build Time | Output |
+|--------|---------|------------|---------|
+| `build-v8.sh/.bat` | Download and build V8 from source | 1-3 hours | V8 libraries in `External/` |
+| `build-console.sh/.bat` | Build only the v8c console app | 1-5 minutes | `Bin/v8c` executable |
+
+### Why Separate Build Scripts?
+
+- **V8 is large**: ~1.5GB source, 1-3 hour build time
+- **Console is small**: Quick builds for development
+- **Clean separation**: External dependencies stay in `External/`
+- **Flexibility**: Build console without rebuilding V8
+
+## Configuration and Customization
+
+### Configure Your Console
+
+Set up configuration files:
+```bash
+./Bin/v8c --config      # Create default config files
+./Bin/v8c --configure   # Run interactive setup wizard
+```
+
+This creates:
+- `~/.config/v8c/prompt.json` - Prompt customization (Powerlevel10k-inspired)
+- `~/.config/v8c/v8crc` - Shell aliases and environment variables
+- `~/.config/v8c/completion.json` - Tab completion settings
+
+### Example Configuration Files
+
+**~/.config/v8c/v8crc** (Shell configuration):
+```bash
+# Custom aliases
+alias ll='ls -la'
+alias gs='git status'
+alias gc='git commit'
+
+# Environment variables
+export EDITOR=vim
+export PAGER=less
+
+# V8 Console specific
+alias jsmode='print("Switching to JavaScript mode"); jsMode = true'
+```
+
+**~/.config/v8c/prompt.json** (Prompt styling):
+```json
+{
+  "twoLine": true,
+  "prompt_char": "❯",
+  "prompt_color": "cyan",
+  "leftSegments": [
+    {"type": "cwd", "fg": "blue", "bold": true},
+    {"type": "git", "fg": "magenta", "prefix": "on "}
+  ],
+  "rightSegments": [
+    {"type": "exit_code", "fg": "red", "prefix": "✗ "},
+    {"type": "exec_time", "fg": "yellow", "prefix": "took "},
+    {"type": "time", "fg": "gray", "format": "%H:%M:%S"}
+  ]
+}
+```
+
+## Advanced Features
+
+### JavaScript Integration
+```bash
+# Run JavaScript directly
+./Bin/v8c -e "console.log('Hello from V8!')"
+
+# Load and execute JavaScript files
+./Bin/v8c script.js
+
+# Interactive mode with mixed shell/JavaScript
+./Bin/v8c
+```
+
+### Dynamic Library Loading
+```bash
+# Load C++ DLLs at runtime
+./Bin/v8c script.js mylib.so
+
+# Hot-reload libraries during development
+# (See Examples/ directory for DLL examples)
+```
+
+### Shell Integration
+```bash
+# Add to ~/.bashrc or ~/.zshrc for easy access
+echo 'alias v8c="/path/to/V8CppShell/Bin/v8c"' >> ~/.bashrc
+```
+
+## Development and Testing
+
+### Running Tests
+```bash
+# Build and run all tests (requires V8 to be built first)
+mkdir -p build
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target all
+ctest --test-dir build --output-on-failure
+```
+
+### Examples
+Explore the `Examples/` directory for:
+- **MinimalExample.cpp** - Basic V8 integration
+- **SystemV8Example.cpp** - Using system V8 libraries  
+- **BidirectionalExample.cpp** - C++ ↔ JavaScript communication
+- **AdvancedExample.cpp** - Complex integration patterns
 ```
 
 **What the demo shows:**

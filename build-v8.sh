@@ -106,13 +106,13 @@ get_v8_paths() {
     local arch="${1:-x64}"
     
     if [[ "$OS" == "windows" ]]; then
-        V8_LIB="v8/out/${arch}.release/obj/v8.lib"
-        V8_PLATFORM="v8/out/${arch}.release/obj/v8_libplatform.lib" 
-        V8_BASE="v8/out/${arch}.release/obj/v8_libbase.lib"
+        V8_LIB="External/v8/out/${arch}.release/obj/v8.lib"
+        V8_PLATFORM="External/v8/out/${arch}.release/obj/v8_libplatform.lib" 
+        V8_BASE="External/v8/out/${arch}.release/obj/v8_libbase.lib"
     else
-        V8_LIB="v8/out/${arch}.release/obj/libv8.a"
-        V8_PLATFORM="v8/out/${arch}.release/obj/libv8_libplatform.a"
-        V8_BASE="v8/out/${arch}.release/obj/libv8_libbase.a"
+        V8_LIB="External/v8/out/${arch}.release/obj/libv8.a"
+        V8_PLATFORM="External/v8/out/${arch}.release/obj/libv8_libplatform.a"
+        V8_BASE="External/v8/out/${arch}.release/obj/libv8_libbase.a"
     fi
 }
 
@@ -213,11 +213,12 @@ setup_depot_tools() {
     
     # Get absolute path to work from any directory
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    DEPOT_TOOLS_DIR="$SCRIPT_DIR/depot_tools"
+    mkdir -p "$SCRIPT_DIR/External"
+    DEPOT_TOOLS_DIR="$SCRIPT_DIR/External/depot_tools"
     
     if [[ ! -d "$DEPOT_TOOLS_DIR" ]]; then
-        print_status "Cloning depot_tools..."
-        cd "$SCRIPT_DIR"
+        print_status "Cloning depot_tools to External/..."
+        cd "$SCRIPT_DIR/External"
         git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
     else
         print_status "depot_tools already exists, updating..."
@@ -240,8 +241,8 @@ setup_depot_tools() {
     fi
     print_success "depot_tools set up successfully"
     
-    # Change to script directory for all subsequent operations
-    cd "$SCRIPT_DIR"
+    # Change to External directory for all subsequent operations
+    cd "$SCRIPT_DIR/External"
 }
 
 # Clean up any partial V8 builds
@@ -256,6 +257,9 @@ cleanup_partial_builds() {
     fi
     
     print_status "Cleaning up any partial builds..."
+    
+    # Change to External directory for cleanup
+    cd "$SCRIPT_DIR/External"
     
     # Remove partial gclient checkouts
     if [[ -d "_gclient_"* ]]; then
@@ -282,6 +286,9 @@ cleanup_partial_builds() {
     elif [[ -d "v8" ]] && [[ -f "$V8_LIB" ]] && [[ -s "$V8_LIB" ]]; then
         print_success "V8 directory and libraries found, keeping existing build"
     fi
+    
+    # Return to script directory
+    cd "$SCRIPT_DIR"
 }
 
 # Fetch V8 source
@@ -297,22 +304,22 @@ fetch_v8() {
     
     # Ensure we're in the script directory
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    cd "$SCRIPT_DIR"
+    cd "$SCRIPT_DIR/External"
     
     # Make sure depot_tools is in PATH
-    export PATH="$SCRIPT_DIR/depot_tools:$PATH"
+    export PATH="$SCRIPT_DIR/External/depot_tools:$PATH"
     
     if [[ ! -d "v8" ]] || [[ ! -f ".gclient" ]]; then
-        print_status "Fetching V8 (this may take 30-60 minutes depending on your connection)..."
+        print_status "Fetching V8 to External/ (this may take 30-60 minutes depending on your connection)..."
         # Remove incomplete V8 directory if it exists
         [[ -d "v8" ]] && rm -rf v8
         fetch v8
-        print_success "V8 source fetched successfully"
+        print_success "V8 source fetched successfully to External/"
     else
         print_status "V8 directory exists, syncing..."
         cd v8
         gclient sync
-        cd "$SCRIPT_DIR"
+        cd "$SCRIPT_DIR/External"
         print_success "V8 source synchronized"
     fi
 }
@@ -330,8 +337,8 @@ configure_v8() {
     
     # Ensure we're in the script directory and depot_tools is in PATH
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    export PATH="$SCRIPT_DIR/depot_tools:$PATH"
-    cd "$SCRIPT_DIR/v8"
+    export PATH="$SCRIPT_DIR/External/depot_tools:$PATH"
+    cd "$SCRIPT_DIR/External/v8"
     
     # Base build arguments (optimized for fast build)
     BUILD_ARGS="is_debug=false"
@@ -428,8 +435,8 @@ build_v8() {
     
     # Ensure we're in the script directory and depot_tools is in PATH
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    export PATH="$SCRIPT_DIR/depot_tools:$PATH"
-    cd "$SCRIPT_DIR/v8"
+    export PATH="$SCRIPT_DIR/External/depot_tools:$PATH"
+    cd "$SCRIPT_DIR/External/v8"
     
     # Determine number of parallel jobs
     if [[ "$OS" == "rpi" ]]; then
@@ -546,13 +553,13 @@ create_build_info() {
     "platform": "$OS",
     "architecture": "$ARCH", 
     "build_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-    "v8_version": "$(cd v8 && git describe --tags --always 2>/dev/null || echo 'unknown')",
+    "v8_version": "$(cd External/v8 && git describe --tags --always 2>/dev/null || echo 'unknown')",
     "libraries": {
         "v8": "$V8_LIB",
         "v8_libplatform": "$V8_PLATFORM",
         "v8_libbase": "$V8_BASE"
     },
-    "include_path": "v8/include",
+    "include_path": "External/v8/include",
     "project_binaries": {
         "v8c": "Bin/v8c$([ '$OS' = 'windows' ] && echo '.exe' || echo '')",
         "examples": "build/",

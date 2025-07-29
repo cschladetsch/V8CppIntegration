@@ -93,13 +93,13 @@ get_v8_paths() {
     local arch="${1:-x64}"
     
     if [[ "$OS" == "windows" ]]; then
-        V8_LIB="v8/out/${arch}.release/obj/v8.lib"
-        V8_PLATFORM="v8/out/${arch}.release/obj/v8_libplatform.lib" 
-        V8_BASE="v8/out/${arch}.release/obj/v8_libbase.lib"
+        V8_LIB="External/v8/out/${arch}.release/obj/v8.lib"
+        V8_PLATFORM="External/v8/out/${arch}.release/obj/v8_libplatform.lib" 
+        V8_BASE="External/v8/out/${arch}.release/obj/v8_libbase.lib"
     else
-        V8_LIB="v8/out/${arch}.release/obj/libv8.a"
-        V8_PLATFORM="v8/out/${arch}.release/obj/libv8_libplatform.a"
-        V8_BASE="v8/out/${arch}.release/obj/libv8_libbase.a"
+        V8_LIB="External/v8/out/${arch}.release/obj/libv8.a"
+        V8_PLATFORM="External/v8/out/${arch}.release/obj/libv8_libplatform.a"
+        V8_BASE="External/v8/out/${arch}.release/obj/libv8_libbase.a"
     fi
 }
 
@@ -113,13 +113,40 @@ check_v8_built() {
         print_success "V8 libraries found and ready"
         return 0
     else
-        print_error "V8 libraries not found or incomplete"
-        print_error "Expected libraries:"
-        print_error "  - $V8_LIB"
-        print_error "  - $V8_PLATFORM"
-        print_error "  - $V8_BASE"
-        print_error ""
-        print_error "Please run ./build-v8.sh first to build V8"
+        print_warning "V8 libraries not found or incomplete"
+        print_status "Expected libraries:"
+        print_status "  - $V8_LIB"
+        print_status "  - $V8_PLATFORM"
+        print_status "  - $V8_BASE"
+        print_status ""
+        return 1
+    fi
+}
+
+# Build V8 dependencies automatically
+build_v8_dependencies() {
+    print_status "V8 not found, building V8 dependencies automatically..."
+    print_status "This may take 1-3 hours depending on your hardware"
+    
+    # Get script directory
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    
+    # Check if build-v8.sh exists
+    if [[ ! -f "$SCRIPT_DIR/build-v8.sh" ]]; then
+        print_error "build-v8.sh script not found in $SCRIPT_DIR"
+        print_error "Cannot automatically build V8 dependencies"
+        print_error "Please ensure build-v8.sh is available and run it manually"
+        return 1
+    fi
+    
+    # Run V8 build script
+    print_status "Running ./build-v8.sh to build V8 dependencies..."
+    if "$SCRIPT_DIR/build-v8.sh"; then
+        print_success "V8 dependencies built successfully!"
+        return 0
+    else
+        print_error "Failed to build V8 dependencies"
+        print_error "Please check the error messages above and try running ./build-v8.sh manually"
         return 1
     fi
 }
