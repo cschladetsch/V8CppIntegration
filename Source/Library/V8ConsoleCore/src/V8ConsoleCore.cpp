@@ -33,7 +33,8 @@ V8ConsoleCore::V8ConsoleCore()
         {"cd", "Change directory"},
         {"pwd", "Print working directory"},
         {"alias", "Set or show aliases"},
-        {"export", "Set environment variable"}
+        {"export", "Set environment variable"},
+        {"ask", "Ask Claude AI a question"}
     };
 }
 
@@ -287,6 +288,85 @@ CommandResult V8ConsoleCore::ExecuteBuiltinCommand(const std::string& command) {
         result.output = "Loaded DLLs:\n";
         for (const auto& dll : loadedDlls_) {
             result.output += "  " + dll + "\n";
+        }
+    } else if (cmd == "ask") {
+        // Execute PyClaudeCli with the user's question
+        if (words.size() > 1) {
+            // Join all words after "ask" to form the question
+            std::string question;
+            for (size_t i = 1; i < words.size(); ++i) {
+                if (i > 1) question += " ";
+                question += words[i];
+            }
+            
+            // Check if PyClaudeCli is available
+            FILE* checkPipe = popen("which ask 2>/dev/null", "r");
+            if (checkPipe) {
+                char buffer[256];
+                bool hasAsk = (fgets(buffer, sizeof(buffer), checkPipe) != nullptr);
+                pclose(checkPipe);
+                
+                if (hasAsk) {
+                    // Execute ask command with the question
+                    std::string askCommand = "ask \"" + question + "\" 2>&1";
+                    FILE* pipe = popen(askCommand.c_str(), "r");
+                    if (pipe) {
+                        std::string output;
+                        char outputBuffer[4096];
+                        while (fgets(outputBuffer, sizeof(outputBuffer), pipe)) {
+                            output += outputBuffer;
+                        }
+                        int exitCode = pclose(pipe);
+                        
+                        if (WEXITSTATUS(exitCode) == 0) {
+                            result.output = output;
+                        } else {
+                            result.success = false;
+                            result.error = "Error executing ask command: " + output;
+                            result.exitCode = WEXITSTATUS(exitCode);
+                        }
+                    } else {
+                        result.success = false;
+                        result.error = "Failed to execute ask command";
+                        result.exitCode = 1;
+                    }
+                } else {
+                    // PyClaudeCli not found, try to execute directly from the repo
+                    std::string pyClaudePath = fs::path(fs::current_path()).parent_path() / "PyClaudeCli" / "main.py";
+                    if (fs::exists(pyClaudePath)) {
+                        std::string pythonCmd = "python3 \"" + pyClaudePath + "\" \"" + question + "\" 2>&1";
+                        FILE* pipe = popen(pythonCmd.c_str(), "r");
+                        if (pipe) {
+                            std::string output;
+                            char outputBuffer[4096];
+                            while (fgets(outputBuffer, sizeof(outputBuffer), pipe)) {
+                                output += outputBuffer;
+                            }
+                            int exitCode = pclose(pipe);
+                            
+                            if (WEXITSTATUS(exitCode) == 0) {
+                                result.output = output;
+                            } else {
+                                result.success = false;
+                                result.error = "Error executing PyClaudeCli: " + output;
+                                result.exitCode = WEXITSTATUS(exitCode);
+                            }
+                        } else {
+                            result.success = false;
+                            result.error = "Failed to execute PyClaudeCli";
+                            result.exitCode = 1;
+                        }
+                    } else {
+                        result.success = false;
+                        result.error = "PyClaudeCli not found. Please ensure 'ask' is in your PATH or PyClaudeCli is in the parent directory.";
+                        result.exitCode = 1;
+                    }
+                }
+            }
+        } else {
+            result.success = false;
+            result.error = "Usage: ask <question>";
+            result.exitCode = 1;
         }
     } else {
         result.success = false;
